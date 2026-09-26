@@ -1,6 +1,16 @@
 # Revision-checked Overwatch integration, stage 3
 
-Target: `CompleteDotTech/Overwatch@501bd99a0cb0c6b321feb022f5747d6dcbd5e9c4`. On 2026-09-26 this delta passed preflight and was applied in the local Windows primary checkout; its frontend passed eight Vitest tests and built successfully after the case-insensitive `ModelRunsView.tsx` naming fix. A local producer export passed provider-to-presentation verification. The full backend suite was blocked by a 401 from the private package index, and actual UI inspection remains open. This directory is the source integration payload, not a claim of complete live application validation.
+Target: `CompleteDotTech/Overwatch@501bd99a0cb0c6b321feb022f5747d6dcbd5e9c4`.
+The published baseline README recorded a Windows preflight/application, eight
+Vitest tests, a frontend build and local provider-to-presentation verification on
+2026-09-26. It also recorded a private-index 401 blocker and an uninspected UI.
+Those are retained historical reports, not results independently rerun here.
+
+This source-hardening overlay tests guarded fresh/v1/stage-three migrations on
+Linux fixtures, including LF/CRLF files and rollback. On the primary Windows
+checkout it passed preflight and updated one known frontend test. Eight frontend
+tests and the production build passed. Full backend and populated UI verification
+remain open.
 
 ## Apply in the primary checkout
 
@@ -11,9 +21,9 @@ python integrations/overwatch/apply.py --root 'C:\path\to\Overwatch' --check
 python integrations/overwatch/apply.py --root 'C:\path\to\Overwatch' --apply
 ```
 
-Read applicable `AGENTS.md` in the primary checkout first. The installer checks the exact Git revision and every modified base file's normalized Git blob SHA. It accepts the exact base, the exact known v1 integration, or its own exact current delta. Reverse patching must reconstruct the verified base bytes: arbitrary edits are never treated as an upgrade. New-file replacements require the known v1 hash or the current bytes. Unknown target edits, review paths, symlinks and Git worktrees are refused. Unrelated files are untouched. Writes are backed up under `.kev-laya-stage3-backup-*`, atomically replaced and rolled back on failure. A different revision requires deliberate review/rebase, not `--force`.
+Read applicable `AGENTS.md` in the primary checkout first. The installer checks the exact Git revision and every modified base file's normalized Git blob SHA. It accepts the exact base, the exact known v1 integration, or its own exact current delta. Reverse patching must reconstruct the verified base bytes: arbitrary edits are never treated as an upgrade. New-file replacements require a known v1/stage-three hash or the current bytes. Historical `./ModelRuns` and current `./ModelRunsView` imports are recognized only by exact reverse-to-base proof. An obsolete `ModelRuns.tsx` is removed only after verifying its known hash; changed or unknown obsolete files are refused. Backups and rollback include deletions. Unknown target edits, review paths, symlinks and Git worktrees are refused. Unrelated files are untouched. Writes are backed up under `.kev-laya-stage3-backup-*`, atomically replaced and rolled back on failure. A different revision requires deliberate review/rebase, not `--force`.
 
-The delta extends the eight inspected base files: collector, raw cache, cached metrics, report, report service, constants, frontend types and App. Added modules contain the versioned provider, pure adapter, standalone contract/lock, model-run frontend components/tests and native pipeline test. The current payload preflights as already applied against the local checkout; future revisions require a deliberate rebase.
+The delta extends the eight inspected base files: collector, raw cache, cached metrics, report, report service, constants, frontend types and App. Added modules contain the versioned provider, pure adapter, standalone contract/lock, model-run frontend components/tests and native pipeline test. This payload preflights as applied against the current primary checkout; future revisions require a deliberate rebase.
 
 ## Real data path
 
@@ -60,7 +70,7 @@ In an environment with Playwright and its Chromium browser installed, inspect th
 python integrations/overwatch/verification/inspect_ui.py --url http://127.0.0.1:8765 --run-id resume-proof --out C:\temp\overwatch-stage3\ui-evidence
 ```
 
-The script reads the actual `/api/report`, verifies the model-run card and parallel counters in the existing React application, captures page errors and saves a screenshot/report. It accepts only loopback URLs and never serves an imitation page. It has not run here. The frontend typecheck/tests/build passed locally, but they do not substitute for populated UI inspection.
+The script reads the actual `/api/report`, verifies the model-run card and parallel counters in the existing React application, captures page errors and saves a screenshot/report. It accepts only loopback URLs and never serves an imitation page. It has not run here. The published baseline reported frontend checks; this session exercised only the TypeScript client/helper and helper runtime assertions, not the full React application.
 
 ## Remote transport and deadline boundaries
 

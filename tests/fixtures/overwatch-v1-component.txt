@@ -1,0 +1,46 @@
+import { Anchor, Badge, Box, Card, Group, Stack, Table, Text, Title } from "@mantine/core";
+import { curve, percentile, safeWebURL } from "./modelRuns";
+import type { ModelRun } from "./modelRuns";
+
+function MetricCurve({ run, metric }: { run: ModelRun; metric: string }) {
+  const points = curve(run.history, metric);
+  return <Box><Text size="xs">{metric}: {run.metrics[metric]?.toPrecision(4) ?? "unknown"}</Text>
+    {points && <svg role="img" aria-label={`${metric} by optimizer step for ${run.run_id}`} viewBox="0 0 260 80" width="260" height="80">
+      <polyline fill="none" stroke="currentColor" strokeWidth="2" points={points} />
+    </svg>}</Box>;
+}
+function ArtifactLink({ uri, label }: { uri: string; label: string }) {
+  const web = safeWebURL(uri);
+  return web ? <Anchor href={web} target="_blank" rel="noreferrer">{label}</Anchor>
+    : <Text size="xs" style={{ overflowWrap: "anywhere" }}>{label}: {uri}</Text>;
+}
+export function ModelRuns({ runs, warnings = [] }: { runs: ModelRun[]; warnings?: Array<Record<string, unknown>> }) {
+  return <Stack gap="md" mt="xl">
+    <Title order={2}>Decision model experiments</Title>
+    {warnings.length > 0 && <Text role="status">{warnings.length} telemetry warning(s): {warnings.map(w => String(w.code ?? "unknown")).join(", ")}</Text>}
+    {!runs.length && <Text c="dimmed">No registered Kev-Laya runs. Resource inventory above is unchanged.</Text>}
+    {runs.map(run => <Card withBorder key={`${run.experiment_id}/${run.run_id}`}>
+      <Group justify="space-between"><Title order={3}>{run.experiment_id} / {run.run_id}</Title>
+        <Group><Badge>{run.phase}</Badge><Badge variant="outline">{run.freshness}</Badge><Badge variant="outline">{run.provenance.evidence_class}</Badge></Group>
+      </Group>
+      <Text size="sm">Attempt {run.attempt_index} · {run.attempt_id} · sequence {run.sequence}</Text>
+      <Text size="sm">Trainer phase: {run.phase} · Sky: {run.provider_status.skypilot ?? "unknown"} · W&amp;B: {run.provider_status.wandb ?? "unknown"}</Text>
+      <Text size="sm">Association: {run.association.status}{run.association.scheduler ? ` · ${run.association.scheduler.namespace}/${run.association.scheduler.job_id}` : " (no scheduler resource)"}</Text>
+      <Text size="xs">Heartbeat {run.heartbeat_at} · {Math.round(run.heartbeat_age_seconds)} seconds old · monitoring failures {run.monitoring_export_failures}</Text>
+      <Text>{run.progress.optimizer_steps.toLocaleString()} / {run.progress.totals.optimizer_steps?.toLocaleString() ?? "unknown"} optimizer steps</Text>
+      <Text size="sm">{run.progress.microbatches.toLocaleString()} microbatches · {run.progress.examples.toLocaleString()} examples · {run.progress.forward_tokens.toLocaleString()} forward tokens</Text>
+      <Text size="sm">Elapsed {run.progress.elapsed_seconds?.toFixed(1) ?? "unknown"} s · ETA {run.progress.eta_seconds?.toFixed(1) ?? "unknown"} s · {run.progress.tokens_per_second?.toFixed(1) ?? "unknown"} tokens/s</Text>
+      <Group align="start"><MetricCurve run={run} metric="loss/ce" /><MetricCurve run={run} metric="reward/proper" /><MetricCurve run={run} metric="validation/ece" /></Group>
+      <Text size="sm">Backbone {run.provenance.backbone} · {run.provenance.precision} · {run.provenance.hardware}</Text>
+      <Text size="xs">Branch budget {run.provenance.context_limits.branch}; aggregate {run.provenance.context_limits.aggregate}. Budget is not a benchmark result.</Text>
+      <Group>{run.git_url && <ArtifactLink uri={run.git_url} label="Source commit" />}{run.wandb_url && <ArtifactLink uri={run.wandb_url} label="W&B run" />}</Group>
+      <Text size="sm">Resume: {run.resume.capable ? "optimization-boundary checkpoint available" : "not established"} · parent attempt: {run.parent_attempt_id ?? "none"}</Text>
+      <Text size="sm">Recoveries: {run.recoveries.total ?? "unknown"}; infrastructure {run.recoveries.infrastructure ?? "unknown"}; application {run.recoveries.application ?? "unknown"}</Text>
+      <Text size="sm">Measured cost: {run.cost.measured_usd == null ? "unknown" : `$${run.cost.measured_usd.toFixed(4)}`} · estimate: {run.cost.estimated_usd == null ? "unknown" : `$${run.cost.estimated_usd.toFixed(4)}`} · basis {run.cost.basis ?? "unknown"}</Text>
+      <Text size="sm">Serving: {run.serving.requests} requests / {run.serving.errors} errors · recent latency (last 128): p50 {percentile(run.serving.latency_ms, .5)?.toFixed(1) ?? "unknown"} ms · p95 {percentile(run.serving.latency_ms, .95)?.toFixed(1) ?? "unknown"} ms · {run.serving.prefix_reuses} prefix reuses</Text>
+      <Table><Table.Thead><Table.Tr><Table.Th>Artifact</Table.Th><Table.Th>Checksum / lineage</Table.Th></Table.Tr></Table.Thead>
+        <Table.Tbody>{run.artifacts.map(a => <Table.Tr key={`${a.kind}/${a.sha256}`}><Table.Td><ArtifactLink uri={a.uri} label={a.kind} /></Table.Td>
+          <Table.Td><Text size="xs" ff="monospace">{a.sha256}</Text><Text size="xs">Parent {a.parent_sha256 ?? "none"} · {a.size_bytes.toLocaleString()} bytes</Text></Table.Td></Table.Tr>)}</Table.Tbody></Table>
+    </Card>)}
+  </Stack>;
+}

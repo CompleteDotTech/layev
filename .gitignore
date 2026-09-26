@@ -23,3 +23,6 @@ backbone/
 node_modules/
 coverage/
 .DS_Store
+.stage3-backups/
+.kev-laya-stage3-backup-*/
+verification-output/

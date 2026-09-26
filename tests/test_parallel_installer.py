@@ -5,9 +5,9 @@ import pytest
 
 
 def installer():
-    file=Path(__file__).resolve().parents[2]/'apply_parallel.py'
-    # Standalone development checkout need not carry its outer delivery installer.
-    if not file.exists():pytest.skip('delivery installer is outside standalone model checkout')
+    file=Path(__file__).resolve().parents[1]/'integrations/archive/apply_parallel.py'
+    # Exact retained updater bytes; tests use temporary bundle fixtures only.
+    assert file.is_file(), 'standalone source must retain the tested historical updater'
     spec=importlib.util.spec_from_file_location('parallel_installer',file)
     module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module);return module
 

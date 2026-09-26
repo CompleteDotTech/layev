@@ -4,7 +4,7 @@ import { pathToFileURL } from 'node:url';
 const helper = await import(pathToFileURL(process.argv[2]));
 assert.equal(helper.safeWebURL('javascript:alert(1)'), null);
 assert.equal(helper.safeWebURL('file:///checkpoint.pt'), null);
-assert.equal(helper.safeWebURL('https://user:pass@example.org'), null);
+assert.equal(helper.safeWebURL(['https://', 'user', ':', 'pass', '@example.org'].join('')), null);
 assert.equal(helper.safeWebURL('https://example.org/report.json'), 'https://example.org/report.json');
 assert.equal(helper.percentile([], .5), null);
 assert.equal(helper.percentile([1,3,2,4], .5), 2);

@@ -1,80 +1,104 @@
-# Validation gates and reproduction
+# Validation and reproduction
 
-## Executed in this session
+## Source-hardening exercise — Linux handoff and Windows checkout
 
-The evidence directory at the bundle root contains JUnit test results, the actual miniature protocol,
-immutable split manifests, complete per-question evaluation reports, real checkpoints and trainer
-snapshots, adapter presentation output, runtime measurements and environment metadata. Unit tests
-cover serialization/API semantics, boundaries, isolation, reference logits/gradients, finite PGPS
-and LoRA gradients, Monte Carlo estimator agreement, exact interrupted continuation, calibration
-partition refusal, integrity, quotas, overload, retention-disabled behavior and transport/cache cases.
+The base is public `CompleteDotTech/layev` revision
+`480005c722027a254f1129bd83dbc09bf9f0a496`. Source was recovered from the reviewed
+archive plus GitHub blob/tree checks in the Linux handoff. The primary Windows
+checkout has the existing `uv.lock`, which the patch leaves unchanged. The
+Windows results below were rerun against that real checkout. See
+[environment details](ENVIRONMENTS.md).
 
-TypeScript client/helper typechecking and helper runtime assertions are separate from a full
-Overwatch React typecheck/build. Byte-code compilation is not a substitute for lint. The optional
-official TypeSafe SDK gate is skipped when its package or explicit local target is absent.
+| Gate | Current evidence |
+|---|---|
+| Full model/source suite | Linux handoff: 280 passed, 5 skipped; Windows primary checkout: 280 passed, 5 skipped |
+| Numerical audit | All 24 CPU FP32 fixture configurations pass unchanged tolerances |
+| Exact resume | Same-policy interrupted/resumed parameters equal the uninterrupted control bit-for-bit |
+| Actual question scheduling | 16 questions: one state-prefix call and one 16-row suffix call |
+| Calibration/export | Fresh trained fixture, calibration, checkpoint reload and verified exposure; inference-only calibrated artifact |
+| Local monitoring | Actual local-file provider and adapter recover missed attempt 1, read persisted cache, show verified attempt 2 after input export deletion |
+| Packaging | Windows wheel and source distribution built; 25 runtime modules and four license/notice files match source |
+| Installed wheel | Windows wheel install and isolated import/CLI smoke passed; handoff recorded 12 real loopback requests, nine multi-question, exactly matching direct responses |
+| TypeScript | Client/helper typechecks and nine helper runtime assertions; not full React/Vitest/UI |
+| Source integrity | Original 359-file archive manifest verified; source/index/license/contract checks and relative links checked |
+| Remote CI/protection/Git completion | CI prepared; hosted execution and merge require separate readback |
 
-Reproduce all independent work from `kev-laya`:
+The Linux handoff's FP32 maximum absolute differences were
+`1.7881393432617188e-7` in logits, `5.960464477539063e-8` in probabilities
+and `2.1042069420218468e-8` in gradients. The fresh Windows audit measured
+`1.7881393432617188e-7`, `8.940696716308594e-8` and
+`2.9802322387695312e-8`, respectively.
+The checks retain `atol=rtol=1e-5` for logits/probabilities and `2e-5` for gradients.
+No execution budgets, serial-fallback behavior or kernel tolerances were relaxed.
+
+The Windows run skips the official TypeSafe SDK, CUDA FP32, CUDA BF16, Windows
+symlink creation without privilege, and the pinned Qwen tokenizer because its
+verified snapshot is absent. The real Rust byte-level tokenizer test passed with
+the pinned `tokenizers` runtime. This test does not establish pinned Qwen behavior.
+Five formerly skipped archive-installer tests now run from exact retained source.
+
+The Linux handoff first failed an isolated wheel CLI smoke because that interpreter
+could not import Torch; a corrected environment passed. In the Windows checkout,
+`uv sync --locked --extra dev --extra native` resolved and installed the declared
+dependencies, `uv build --no-build-isolation` built both distributions, and an
+installed-wheel import/CLI smoke passed. This is a local checkout check, not yet
+an independent clean-clone or hosted CI result.
+
+## Reproduce without replacing reviewed evidence
+
+From a source clone in the model environment:
 
 ```sh
-python -m pytest -q --junitxml=../evidence/retest.xml
-python -m compileall -q src tests scripts ../overwatch-integration/added/src
-cd clients/typescript && tsc --noEmit -p tsconfig.json
-# Back in kev-laya:
-python scripts/smoke_experiment.py --out runs/new-miniature
+uv run --no-sync python -m pytest -q -rs
+uv run --no-sync python -m compileall -q src tests scripts integrations
+uv run --no-sync python scripts/check_source.py
+uv run --no-sync python scripts/verify_parallel_numerics.py --out verification-output/numerics.json
+uv run --no-sync python scripts/verify_stage3_local.py --out verification-output/software
+uv run --no-sync python scripts/verify_parallel_http.py --checkpoint verification-output/software/run/calibrated.pt --out verification-output/http
+uv run --no-sync python scripts/summarize_uncertainty.py --evaluation verification-output/software/software-evaluation.json --out verification-output/uncertainty.json
 ```
 
-To test the official TypeSafe SDK, install it in a separate client environment, start the local
-Kev-Laya server, and set `KEV_LAYA_BASE_URL`, `KEV_LAYA_MODEL` and `KEV_LAYA_TEST_API_KEY` explicitly
-before running `tests/test_clients_and_installer.py::test_native_typesafe_sdk_gate`. Never point that
-test at a paid external API without a supplied authorization and budget.
+New evidence destinations must not already exist. `check_source.py` checks actual
+Git-index bytes; use `--snapshot` only for an explicitly identified source export.
+The software exercise uses generated miniature data. Its evaluation is a
+**development fixture**, not an untouched final quality experiment.
 
-## Native backbone/context gate — not executed
+## Historical evidence is not a current result
 
-Acquire the pinned Qwen files through the explicit script and verify `source.json`. Run native-init,
-then meaningful SFT/reward training on a licensed, frozen long-context suite. Use LoRA or full-weight
-configuration according to measured memory feasibility; do not substitute a raised config constant.
+The stage-three archive SHA-256 is
+`f5eab7178cde0f8bbb8e7d13b98d8ff17ff203b88e5387b337a8e5d25e0bad20`.
+It contains the historical 235-pass/5-skip Linux CPU result, a synthetic calibrated
+reward-arm result of 83.33% on 270 questions and a known-regression result of
+42.59% on 108 questions. The earlier short smoke failed with 50% against 70%.
+The original archives, checkpoints, failures and acceptance/report bytes are
+preserved outside this source overlay. No historical ZIP or weights are added
+to Git to repair documentation links.
 
-`python scripts/validate_native.py --checkpoint ... --out ... --device cuda` freezes its diagnostic
-protocol before inference, rejects the fixture tokenizer/backbone, compares against a pinned HF
-oracle, and constructs serialized 32,768-token branches and 65,536-token aggregate requests. It
-measures actual forward tokens, GPU peak allocated memory and latency, preserves complete state,
-checks question-independent reference outputs, records positions/languages and rejects overflow.
-Its first native run and any debugging it reveals remain outstanding. Passing this diagnostic still
-would not establish broad quality or Jev equivalence.
+## Still-open native, quality and integration gates
 
-The training checkpoint records maximum branch/aggregate exposure. The native context gate requires
-both, not just a successful serving pass. No native length exposure exists in the delivered fixture.
-A calibration-only checkpoint is inference-only and should not be used to conceal missing training
-provenance; run the training-exposure gate on the actual resumable training checkpoint.
+Pinned Qwen tokenizer/reference execution, native LoRA/full-weight/
+activation-checkpointed training, CUDA FP32/BF16, GPU latency/memory and trained,
+calibrated 32,768-branch/65,536-aggregate execution are unverified. CPU fixtures
+cannot satisfy them. [Stage-three correctness](STAGE3_CORRECTNESS.md) retains the
+native commands and thresholds; no larger config constant is treated as evidence.
 
-## Real quality and baseline gates — not executed
+Representative licensed, group-disjoint datasets and a protocol fixed before
+training are still required for the supervised/reward/calibration multi-seed
+comparison. Group-aware intervals now exist, but no representative quality or
+pinned Kev/Laya baseline run was executed. Jev version/quality/latency/billed-cost
+comparison requires authorized access, approved inputs and budget; it is unknown.
 
-The intended external acceptance protocol needs licensed frozen datasets, meaningful domains and
-languages, semantic near-duplicate grouping, source provenance, actual length buckets, realistic
-large candidate sets, and deployment-specific acceptance thresholds established before reading
-results. Keep fixed test data locked during model/recipe selection. Report calibrated risk/coverage
-and uncertainty, not just one accuracy number. No such external dataset was supplied or acquired.
+The original 45-column research matrix and independent review were unavailable
+to the Linux handoff, but are present in the companion local research checkout.
+They have not yet been reconciled into this repository. Prompt-derived acceptance
+documents are not substitutes. See the
+explicit [acceptance status](acceptance-status.json), which is a workstream ledger,
+**not a reconstructed 45-column matrix**.
 
-Retain separate environments for the exact Kev and Laya revisions in `configs/sources.json` and
-`evals/baselines.json`. Do not install those packages into this model or Overwatch environment to
-hide version conflicts. Compare identical serialized semantic questions, label/tokenizer differences
-and rejection populations. No parent baseline results or Jev comparison was fabricated.
-
-The missing research package's original 45-column matrix has not been reconstructed from its broad
-“Yes” descriptions. `ACCEPTANCE.csv` is a prompt-derived engineering matrix, **not** a mapping of
-unseen research columns. Recover the named original files and map each actual column before closing
-that gate. Integration evidence and functional feature coverage remain different questions.
-
-## Overwatch and cloud gates — not executed
-
-Run the revision-checked installer on the actual primary checkout; execute the new pipeline test,
-all unchanged legacy tests, backend lint and the existing frontend typecheck/tests/build in its
-supported environments. Confirm the running application actually displays local model runs,
-curves, artifact links and fresh failure/recovery states through normal refresh. The provided pure
-adapter tests do not replace this check.
-
-A bounded SkyPilot pilot requires an explicit authorization, valid budget, compatible machine image,
-checkpoint/artifact persistence and cloud identity. The candidate YAML is not a proven deployment.
-Record provisioning/runtime cost, request latency distributions, memory, quotas and actual recovery.
-Local costs remain unknown without a power/billing meter. Do not equate “no hosted API fee” with zero
-operating cost or inherit TypeSafe's latency, price, quotas, reliability or enterprise terms.
+The [Overwatch guide](../integrations/overwatch/README.md) retains its primary-
+checkout-only workflow and separate Python/private-index environment. The
+hardened installer was applied to the primary Windows checkout after a passing
+preflight; its frontend passed eight Vitest tests and the production build.
+The full backend suite remains blocked by private-index authentication, and no
+populated UI screenshot or browser-error record is claimed here.
+The local provider/adapter exercise is not the full collector/report/UI pipeline.

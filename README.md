@@ -4,12 +4,29 @@ Layev is an open research implementation combining Kev's learned option scorer a
 
 **Status:** The source has passed CPU fixture tests in its delivery environment. It is a research candidate, not a validated Jev replacement. Native Qwen/tokenizer and CUDA checks, trained 32k/64k context, general predictive quality, Jev-relative quality/cost/latency, and a complete live Overwatch pipeline remain open. See [the next-stage implementation prompt](docs/NEXT_STAGE_PROMPT.md) for the acceptance plan.
 
+## Unreleased source-hardening work
+
+The handoff recorded **280 passed, 5 skipped** on Linux CPU. A fresh Windows run
+here also passed **280 tests with 5 skips**, including the real Rust byte-level
+tokenizer test after correcting its trainer input type. These are separate from
+the historical archive result. The strict 24-configuration audit,
+exact interrupted/resumed continuation, real 16-row question batching, fresh
+calibration/export and installed-wheel loopback checks have been exercised.
+The guarded integration upgrade, source/index checks and group-aware uncertainty
+reporting are documented in [release readiness](docs/RELEASE_READINESS.md).
+See [current validation](docs/VALIDATION.md) and [environment boundaries](docs/ENVIRONMENTS.md).
+
+These results do not close pinned Qwen/CUDA, trained 32k/64k context, representative
+predictive quality, Jev comparison, or the full Overwatch backend/report/UI pipeline.
+Remote CI and merge must be checked separately from local validation.
+The repository's existing lock is retained unchanged.
+
 ## Layout
 
 - `src/kev_laya/`: model, training, serving, telemetry, and checkpoint code.
 - `tests/`: software and numerical regression tests.
 - `integrations/overwatch/`: guarded adapter payload and instructions for the existing Overwatch application.
-- `docs/`: architecture, telemetry, correctness, and validation notes. [The archive's original README](docs/ARCHIVE_README.md) is retained for provenance; its relative evidence paths refer to the separate delivery ZIP.
+- `docs/`: architecture, telemetry, correctness, and validation notes. [The archive README (link-normalized copy)](docs/ARCHIVE_README.md) is retained for provenance; its relative evidence paths refer to the separate delivery ZIP.
 - `licenses/` and `NOTICE`: upstream attribution and license texts.
 
 The source came from `Kev_Laya_Correctness_Integration.zip` (delivery version `0.1.0+stage3`). That ZIP contains the larger historical evidence and trained fixture artifacts. Those artifacts and any private environment values are not part of this source repository. The 45-column reference comparison is in the companion `overwatch-model-research/FEATURE_MATRIX.json` checkout and must be reconciled against this implementation before parity claims.
