@@ -1,0 +1,28 @@
+{
+  "training": {
+    "steps": 1000,
+    "accumulation": 4,
+    "learning_rate": 0.0001,
+    "save_every": 100,
+    "precision": "bf16",
+    "seed": 42,
+    "choice_permutation": true
+  },
+  "objective": {
+    "ce": 1.0,
+    "reinforce": 0.0,
+    "ordinal": 0.1
+  },
+  "limits": {
+    "branch": 32768,
+    "aggregate": 65536,
+    "max_questions": 1024
+  },
+  "execution": {
+    "version": "parallel-questions-v1",
+    "max_branches": 16,
+    "max_padded_tokens": 65536,
+    "max_cache_bytes": 536870912,
+    "sort_by_length": true
+  }
+}

@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "backbone": {
+      "properties": {
+        "vocab_size": {
+          "default": 261,
+          "title": "Vocab Size",
+          "type": "integer"
+        },
+        "hidden_size": {
+          "default": 64,
+          "title": "Hidden Size",
+          "type": "integer"
+        },
+        "intermediate_size": {
+          "default": 128,
+          "title": "Intermediate Size",
+          "type": "integer"
+        },
+        "num_hidden_layers": {
+          "default": 2,
+          "title": "Num Hidden Layers",
+          "type": "integer"
+        },
+        "num_attention_heads": {
+          "default": 4,
+          "title": "Num Attention Heads",
+          "type": "integer"
+        },
+        "num_key_value_heads": {
+          "default": 2,
+          "title": "Num Key Value Heads",
+          "type": "integer"
+        },
+        "max_position_embeddings": {
+          "default": 512,
+          "title": "Max Position Embeddings",
+          "type": "integer"
+        },
+        "rope_theta": {
+          "default": 1000000.0,
+          "title": "Rope Theta",
+          "type": "number"
+        },
+        "rms_norm_eps": {
+          "default": 1e-06,
+          "title": "Rms Norm Eps",
+          "type": "number"
+        },
+        "pointer_dim": {
+          "default": 32,
+          "title": "Pointer Dim",
+          "type": "integer"
+        },
+        "lora_rank": {
+          "default": 0,
+          "title": "Lora Rank",
+          "type": "integer"
+        },
+        "lora_alpha": {
+          "default": 16.0,
+          "title": "Lora Alpha",
+          "type": "number"
+        },
+        "activation_checkpointing": {
+          "default": false,
+          "title": "Activation Checkpointing",
+          "type": "boolean"
+        },
+        "source": {
+          "default": "tiny-qwen2-fixture",
+          "title": "Source",
+          "type": "string"
+        },
+        "revision": {
+          "default": "local-fixture-v1",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "title": "BackboneConfig",
+      "type": "object"
+    },
+    "training": {
+      "properties": {
+        "steps": {
+          "default": 160,
+          "title": "Steps",
+          "type": "integer"
+        },
+        "accumulation": {
+          "default": 2,
+          "title": "Accumulation",
+          "type": "integer"
+        },
+        "learning_rate": {
+          "default": 0.003,
+          "title": "Learning Rate",
+          "type": "number"
+        },
+        "weight_decay": {
+          "default": 0.01,
+          "title": "Weight Decay",
+          "type": "number"
+        },
+        "seed": {
+          "default": 42,
+          "title": "Seed",
+          "type": "integer"
+        },
+        "gradient_clip": {
+          "default": 1.0,
+          "title": "Gradient Clip",
+          "type": "number"
+        },
+        "save_every": {
+          "default": 40,
+          "title": "Save Every",
+          "type": "integer"
+        },
+        "keep_checkpoints": {
+          "default": 3,
+          "title": "Keep Checkpoints",
+          "type": "integer"
+        },
+        "precision": {
+          "default": "fp32",
+          "title": "Precision",
+          "type": "string"
+        },
+        "choice_permutation": {
+          "default": false,
+          "title": "Choice Permutation",
+          "type": "boolean"
+        },
+        "resource_sample_seconds": {
+          "default": 1.0,
+          "title": "Resource Sample Seconds",
+          "type": "number"
+        }
+      },
+      "title": "TrainSettings",
+      "type": "object"
+    },
+    "execution": {
+      "properties": {
+        "max_branches": {
+          "default": 16,
+          "title": "Max Branches",
+          "type": "integer"
+        },
+        "max_padded_tokens": {
+          "default": 65536,
+          "title": "Max Padded Tokens",
+          "type": "integer"
+        },
+        "max_cache_bytes": {
+          "default": 536870912,
+          "title": "Max Cache Bytes",
+          "type": "integer"
+        },
+        "sort_by_length": {
+          "default": true,
+          "title": "Sort By Length",
+          "type": "boolean"
+        },
+        "version": {
+          "const": "parallel-questions-v1"
+        }
+      },
+      "title": "BatchPolicy",
+      "type": "object",
+      "additionalProperties": false
+    },
+    "objective": {
+      "properties": {
+        "ce": {
+          "default": 1.0,
+          "title": "Ce",
+          "type": "number"
+        },
+        "reinforce": {
+          "default": 0.0,
+          "title": "Reinforce",
+          "type": "number"
+        },
+        "ordinal": {
+          "default": 0.0,
+          "title": "Ordinal",
+          "type": "number"
+        },
+        "spherical_reward": {
+          "default": 0.75,
+          "title": "Spherical Reward",
+          "type": "number"
+        },
+        "ordinal_reward": {
+          "default": 1.0,
+          "title": "Ordinal Reward",
+          "type": "number"
+        },
+        "sigma": {
+          "default": 0.35,
+          "title": "Sigma",
+          "type": "number"
+        },
+        "samples": {
+          "default": 4,
+          "title": "Samples",
+          "type": "integer"
+        }
+      },
+      "title": "ObjectiveConfig",
+      "type": "object"
+    },
+    "limits": {
+      "type": "object",
+      "properties": {
+        "branch": {
+          "type": "integer",
+          "minimum": 8
+        },
+        "aggregate": {
+          "type": "integer",
+          "minimum": 8
+        },
+        "max_questions": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "branch",
+        "aggregate"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "training",
+    "objective",
+    "limits"
+  ],
+  "additionalProperties": false
+}

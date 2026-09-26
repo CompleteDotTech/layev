@@ -1,0 +1,7 @@
+{
+  "kev": {"repository":"https://github.com/jaredpalmer/kev", "revision":"3d9973b80b34d187f9fc8ce81de940b5767eb624", "access":"source inspected through GitHub connector; not a cloned local checkout"},
+  "laya": {"repository":"https://github.com/NandhaKishorM/laya", "revision":"4066d5d5fbf08b66c6757ddeedbd797bd7655bc0", "access":"source inspected through GitHub connector; not a cloned local checkout"},
+  "overwatch": {"repository":"https://github.com/CompleteDotTech/Overwatch", "revision":"501bd99a0cb0c6b321feb022f5747d6dcbd5e9c4", "python":">=3.13.12,<3.14", "access":"pinned source inspection; Windows checkout not connected"},
+  "backbone": {"repository":"Qwen/Qwen2.5-0.5B", "revision":"060db6499f32faf8b98477b0a26969ef7d8b9987", "license":"Apache-2.0", "native_window":32768, "architecture":"qwen2, full attention, no recurrent state, sliding window disabled", "weights_acquired":false},
+  "research_package": {"available":false,"missing":["MODEL_ALIGNMENT.md","FEATURE_MATRIX.json","FEATURE_MATRIX.md","REPORT.md","clones.json"]}
+}

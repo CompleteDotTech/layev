@@ -1,0 +1,40 @@
+Kev-Laya independent research implementation
+Copyright 2026 Kev-Laya contributors
+Licensed under Apache License 2.0.
+
+This implementation adapts the learned option/pointer readout formulation and
+shared-prefix architecture of Kev, Copyright 2026 Jared Palmer.
+Source: https://github.com/jaredpalmer/kev
+Revision: 3d9973b80b34d187f9fc8ce81de940b5767eb624
+Inspected: kev/model.py PointerHead, encoding and row/shared-prefix design.
+The backbone, checkpoint, training orchestration and serving code here are new.
+Kev's hybrid recurrent kernels and existing weights are not included.
+The complete matching Kev LICENSE is in licenses/Kev-LICENSE.
+
+Proper-scoring rewards, noisy-logit policy-gradient training and lifecycle hooks
+are adapted from Laya (Convai Innovations and contributors).
+Source: https://github.com/NandhaKishorM/laya
+Revision: 4066d5d5fbf08b66c6757ddeedbd797bd7655bc0
+Inspected: laya/common.py, laya/hooks.py and
+notebooks/laya_finetune_typed_decisions_2xT4_kaggle.ipynb.
+PGPS-v1 changes the baseline and gradient estimator details, removes clipped log
+reward and the auxiliary action head, and operates on the single shared pointer
+scorer. Laya's separate encoder/server and pretrained weights are not included.
+The complete matching Laya LICENSE is in licenses/Laya-LICENSE.
+
+Qwen/Qwen2.5-0.5B weights and tokenizer are not distributed here. The selected
+revision's model card declares Apache-2.0; the explicit download script retains
+its separate LICENSE and hashes all acquired files. No weights were acquired
+or executed during this implementation session. Original synthetic fixture data
+and its tiny trained checkpoints are included under this package's license.
+
+Overwatch changes are provided as new modules and a revision-checked installer,
+not as a relicensed copy of the existing application. The original checkout,
+its authorship, dependency constraints, and unrelated work remain unchanged.
+No association with or endorsement by TypeSafe, Kev, Laya or Qwen is implied.
+
+Parallel-question update (parallel-questions-v1): scheduling and right-padded row
+collation adapt the compatible ideas in Kev model.py branch_mask_batch/_rows_hidden
+and Laya common.py collate_items at the same pinned revisions listed above.
+The functional shared-cache planner/executor and tests are independent additions;
+no hybrid-state assumptions, external model servers or upstream weights were copied.

@@ -1,0 +1,705 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "framework": {
+      "const": "kev_laya"
+    },
+    "framework_version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,159}$"
+    },
+    "experiment_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,159}$"
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,159}$"
+    },
+    "attempt_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,159}$"
+    },
+    "attempt_index": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "parent_attempt_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,159}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "heartbeat_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "phase": {
+      "enum": [
+        "calibrate",
+        "cancelled",
+        "completed",
+        "evaluate",
+        "failed",
+        "prepare",
+        "serve",
+        "train"
+      ]
+    },
+    "scheduler": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "const": "skypilot"
+            },
+            "namespace": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,159}$"
+            },
+            "job_id": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "provider",
+            "namespace",
+            "job_id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "wandb": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "entity": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,159}$"
+            },
+            "project": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,159}$"
+            },
+            "run_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,159}$"
+            }
+          },
+          "required": [
+            "entity",
+            "project",
+            "run_id"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "progress": {
+      "type": "object",
+      "properties": {
+        "optimizer_steps": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "microbatches": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "examples": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "forward_tokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "epoch": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "elapsed_seconds": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "eta_seconds": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "tokens_per_second": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "totals": {
+          "type": "object",
+          "properties": {
+            "optimizer_steps": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "microbatches": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "examples": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "forward_tokens": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "optimizer_steps",
+        "microbatches",
+        "examples",
+        "forward_tokens",
+        "epoch",
+        "elapsed_seconds",
+        "eta_seconds",
+        "tokens_per_second",
+        "totals"
+      ],
+      "additionalProperties": false
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "gradient/norm": {
+          "type": "number"
+        },
+        "learning_rate": {
+          "type": "number"
+        },
+        "loss/ce": {
+          "type": "number"
+        },
+        "loss/ordinal": {
+          "type": "number"
+        },
+        "loss/policy_gradient": {
+          "type": "number"
+        },
+        "loss/total": {
+          "type": "number"
+        },
+        "resource/gpu_peak_bytes": {
+          "type": "number"
+        },
+        "resource/rss_bytes": {
+          "type": "number"
+        },
+        "reward/proper": {
+          "type": "number"
+        },
+        "validation/accuracy": {
+          "type": "number"
+        },
+        "validation/brier": {
+          "type": "number"
+        },
+        "validation/ece": {
+          "type": "number"
+        },
+        "validation/nll": {
+          "type": "number"
+        },
+        "validation/ordinal_mae": {
+          "type": "number"
+        }
+      }
+    },
+    "history": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "type": "object",
+        "properties": {
+          "step": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "phase": {
+            "enum": [
+              "calibrate",
+              "cancelled",
+              "completed",
+              "evaluate",
+              "failed",
+              "prepare",
+              "serve",
+              "train"
+            ]
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "gradient/norm": {
+                "type": "number"
+              },
+              "learning_rate": {
+                "type": "number"
+              },
+              "loss/ce": {
+                "type": "number"
+              },
+              "loss/ordinal": {
+                "type": "number"
+              },
+              "loss/policy_gradient": {
+                "type": "number"
+              },
+              "loss/total": {
+                "type": "number"
+              },
+              "resource/gpu_peak_bytes": {
+                "type": "number"
+              },
+              "resource/rss_bytes": {
+                "type": "number"
+              },
+              "reward/proper": {
+                "type": "number"
+              },
+              "validation/accuracy": {
+                "type": "number"
+              },
+              "validation/brier": {
+                "type": "number"
+              },
+              "validation/ece": {
+                "type": "number"
+              },
+              "validation/nll": {
+                "type": "number"
+              },
+              "validation/ordinal_mae": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "required": [
+          "step",
+          "phase",
+          "metrics"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "properties": {
+        "model": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "backbone": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "backbone_revision": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "tokenizer": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "precision": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "hardware": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "evidence_class": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "config_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "data_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "split_hashes": {
+          "type": "object",
+          "properties": {
+            "train": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "development": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "calibration": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "test": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "repository": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uri",
+              "maxLength": 2048
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "commit": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-f0-9]{40,64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "context_limits": {
+          "type": "object",
+          "properties": {
+            "branch": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "aggregate": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "branch",
+            "aggregate"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "model",
+        "backbone",
+        "backbone_revision",
+        "tokenizer",
+        "precision",
+        "hardware",
+        "evidence_class",
+        "config_sha256",
+        "data_sha256",
+        "split_hashes",
+        "seed",
+        "repository",
+        "commit",
+        "context_limits"
+      ],
+      "additionalProperties": false
+    },
+    "artifacts": {
+      "type": "array",
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "enum": [
+              "checkpoint",
+              "configuration",
+              "evaluation",
+              "manifest"
+            ]
+          },
+          "uri": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2048
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "parent_sha256": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resumable": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "kind",
+          "uri",
+          "sha256",
+          "size_bytes",
+          "parent_sha256",
+          "resumable"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "serving": {
+      "type": "object",
+      "properties": {
+        "requests": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "errors": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "input_tokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "forward_tokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "output_tokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "questions": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "prefix_reuses": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "latency_ms": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      },
+      "required": [
+        "requests",
+        "errors",
+        "input_tokens",
+        "forward_tokens",
+        "output_tokens",
+        "questions",
+        "prefix_reuses",
+        "latency_ms"
+      ],
+      "additionalProperties": false
+    },
+    "resume": {
+      "type": "object",
+      "properties": {
+        "capable": {
+          "type": "boolean"
+        },
+        "checkpoint_sha256": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "capable",
+        "checkpoint_sha256"
+      ],
+      "additionalProperties": false
+    },
+    "recoveries": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "infrastructure": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "application": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        }
+      },
+      "required": [
+        "total",
+        "infrastructure",
+        "application"
+      ],
+      "additionalProperties": false
+    },
+    "cost": {
+      "type": "object",
+      "properties": {
+        "measured_usd": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "estimated_usd": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "basis": {
+          "enum": [
+            null,
+            "provider_billing",
+            "configured_hourly_rate",
+            "metered_local"
+          ]
+        }
+      },
+      "required": [
+        "measured_usd",
+        "estimated_usd",
+        "basis"
+      ],
+      "additionalProperties": false
+    },
+    "monitoring_export_failures": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "schema_version",
+    "framework",
+    "framework_version",
+    "experiment_id",
+    "run_id",
+    "attempt_id",
+    "attempt_index",
+    "parent_attempt_id",
+    "sequence",
+    "started_at",
+    "updated_at",
+    "heartbeat_at",
+    "phase",
+    "scheduler",
+    "wandb",
+    "progress",
+    "metrics",
+    "history",
+    "provenance",
+    "artifacts",
+    "serving",
+    "resume",
+    "recoveries",
+    "cost",
+    "monitoring_export_failures"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,7 @@
+{
+  "version": "parallel-questions-v1",
+  "max_branches": 16,
+  "max_padded_tokens": 65536,
+  "max_cache_bytes": 536870912,
+  "sort_by_length": true
+}

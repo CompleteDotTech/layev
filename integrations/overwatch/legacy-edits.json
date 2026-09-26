@@ -1,0 +1,86 @@
+{
+  "src/overwatch/collector.py": [
+    [
+      "\ndef parse_args() -> argparse.Namespace:",
+      "\n\ndef collect_kev_laya_cache() -> dict[str, Any]:\n    \"\"\"The collector alone owns Kev-Laya raw-cache writes.\"\"\"\n    from overwatch.kev_laya_adapter import merge_snapshots\n    from overwatch.providers.kev_laya import collect_snapshots\n    from overwatch.raw_cache import model_runs_cache_path\n    from overwatch.constants import KEV_LAYA_RETENTION_DAYS\n    from overwatch.kev_laya_lock import collector_lock\n\n    path = model_runs_cache_path()\n    collected = collect_snapshots()\n    with collector_lock(path.with_suffix(\".lock\")):\n        envelope = merge_snapshots(read_json(path, {}), collected,\n                                   retention_days=KEV_LAYA_RETENTION_DAYS)\n        write_json_atomically(path, envelope)\n    return {\"runs\": len(envelope[\"records\"]), \"warnings\": len(envelope[\"warnings\"])}\n\n\ndef parse_args() -> argparse.Namespace:"
+    ],
+    [
+      "        # W&B stays optional and is captured as raw hydrated run records.",
+      "        kev_laya_result = await collect_source(\"kev_laya\", collect_kev_laya_cache)\n        if kev_laya_result and kev_laya_result[\"warnings\"]:\n            source_status[\"kev_laya\"][\"status\"] = \"warning\"\n\n        # W&B stays optional and is captured as raw hydrated run records."
+    ]
+  ],
+  "src/overwatch/raw_cache.py": [
+    [
+      "<SUFFIX>",
+      "\n\ndef model_runs_cache_path() -> Path:\n    \"\"\"Dedicated versioned model cache; legacy raw-v1 resources are unchanged.\"\"\"\n    return raw_cache_path(\"global\", \"kev_laya\", \"runs-v1.json\")\n"
+    ]
+  ],
+  "src/overwatch/cached_metrics.py": [
+    [
+      "<SUFFIX>",
+      "\n\ndef cached_kev_laya_runs() -> dict[str, Any]:\n    \"\"\"Read model-run snapshots strictly from the versioned collector cache.\"\"\"\n    from overwatch.raw_cache import model_runs_cache_path\n    from overwatch.kev_laya_adapter import CACHE_VERSION\n\n    return read_json(model_runs_cache_path(), {\n        \"schema_version\": CACHE_VERSION, \"records\": [], \"warnings\": []\n    })\n"
+    ]
+  ],
+  "src/overwatch/report.py": [
+    [
+      "<SUFFIX>",
+      "\n\ndef build_model_runs_report(envelope: dict, jobs: list, *, namespace: str | None = None) -> dict:\n    \"\"\"Dedicated model records; no invented scheduler resources or Flow counters.\"\"\"\n    from overwatch.kev_laya_adapter import presentation\n    from overwatch.constants import KEV_LAYA_STALE_SECONDS\n\n    return presentation(envelope, jobs, namespace=namespace,\n                        stale_seconds=KEV_LAYA_STALE_SECONDS)\n"
+    ]
+  ],
+  "src/overwatch/report_service.py": [
+    [
+      "    build_cluster_record,",
+      "    build_cluster_record,\n    build_model_runs_report,"
+    ],
+    [
+      "        cached_wandb_runs,",
+      "        cached_wandb_runs,\n        cached_kev_laya_runs,"
+    ],
+    [
+      "    \"wandb\": \"W&B training runs\",",
+      "    \"wandb\": \"W&B training runs\",\n    \"kev_laya\": \"Kev-Laya model telemetry\","
+    ],
+    [
+      "            \"wandb\": (\"wandb\", [raw_cache_path(\"global\", \"wandb\", \"runs.json\")]),",
+      "            \"wandb\": (\"wandb\", [raw_cache_path(\"global\", \"wandb\", \"runs.json\")]),\n            \"kev_laya\": (\"kev_laya\", [raw_cache_path(\"global\", \"kev_laya\", \"runs-v1.json\")]),"
+    ],
+    [
+      "                \"status\": \"error\" if error else \"ok\",",
+      "                \"status\": source.get(\"status\", \"ok\") if query_key == \"kev_laya\" else (\"error\" if error else \"ok\"),"
+    ],
+    [
+      "    records.sort(\n",
+      "    model_runs_report = build_model_runs_report(\n        cached_kev_laya_runs(), jobs, namespace=os.environ.get(\"OVERWATCH_SKY_NAMESPACE\")\n    )\n    records.sort(\n"
+    ],
+    [
+      "        \"resources\": records,",
+      "        \"resources\": records,\n        \"model_runs\": model_runs_report[\"runs\"],\n        \"model_run_warnings\": model_runs_report[\"warnings\"],"
+    ]
+  ],
+  "src/overwatch/constants.py": [
+    [
+      "<SUFFIX>",
+      "\n# Kev-Laya adapter policy; does not change Flow/cloud log defaults.\nKEV_LAYA_STALE_SECONDS = 120\nKEV_LAYA_RETENTION_DAYS = 14\n"
+    ]
+  ],
+  "src/overwatch/frontend/types.ts": [
+    [
+      "<PREFIX>",
+      "import type { ModelRun } from \"./modelRuns\";\n\n"
+    ],
+    [
+      "  resources: Resource[];",
+      "  resources: Resource[];\n  model_runs?: ModelRun[];\n  model_run_warnings?: Array<Record<string, unknown>>;"
+    ]
+  ],
+  "src/overwatch/frontend/App.tsx": [
+    [
+      "<PREFIX>",
+      "import { ModelRuns } from \"./ModelRunsView\";\n"
+    ],
+    [
+      "{report && page === \"resources\" && <ResourcesPage report={report} />}",
+      "{report && page === \"resources\" && <><ResourcesPage report={report} /><ModelRuns runs={report.model_runs ?? []} warnings={report.model_run_warnings ?? []} /></>}"
+    ]
+  ]
+}

@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "state": {
+      "type": [
+        "string",
+        "object",
+        "array"
+      ]
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1
+    },
+    "questions": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 1024,
+      "propertyNames": {
+        "minLength": 1,
+        "maxLength": 512
+      },
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "const": "choice"
+              },
+              "instructions": {
+                "type": [
+                  "string",
+                  "object",
+                  "array",
+                  "null"
+                ]
+              },
+              "criteria": {
+                "type": "object",
+                "minProperties": 1,
+                "maxProperties": 255,
+                "propertyNames": {
+                  "minLength": 1,
+                  "maxLength": 512
+                },
+                "additionalProperties": {
+                  "type": [
+                    "string",
+                    "object",
+                    "array",
+                    "null"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "type",
+              "instructions",
+              "criteria"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "const": "score"
+              },
+              "instructions": {
+                "type": [
+                  "string",
+                  "object",
+                  "array",
+                  "null"
+                ]
+              },
+              "criteria": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 10,
+                "items": {
+                  "type": [
+                    "string",
+                    "object",
+                    "array",
+                    "null"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "type",
+              "instructions",
+              "criteria"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "const": "noul"
+              },
+              "instructions": {
+                "type": [
+                  "string",
+                  "object",
+                  "array",
+                  "null"
+                ]
+              },
+              "criteria": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "true": {
+                        "type": [
+                          "string",
+                          "object",
+                          "array",
+                          "null"
+                        ]
+                      },
+                      "false": {
+                        "type": [
+                          "string",
+                          "object",
+                          "array",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "type",
+              "instructions"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      }
+    }
+  },
+  "required": [
+    "state",
+    "model",
+    "questions"
+  ],
+  "additionalProperties": false
+}

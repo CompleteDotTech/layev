@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
+const helper = await import(pathToFileURL(process.argv[2]));
+assert.equal(helper.safeWebURL('javascript:alert(1)'), null);
+assert.equal(helper.safeWebURL('file:///checkpoint.pt'), null);
+assert.equal(helper.safeWebURL('https://user:pass@example.org'), null);
+assert.equal(helper.safeWebURL('https://example.org/report.json'), 'https://example.org/report.json');
+assert.equal(helper.percentile([], .5), null);
+assert.equal(helper.percentile([1,3,2,4], .5), 2);
+assert.equal(helper.percentile([1,3,2,4], .95), 4);
+assert.equal(helper.curve([], 'loss/ce'), '');
+assert.equal(helper.curve([{step:1,phase:'train',metrics:{'loss/ce':2}}, {step:2,phase:'train',metrics:{'loss/ce':1}}], 'loss/ce'), '4,4 256,76');
+console.log('9 frontend-helper assertions passed (not React/Overwatch application tests)');

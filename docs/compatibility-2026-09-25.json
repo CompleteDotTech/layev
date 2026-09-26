@@ -1,0 +1,22 @@
+{
+  "specification": "kev-laya-systemone/1",
+  "frozen_on": "2026-09-25",
+  "reference": "jev-1.13.0 documentation; no authorized API comparison executed",
+  "sources": ["https://docs.typesafe.ai/api", "https://docs.typesafe.ai/primitives/advanced", "https://docs.typesafe.ai/confidence", "https://docs.typesafe.ai/models", "https://docs.typesafe.ai/introduction/machine-learning-primer", "https://docs.typesafe.ai/model-jaggedness/jev-1.13"],
+  "decisions": {
+    "input": "state string/object/array; JSON finite, string object keys; nested JSON values allowed",
+    "entry": "string/object/array/null; advanced page explicitly permits null despite API type table omissions",
+    "choice": "1..255 named options, insertion order; minimum 1 is a local ambiguity resolution, not verified native behavior",
+    "score": "2..10 ordered levels, zero-based indices; expectation of level index; structured legend descriptions rendered as canonical JSON strings",
+    "noul": "optional criteria true/false, missing sides receive explicit defaults; public shape {type,noul}",
+    "confidence": "entropy-concentration-v1 = 1 + sum(p*ln(p))/ln(K); singleton=1; NOT probability of correctness, not Jev's undisclosed formula",
+    "question_ids": "metadata only; IDs never tokenized for model inference",
+    "usage": "input_tokens counts actual serialized state prefix once plus every serialized branch; output_tokens counts canonical JSON answers tokenization, not generation; generated_tokens=0 exposed separately",
+    "budgets": "32768 state+one branch and 65536 state+all branches; decimal k interpretation upstream unspecified, local exact powers of two frozen",
+    "model": "actual immutable checkpoint identity; own stable/preview aliases; reject Jev release names",
+    "errors": "401 auth; 422 validation/overflow/unknown model; 429 quotas; 529 concurrency overload; 413 byte limit",
+    "normal_retention": "no request/response persistence, no training ingestion, request-local KV only"
+  },
+  "quality_thresholds_before_runs": {"synthetic_smoke_accuracy_min": 0.70, "finite_gradients": true, "fp32_shared_logit_atol": 0.00001, "fp32_shared_gradient_atol": 0.00002, "probability_sum_atol": 0.000001, "resume_max_parameter_delta": 0.0},
+  "native_acceptance": {"branch_input_tokens_min":32768,"aggregate_input_tokens_min":65536,"no_truncation":true,"evidence_positions":["beginning","middle","end"],"native_quality_threshold_status":"requires preregistered licensed benchmark and owner-defined operating criteria; no replacement claim authorized"}
+}

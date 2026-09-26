@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "status": "definitions retained; baseline execution NOT performed",
+  "kev": {"repository": "https://github.com/jaredpalmer/kev", "revision": "3d9973b80b34d187f9fc8ce81de940b5767eb624", "environment": "upstream uv.lock and pyproject in a separate checkout/environment", "weight_revision": null, "reason": "released baseline weights not acquired or selected through the unavailable research matrix"},
+  "laya": {"repository": "https://github.com/NandhaKishorM/laya", "revision": "4066d5d5fbf08b66c6757ddeedbd797bd7655bc0", "environment": "separate pinned upstream environment", "weight_revision": null, "reason": "baseline weights not acquired or evaluated"},
+  "jev": {"authorization": "not supplied", "budget": null, "status": "comparative evaluation not run"},
+  "real_quality_thresholds": "must be fixed with a licensed frozen benchmark before inspecting candidate/baseline results"
+}

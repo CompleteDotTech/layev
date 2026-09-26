@@ -1,0 +1,39 @@
+# Candidate only, NOT executed or cost-certified. Review/authorize before launch.
+# Launch from kev-laya after validating the local mounts and compatible Python image.
+name: kev-laya-native-pilot
+resources:
+  accelerators: A100-80GB:1
+  cpus: 8+
+  memory: 32+
+  disk_size: 120
+  use_spot: false
+num_nodes: 1
+workdir: .
+file_mounts:
+  /mnt/kev-laya-data: ./licensed-long-suite
+  /mnt/kev-laya-backbone: ./backbone/qwen-0.5b
+envs:
+  ALLOW_PAID_PILOT: "no"
+  PILOT_SECONDS: "900"
+  KEV_LAYA_SCHEDULER_NAMESPACE: null
+  KEV_LAYA_JOB_ID: null
+setup: |
+  set -euo pipefail
+  test "$ALLOW_PAID_PILOT" = "yes" || { echo "Pilot not authorized"; exit 2; }
+  python3 -c 'import sys; assert (3,12) <= sys.version_info[:2] < (3,14), "Select a compatible Python image first"'
+  python3 -m venv .venv-model
+  . .venv-model/bin/activate
+  python -m pip install torch==2.10.0 --index-url https://download.pytorch.org/whl/cu128
+  python -m pip install -r requirements-native.in
+  python -m pip install --no-deps -e .
+run: |
+  set -euo pipefail
+  test "$ALLOW_PAID_PILOT" = "yes"
+  : "${KEV_LAYA_SCHEDULER_NAMESPACE:?supply the real controller namespace}"
+  : "${KEV_LAYA_JOB_ID:?supply the actual SkyPilot job ID; never invent one}"
+  . .venv-model/bin/activate
+  python -m kev_laya native-init --backbone-dir /mnt/kev-laya-backbone --out runs/native-init.pt --lora-rank 8 --checkpointing
+  timeout --signal=INT "$PILOT_SECONDS" python -m kev_laya train --init runs/native-init.pt --suite /mnt/kev-laya-data --config configs/qwen-sft.json --out runs/native-pilot --device cuda --run-id native-pilot
+# This candidate retains files on the job disk only. Configure authorized durable
+# checkpoint/telemetry/artifact storage before relying on restart or spot recovery.
+# Timeout does not cap setup/provisioning/storage cost. No launch was performed.

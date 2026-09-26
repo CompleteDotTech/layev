@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "ChoiceAnswer": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "choice",
+          "default": "choice",
+          "title": "Type",
+          "type": "string"
+        },
+        "choice": {
+          "title": "Choice",
+          "type": "string"
+        },
+        "confidence": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "probabilities": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Probabilities",
+          "type": "object"
+        }
+      },
+      "required": [
+        "choice",
+        "confidence",
+        "probabilities"
+      ],
+      "title": "ChoiceAnswer",
+      "type": "object"
+    },
+    "NoulAnswer": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "noul",
+          "default": "noul",
+          "title": "Type",
+          "type": "string"
+        },
+        "noul": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Noul",
+          "type": "number"
+        }
+      },
+      "required": [
+        "noul"
+      ],
+      "title": "NoulAnswer",
+      "type": "object"
+    },
+    "ScoreAnswer": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "score",
+          "default": "score",
+          "title": "Type",
+          "type": "string"
+        },
+        "score": {
+          "title": "Score",
+          "type": "number"
+        },
+        "confidence": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "legend": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Legend",
+          "type": "object"
+        },
+        "probabilities": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Probabilities",
+          "type": "object"
+        }
+      },
+      "required": [
+        "score",
+        "confidence",
+        "legend",
+        "probabilities"
+      ],
+      "title": "ScoreAnswer",
+      "type": "object"
+    },
+    "Usage": {
+      "additionalProperties": false,
+      "properties": {
+        "input_tokens": {
+          "minimum": 0,
+          "title": "Input Tokens",
+          "type": "integer"
+        },
+        "output_tokens": {
+          "minimum": 0,
+          "title": "Output Tokens",
+          "type": "integer"
+        },
+        "forward_tokens": {
+          "minimum": 0,
+          "title": "Forward Tokens",
+          "type": "integer"
+        },
+        "state_tokens": {
+          "minimum": 0,
+          "title": "State Tokens",
+          "type": "integer"
+        },
+        "branch_tokens": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Branch Tokens",
+          "type": "array"
+        },
+        "generated_tokens": {
+          "const": 0,
+          "default": 0,
+          "title": "Generated Tokens",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "input_tokens",
+        "output_tokens",
+        "forward_tokens",
+        "state_tokens",
+        "branch_tokens"
+      ],
+      "title": "Usage",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "model": {
+      "title": "Model",
+      "type": "string"
+    },
+    "answers": {
+      "additionalProperties": {
+        "discriminator": {
+          "mapping": {
+            "choice": "#/$defs/ChoiceAnswer",
+            "noul": "#/$defs/NoulAnswer",
+            "score": "#/$defs/ScoreAnswer"
+          },
+          "propertyName": "type"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/ChoiceAnswer"
+          },
+          {
+            "$ref": "#/$defs/ScoreAnswer"
+          },
+          {
+            "$ref": "#/$defs/NoulAnswer"
+          }
+        ]
+      },
+      "title": "Answers",
+      "type": "object"
+    },
+    "usage": {
+      "$ref": "#/$defs/Usage"
+    },
+    "confidence_definition": {
+      "const": "entropy-concentration-v1",
+      "default": "entropy-concentration-v1",
+      "title": "Confidence Definition",
+      "type": "string"
+    },
+    "calibration_status": {
+      "title": "Calibration Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "model",
+    "answers",
+    "usage",
+    "calibration_status"
+  ],
+  "title": "SystemOneResponse",
+  "type": "object"
+}

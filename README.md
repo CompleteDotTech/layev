@@ -1,0 +1,34 @@
+# Layev
+
+Layev is an open research implementation combining Kev's learned option scorer and shared-state question execution with Laya-inspired calibration and reward training. The Python package and CLI retain the `kev-laya` / `kev_laya` names. The code provides typed Choice, Score, and Noul decisions, bounded parallel question batches, training, evaluation, calibration, telemetry, and an Overwatch integration payload.
+
+**Status:** The source has passed CPU fixture tests in its delivery environment. It is a research candidate, not a validated Jev replacement. Native Qwen/tokenizer and CUDA checks, trained 32k/64k context, general predictive quality, Jev-relative quality/cost/latency, and a complete live Overwatch pipeline remain open. See [the next-stage implementation prompt](docs/NEXT_STAGE_PROMPT.md) for the acceptance plan.
+
+## Layout
+
+- `src/kev_laya/`: model, training, serving, telemetry, and checkpoint code.
+- `tests/`: software and numerical regression tests.
+- `integrations/overwatch/`: guarded adapter payload and instructions for the existing Overwatch application.
+- `docs/`: architecture, telemetry, correctness, and validation notes. [The archive's original README](docs/ARCHIVE_README.md) is retained for provenance; its relative evidence paths refer to the separate delivery ZIP.
+- `licenses/` and `NOTICE`: upstream attribution and license texts.
+
+The source came from `Kev_Laya_Correctness_Integration.zip` (delivery version `0.1.0+stage3`). That ZIP contains the larger historical evidence and trained fixture artifacts. Those artifacts and any private environment values are not part of this source repository. The 45-column reference comparison is in the companion `overwatch-model-research/FEATURE_MATRIX.json` checkout and must be reconciled against this implementation before parity claims.
+
+## Local setup
+
+Use Python 3.12 or 3.13 in an environment separate from Overwatch. `requirements-cpu.lock` records the delivery's Linux CPU closure; it is not a validated Windows or CUDA lock.
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python -m pip install -e '.[dev]'
+.\.venv\Scripts\python -m pytest -q
+.\.venv\Scripts\python -m compileall -q src tests scripts
+```
+
+On POSIX, use `.venv/bin/python` in place of `.venv\Scripts\python`. Native requirements and prerequisites are described in [stage-three correctness](docs/STAGE3_CORRECTNESS.md). Do not run native training or cloud jobs without checking the required hardware, licensed data, and cost boundary.
+
+The [Overwatch integration guide](integrations/overwatch/README.md) documents its separate supported Python and private dependency environment. The current Windows payload uses `ModelRunsView.tsx` to avoid a case-insensitive filename collision with `modelRuns.ts`.
+
+## License
+
+Apache-2.0. See [NOTICE](NOTICE) and the retained [Kev and Laya licenses](licenses/).
