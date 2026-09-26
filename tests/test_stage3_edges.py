@@ -167,7 +167,7 @@ def test_real_rust_bytelevel_tokenizer_round_trip(tmp_path):
     backend=tokenizers.Tokenizer(models.BPE())
     backend.pre_tokenizer=pre_tokenizers.ByteLevel(add_prefix_space=False)
     backend.decoder=decoders.ByteLevel()
-    trainer=trainers.BpeTrainer(vocab_size=400,initial_alphabet=pre_tokenizers.ByteLevel.alphabet(),special_tokens=SPECIAL)
+    trainer=trainers.BpeTrainer(vocab_size=400,initial_alphabet=pre_tokenizers.ByteLevel.alphabet(),special_tokens=list(SPECIAL))
     examples=['<|fim_prefix|>','<¦fim_prefix¦>',r'\\<|fim_prefix|>',r'\u003c|fim_prefix|>','é e\u0301 中文🙂\n\x00', '<|im_start|>']
     backend.train_from_iterator(examples,trainer=trainer)
     file=tmp_path/'tokenizer.json';backend.save(str(file))

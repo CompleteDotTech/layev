@@ -2,6 +2,7 @@
 from __future__ import annotations
 from collections import defaultdict
 import math
+import random
 import torch
 from .data import Datum
 from .encoding import Tokenizer, Limits
@@ -9,6 +10,8 @@ from .model import DecisionEngine
 
 
 def summarize(rows: list[dict], bins: int = 10) -> dict:
+    if type(bins) is not int or bins < 1:
+        raise ValueError("bins must be a positive integer")
     if not rows:
         return {"count": 0, "nll": None, "brier": None, "ece": None, "accuracy": None,
                 "ordinal_mae": None, "reliability": [], "risk_coverage": []}
@@ -54,7 +57,7 @@ def evaluate(model: DecisionEngine, data: list[Datum], tokenizer: Tokenizer, lim
             chosen = int(p.argmax())
             levels = torch.arange(len(p), device=p.device, dtype=torch.double)
             context_length = len(enc.state) + len(branch.ids)
-            rows.append({"record_id": datum.meta["id"], "question_id": branch.question_id,
+            rows.append({"record_id": datum.meta["id"], "group": datum.meta["group"], "question_id": branch.question_id,
                          "type": kind, "domain": datum.meta["domain"], "language": datum.meta["language"],
                          "option_count": len(p), "context_length": context_length,
                          "length_bucket": next((n for n in (512, 2048, 8192, 16384, 32768) if context_length <= n), "over32k"),
@@ -95,6 +98,8 @@ def calibrate(model: DecisionEngine, data: list[Datum], tokenizer: Tokenizer, li
     for kind in ("choice", "score", "noul"):
         selected = [(z, y) for t, z, y in rows if t == kind]
         if not selected:
+            # A previous calibration must not survive under an unfitted=1.0 receipt.
+            model.temperatures[kind] = 1.0
             fits[kind] = {"temperature": 1.0, "status": "unfitted-no-samples", "count": 0}
             continue
         log_t = torch.zeros((), dtype=torch.double, requires_grad=True)
@@ -119,3 +124,60 @@ def calibrate(model: DecisionEngine, data: list[Datum], tokenizer: Tokenizer, li
     model.calibration_provenance = {"status": "fitted-held-out", "partition": split, "sha256": split_sha256,
                                     "fits": fits, "method": "per-type-temperature-nll-v1", "bounds": [0.2, 5.0]}
     return model.calibration_provenance
+
+
+def grouped_bootstrap(rows: list[dict], *, samples: int = 1000, seed: int = 42,
+                      confidence: float = 0.95) -> dict:
+    """Percentile intervals resampling source groups, never individual questions.
+
+    This describes variation across the supplied source groups, not across model
+    seeds or deployments. It does not establish semantic independence of those
+    groups, repair evaluation leakage, or turn synthetic data into quality proof.
+    Historical reports lacking explicit groups remain unknown; IDs are not used
+    to guess a grouping. Soft-target correctness remains fractional accuracy.
+    """
+    if type(samples) is not int or samples < 2:
+        raise ValueError("at least two bootstrap samples are required")
+    if type(seed) is not int or not 0 < confidence < 1:
+        raise ValueError("invalid bootstrap seed or confidence")
+    fields = ("accuracy", "nll", "brier", "ece", "ordinal_mae")
+    result = {"method": "source-group-percentile-bootstrap-v1", "samples": samples,
+              "seed": seed, "confidence": confidence, "groups": 0,
+              "status": "unknown", "intervals": {key: None for key in fields}}
+    grouped = defaultdict(list)
+    for row in rows:
+        if not isinstance(row.get("group"), str) or not row["group"]:
+            result["reason"] = "explicit source-group metadata absent"
+            return result
+        grouped[row["group"]].append(row)
+    result["groups"] = len(grouped)
+    if len(grouped) < 2:
+        result["reason"] = "fewer than two source groups"
+        return result
+    groups = [grouped[key] for key in sorted(grouped)]
+    rng = random.Random(seed)  # Do not mutate training/evaluation global RNG.
+    values = {key: [] for key in fields}
+    for _ in range(samples):
+        selected = [row for _ in groups for row in groups[rng.randrange(len(groups))]]
+        metrics = summarize(selected)
+        for key in fields:
+            value = metrics[key]
+            if value is not None:
+                values[key].append(value)
+    alpha = (1 - confidence) / 2
+    for key, observations in values.items():
+        if not observations:
+            continue
+        observations.sort()
+
+        def quantile(q):
+            index = (len(observations) - 1) * q
+            lower = math.floor(index)
+            upper = math.ceil(index)
+            return observations[lower] + (observations[upper] - observations[lower]) * (index - lower)
+
+        result["intervals"][key] = {"lower": quantile(alpha), "upper": quantile(1 - alpha),
+                                    "valid_resamples": len(observations)}
+    result["status"] = "measured"
+    result["scope"] = "supplied source groups only; not across model seeds or deployments"
+    return result

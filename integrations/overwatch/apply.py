@@ -27,7 +27,7 @@ BLOBS = {
     "src/overwatch/frontend/types.ts": "e53bbe349ecd739074201c7476de78b30e926eba",
     "src/overwatch/frontend/App.tsx": "38254c3a18a797dbd5eb932c911b103f5c239e78",
 }
-LEGACY = json.loads((HERE / 'legacy-edits.json').read_text())
+LEGACY = json.loads((HERE / "legacy-edits.json").read_text(encoding="utf-8"))
 LOCAL_COLLECTION = '''    # Explicit offline/local mode: use the REAL collector and cache without cloud I/O.
     # Default behavior and existing Flow/resource records remain unchanged.
     if options.local_models_only:
@@ -146,7 +146,15 @@ def base_text(name: str, raw: bytes) -> str:
     text = raw.replace(b'\r\n', b'\n').decode('utf-8')
     if blob_sha(text.encode()) == BLOBS[name]: return text
     # Exact old integration or exact current integration is upgradable/idempotent.
-    for operations in (edits(name), LEGACY[name]):
+    # Earlier POSIX payloads imported ModelRuns; the Windows-safe release
+    # changed the import. Both are accepted ONLY by exact reverse-to-base proof.
+    current = edits(name)
+    legacy = LEGACY[name]
+    old_current = [[a.replace("./ModelRunsView", "./ModelRuns"),
+                    b.replace("./ModelRunsView", "./ModelRuns")] for a, b in current]
+    old_legacy = [[a.replace("./ModelRunsView", "./ModelRuns"),
+                   b.replace("./ModelRunsView", "./ModelRuns")] for a, b in legacy]
+    for operations in (current, legacy, old_current, old_legacy):
         try:
             base = apply_edits(text, operations, reverse=True)
             if blob_sha(base.encode()) == BLOBS[name] and apply_edits(base, operations) == text:
@@ -161,90 +169,173 @@ def relative_path_key(path, root) -> str:
     return path.relative_to(root).as_posix()
 
 
-def prepare(root: Path, *, verify_revision=True) -> dict[Path, bytes]:
+class ChangeSet(dict[Path, bytes | None]):
+    """Prepared writes/deletions plus exact preimages; None represents absence.
+
+    Preimages are checked again before writes, so an edit made after --check
+    cannot be silently overwritten. This is not a filesystem-wide concurrency
+    lock; pause editors/other installers while applying a reviewed change set.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.before: dict[Path, bytes | None] = {}
+
+    def add(self, target: Path, content: bytes | None) -> None:
+        self.before[target] = target.read_bytes() if target.exists() else None
+        self[target] = content
+
+
+def safe_target(root: Path, path: Path) -> None:
+    path.relative_to(root)  # Refuse paths outside the checkout.
+    for parent in (path, *path.parents):
+        if parent == root.parent:
+            break
+        if parent.is_symlink() or parent.is_junction():
+            raise ValueError(f"symlink or junction target refused: {path}")
+    if path.exists() and not path.is_file():
+        raise ValueError(f"target is not a regular file: {path}")
+
+
+def prepare(root: Path, *, verify_revision: bool = True) -> ChangeSet:
     root = root.absolute()
-    if any(part.casefold() in {'reviews', 'review'} for part in root.parts):
-        raise ValueError('review snapshots are immutable; select the development checkout')
-    if root.is_symlink() or root.resolve() != root:
-        raise ValueError('symlink checkout paths are refused')
-    if (root / '.git').is_file():
-        raise ValueError('worktree or linked Git directory refused; use the primary checkout')
+    if any(part.casefold() in {"reviews", "review"} for part in root.parts):
+        raise ValueError("review snapshots are immutable; select the development checkout")
+    if root.is_symlink() or root.is_junction() or root.resolve() != root:
+        raise ValueError("symlink checkout paths are refused")
+    if (root / ".git").is_file():
+        raise ValueError("worktree or linked Git directory refused; use the primary checkout")
     if verify_revision:
-        result = subprocess.run(['git', '-C', str(root), 'rev-parse', 'HEAD'], check=True,
-                                capture_output=True, text=True, timeout=10)
+        result = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", "HEAD"],
+            check=True, capture_output=True, text=True, timeout=10,
+        )
         if result.stdout.strip() != BASE:
-            raise ValueError('checkout revision differs; review/rebase these changes instead of forcing application')
-    changes = {}
-    def safe_target(path):
-        for parent in (path, *path.parents):
-            if parent == root.parent: break
-            if parent.is_symlink(): raise ValueError(f'symlink target refused: {path}')
+            raise ValueError("checkout revision differs; review/rebase instead of forcing application")
+    changes = ChangeSet()
     for name in BLOBS:
         path = root / name
-        safe_target(path)
+        safe_target(root, path)
         raw = path.read_bytes()
-        new = transform(name, base_text(name, raw)).encode('utf-8')
-        if b'\r\n' in raw: new = new.replace(b'\n', b'\r\n')
-        if new != raw: changes[path] = new
-    previous = json.loads((HERE / 'previous-v1-added-hashes.json').read_text())
-    for source in sorted((HERE / 'added').rglob('*')):
-        if not source.is_file() or '__pycache__' in source.parts: continue
-        relative = relative_path_key(source, HERE / 'added')
+        new = transform(name, base_text(name, raw)).encode("utf-8")
+        if b"\r\n" in raw:
+            new = new.replace(b"\n", b"\r\n")
+        if new != raw:
+            changes.add(path, new)
+
+    previous = json.loads((HERE / "previous-v1-added-hashes.json").read_text(encoding="utf-8"))
+    known = json.loads((HERE / "known-added-hashes.json").read_text(encoding="utf-8"))["files"]
+    frontend = root / "src/overwatch/frontend"
+    if frontend.exists():
+        # Detect on Linux too, before an archive can be installed on Windows.
+        for path in frontend.iterdir():
+            if path.name.casefold() == "modelruns.tsx" and path.name != "ModelRuns.tsx":
+                raise ValueError(f"unexpected obsolete component spelling: {path}")
+    obsolete = root / "src/overwatch/frontend/ModelRuns.tsx"
+    safe_target(root, obsolete)
+    if obsolete.exists():
+        key = obsolete.relative_to(root).as_posix()
+        digest = hashlib.sha256(obsolete.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+        if digest not in {*known.get(key, []), previous.get(key)}:
+            raise ValueError("modified obsolete ModelRuns.tsx; refusing deletion")
+        changes.add(obsolete, None)
+
+    for source in sorted((HERE / "added").rglob("*")):
+        if not source.is_file() or "__pycache__" in source.parts:
+            continue
+        relative = relative_path_key(source, HERE / "added")
         target, raw = root / relative, source.read_bytes()
-        safe_target(target)
+        safe_target(root, target)
         if target.exists():
             old = target.read_bytes()
-            if old.replace(b'\r\n', b'\n') == raw.replace(b'\r\n', b'\n'): continue
-            if hashlib.sha256(old.replace(b'\r\n', b'\n')).hexdigest() != previous.get(relative):
-                raise ValueError(f'refusing to overwrite existing added file: {target}')
-            if b'\r\n' in old: raw = raw.replace(b'\r\n', b'\n').replace(b'\n', b'\r\n')
-        changes[target] = raw
+            if old.replace(b"\r\n", b"\n") == raw.replace(b"\r\n", b"\n"):
+                continue
+            digest = hashlib.sha256(old.replace(b"\r\n", b"\n")).hexdigest()
+            if digest not in {*known.get(relative, []), previous.get(relative)}:
+                raise ValueError(f"refusing to overwrite existing added file: {target}")
+            if b"\r\n" in old:
+                raw = raw.replace(b"\r\n", b"\n").replace(b"\n", b"\r\n")
+        changes.add(target, raw)
     return changes
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--root', type=Path, required=True)
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument('--apply', action='store_true')
-    group.add_argument('--check', action='store_true')
-    args = parser.parse_args()
-    root = args.root.absolute()
-    changes = prepare(root)
-    if not args.apply or not changes:
-        print(json.dumps({'status': 'preflight passed' if changes else 'already applied',
-                          'base_revision': BASE, 'files': [str(p.relative_to(root)) for p in changes]}, indent=2))
-        return 0
-    backup = root / ('.kev-laya-stage3-backup-' + datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%f'))
+def atomic_replace(target: Path, raw: bytes) -> None:
+    target.parent.mkdir(parents=True, exist_ok=True)
+    fd, temp = tempfile.mkstemp(dir=target.parent, prefix=".kev-laya-")
+    try:
+        with os.fdopen(fd, "wb") as stream:
+            stream.write(raw)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temp, target)
+    finally:
+        if os.path.exists(temp):
+            os.unlink(temp)
+
+
+def apply_transaction(root: Path, changes: ChangeSet) -> Path | None:
+    """Apply an already reviewed plan, retaining backups including deleted files."""
+    if not changes:
+        return None
+    root = root.absolute()
+    for target in changes:
+        safe_target(root, target)
+        current = target.read_bytes() if target.exists() else None
+        if current != changes.before[target]:
+            raise ValueError(f"target changed since preflight; no writes made: {target}")
+    backup = root / (".kev-laya-stage3-backup-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f"))
     backup.mkdir()
     existed = {}
     for target in changes:
         rel = target.relative_to(root)
-        existed[str(rel)] = target.exists()
+        existed[rel.as_posix()] = target.exists()
         if target.exists():
             copy = backup / rel
             copy.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(target, copy)
-    (backup / 'manifest.json').write_text(json.dumps(existed, indent=2))
+    (backup / "manifest.json").write_text(json.dumps(existed, indent=2) + "\n", encoding="utf-8")
     written = []
     try:
         for target, raw in changes.items():
-            target.parent.mkdir(parents=True, exist_ok=True)
-            fd, temp = tempfile.mkstemp(dir=target.parent, prefix='.kev-laya-')
-            try:
-                with os.fdopen(fd, 'wb') as stream:
-                    stream.write(raw); stream.flush(); os.fsync(stream.fileno())
-                os.replace(temp, target); written.append(target)
-            finally:
-                if os.path.exists(temp): os.unlink(temp)
+            safe_target(root, target)
+            current = target.read_bytes() if target.exists() else None
+            if current != changes.before[target]:
+                raise ValueError(f"target changed during application: {target}")
+            if raw is None:
+                target.unlink()
+            else:
+                atomic_replace(target, raw)
+            written.append(target)
     except BaseException:
-        for target in written:
-            rel = str(target.relative_to(root))
-            if existed[rel]: shutil.copy2(backup / rel, target)
-            else: target.unlink(missing_ok=True)
+        for target in reversed(written):
+            rel = target.relative_to(root).as_posix()
+            if existed[rel]:
+                shutil.copy2(backup / rel, target)
+            else:
+                target.unlink(missing_ok=True)
         raise
-    print(json.dumps({'status': 'applied', 'backup': str(backup), 'files': len(changes)}, indent=2))
+    return backup
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", type=Path, required=True)
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--apply", action="store_true")
+    group.add_argument("--check", action="store_true")
+    args = parser.parse_args()
+    root = args.root.absolute()
+    changes = prepare(root)
+    details = [{"path": p.relative_to(root).as_posix(), "action": "delete" if raw is None else "write"}
+               for p, raw in changes.items()]
+    if not args.apply or not changes:
+        print(json.dumps({"status": "preflight passed" if changes else "already applied",
+                          "base_revision": BASE, "changes": details}, indent=2))
+        return 0
+    backup = apply_transaction(root, changes)
+    print(json.dumps({"status": "applied", "backup": str(backup), "changes": details}, indent=2))
     return 0
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     raise SystemExit(main())

@@ -1,8 +1,10 @@
 # Kev–Laya correctness stage 3
 
+> Historical documentation copied from the reviewed stage-three archive. Relative links were normalized for this `docs/` location; original archive bytes remain unchanged. Results below are historical, not this checkout’s validation. See [current validation](VALIDATION.md).
+
 Version `0.1.0+stage3` preserves actual parallel questions and adds literal serialization versioning, attempt-proof recovery, pre-I/O collection budgets, calibration exposure lineage, measured provenance and a checked Overwatch v2 delta. **Native Qwen/tokenizer/CUDA/32k/64k and live Overwatch integration remain unverified. General predictive quality and Jev parity are not established.**
 
-Start with [the stage-3 change and reproduction guide](docs/STAGE3_CORRECTNESS.md), [telemetry v2](docs/TELEMETRY.md), and [the primary-checkout integration instructions](integrations/overwatch/README.md). The delivery report records the fixed-budget counterfactual diagnostic and its remaining Noul/Score failures. The original reviewed archives are unchanged.
+Start with [the stage-3 change and reproduction guide](STAGE3_CORRECTNESS.md), [telemetry v2](TELEMETRY.md), and [the primary-checkout integration instructions](../integrations/overwatch/README.md). The delivery report records the fixed-budget counterfactual diagnostic and its remaining Noul/Score failures. The original reviewed archives are unchanged.
 
 ## Inherited project documentation
 
@@ -20,7 +22,7 @@ and `../ACCEPTANCE.json` before using any performance or compatibility claim.
 
 Real bounded tensor batches now evaluate question branches in both training and serving.
 The complete state executes once, gradients remain connected, and padding/caches are explicitly
-accounted for. See [parallel execution documentation](docs/PARALLEL_QUESTIONS.md) for configuration,
+accounted for. See [parallel execution documentation](PARALLEL_QUESTIONS.md) for configuration,
 strict resume behavior, measured evidence, and all remaining gates. Integration support files are
 included under `integrations/overwatch`; no live Overwatch checkout is edited by model commands.
 

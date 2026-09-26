@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "kind": "workstream-evidence-ledger-not-original-feature-matrix",
+  "base_revision": "480005c722027a254f1129bd83dbc09bf9f0a496",
+  "original_research_matrix": {
+    "expected_columns": 45,
+    "retrieved": false,
+    "status": "unknown",
+    "columns": [],
+    "reason": "original companion file/revision and independent review not retrieved"
+  },
+  "workstreams": [
+    {
+      "workstream": "source_stabilization",
+      "implemented": "partial",
+      "tested": "Linux CPU tests, source audit and package checks",
+      "native_validated": "unknown",
+      "quality_measured": "unknown",
+      "Jev_compared": "unknown",
+      "remaining_gate": "clean-clone locked install; full formatting; remote CI"
+    },
+    {
+      "workstream": "model_invariants",
+      "implemented": "implemented",
+      "tested": "24 configurations and exact resume; measured one prefix plus 16 suffix rows",
+      "native_validated": "unknown",
+      "quality_measured": "unknown",
+      "Jev_compared": "unknown",
+      "remaining_gate": "native device/weights confirmation"
+    },
+    {
+      "workstream": "native_software",
+      "implemented": "partial",
+      "tested": "CPU fixtures only; native skips explicit",
+      "native_validated": "unknown",
+      "quality_measured": "unknown",
+      "Jev_compared": "unknown",
+      "remaining_gate": "actual Rust/Qwen/reference/native weights and CUDA"
+    },
+    {
+      "workstream": "real_context",
+      "implemented": "partial",
+      "tested": "existing construction/overflow fixture contracts",
+      "native_validated": "unknown",
+      "quality_measured": "unknown",
+      "Jev_compared": "unknown",
+      "remaining_gate": "trained/calibrated native 32768/65536 artifact and measured resource gates"
+    },
+    {
+      "workstream": "predictive_quality",
+      "implemented": "partial",
+      "tested": "calibration receipt regression and group-bootstrap tests",
+      "native_validated": "unknown",
+      "quality_measured": "unknown",
+      "Jev_compared": "unknown",
+      "remaining_gate": "licensed representative multi-seed data, frozen final evaluation, Kev/Laya baselines"
+    },
+    {
+      "workstream": "jev_comparison",
+      "implemented": "unknown",
+      "tested": "not run",
+      "native_validated": "unknown",
+      "quality_measured": "unknown",
+      "Jev_compared": "unknown",
+      "remaining_gate": "authorized Jev version/access, approved data and billed budget"
+    },
+    {
+      "workstream": "overwatch_primary",
+      "implemented": "partial",
+      "tested": "guarded payload migration fixtures on Linux",
+      "native_validated": "unknown",
+      "quality_measured": "unknown",
+      "Jev_compared": "unknown",
+      "remaining_gate": "actual primary checkout and Windows execution"
+    },
+    {
+      "workstream": "monitoring_pipeline",
+      "implemented": "partial",
+      "tested": "fresh local provider/adapter recovery/cache exercise",
+      "native_validated": "unknown",
+      "quality_measured": "unknown",
+      "Jev_compared": "unknown",
+      "remaining_gate": "supported full backend/frontend, private index, live report/UI/screenshot"
+    },
+    {
+      "workstream": "documentation_git_delivery",
+      "implemented": "partial",
+      "tested": "local documentation/patch/evidence preparation",
+      "native_validated": "unknown",
+      "quality_measured": "unknown",
+      "Jev_compared": "unknown",
+      "remaining_gate": "original 45 columns; signing, push, PR, required checks/protection, merge, clean synchronization"
+    }
+  ],
+  "historical_quality_only": {
+    "calibrated_reward": {
+      "accuracy_percent": 83.33,
+      "questions": 270,
+      "scope": "synthetic marker questions"
+    },
+    "known_regression": {
+      "accuracy_percent": 42.59,
+      "questions": 108
+    },
+    "earlier_smoke": {
+      "accuracy_percent": 50,
+      "threshold_percent": 70
+    }
+  },
+  "overall_replacement_status": "unknown; full validation and Git lifecycle not complete"
+}

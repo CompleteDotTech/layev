@@ -47,7 +47,9 @@ def main():
                     errors={n:measure(grads[n],p.grad,2e-5) for n,p in model.named_parameters() if p.requires_grad}
                     for n,p in model.named_parameters():
                         if p.requires_grad:torch.testing.assert_close(grads[n],p.grad,atol=2e-5,rtol=2e-5)
-                    for x,y in zip(z,ref):torch.testing.assert_close(x,y,atol=1e-5,rtol=1e-5)
+                    for x,y in zip(z,ref):
+                        torch.testing.assert_close(x,y,atol=1e-5,rtol=1e-5)
+                        torch.testing.assert_close(x.softmax(-1),y.softmax(-1),atol=1e-5,rtol=1e-5)
                     rows.append({'lora_rank':rank,'activation_checkpointing':checkpointing,'kv_heads':kv_heads,
                                  'max_branches':cap,'execution':stats,
                                  'logits':measure(torch.cat(z),torch.cat(ref),1e-5),

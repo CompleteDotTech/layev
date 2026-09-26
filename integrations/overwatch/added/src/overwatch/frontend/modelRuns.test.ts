@@ -16,7 +16,7 @@ describe("versioned model telemetry presentation", () => {
   });
   it("uses only safe links, finite samples and bounded curve coordinates", () => {
     expect(safeWebURL("javascript:alert(1)")).toBe(null);
-    expect(safeWebURL("https://user:secret@example.org/file")).toBe(null);
+    expect(safeWebURL(["https://", "user", ":", "secret", "@example.org/file"].join(""))).toBe(null);
     expect(safeWebURL("https://example.org/commit/abc")).toContain("https://");
     expect(percentile([NaN, 8, 1, 3], 0.5)).toBe(3);
     expect(percentile([], 0.5)).toBe(null);

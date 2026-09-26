@@ -1,0 +1,8 @@
+{
+  "classification": "retained historical installer, not the current Overwatch installer",
+  "archive_sha256": "f5eab7178cde0f8bbb8e7d13b98d8ff17ff203b88e5387b337a8e5d25e0bad20",
+  "files": {
+    "apply_parallel.py": "34e98d4926b62a2e425ffcc9841a6044df5acc4a5cf207c59ec9329d1d3220ff",
+    "apply_stage3.py": "3e6b2b4f956ac4e745f15b1128ca737f36d52c77c7de9dbb1e87e51d065b916e"
+  }
+}

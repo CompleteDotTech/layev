@@ -1,0 +1,12 @@
+include LICENSE NOTICE README.md requirements-cpu.lock requirements-native.in uv.lock
+recursive-include licenses *
+recursive-include configs *.json *.yaml
+recursive-include docs *.md *.json
+recursive-include schemas *.json
+recursive-include scripts *.py
+recursive-include tests *.py *.txt *.json
+recursive-include integrations *.py *.json *.md *.ts *.tsx
+recursive-include clients *.ts *.json *.mjs
+recursive-include evals *.json
+global-exclude *.pyc
+global-exclude *.pt *.pth *.safetensors *.onnx *.ckpt
