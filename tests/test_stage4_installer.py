@@ -133,7 +133,7 @@ def test_hash_verified_original_v1_component_migrates(tmp_path, monkeypatch, crl
     module = installer()
     app, _ = seed_checkout(module, tmp_path, monkeypatch, old_import=True, crlf=crlf)
     obsolete = app.with_name("ModelRuns.tsx")
-    raw = (ROOT / "tests/fixtures/overwatch-v1-component.txt").read_bytes()
+    raw = (ROOT / "tests/fixtures/overwatch-v1-component.txt").read_bytes().replace(b"\r\n", b"\n")
     obsolete.write_bytes(raw.replace(b"\n", b"\r\n") if crlf else raw)
     changes = module.prepare(tmp_path, verify_revision=False)
     assert changes[obsolete] is None

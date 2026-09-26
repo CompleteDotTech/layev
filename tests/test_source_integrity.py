@@ -29,7 +29,7 @@ def valid_files():
 
 def test_valid_sources_and_crlf_identity():
     module = checker()
-    files = valid_files()
+    files = {name: raw.replace(b"\r\n", b"\n") for name, raw in valid_files().items()}
     clean = module.audit(files)
     crlf = module.audit({k: v.replace(b"\n", b"\r\n") for k, v in files.items()})
     assert clean["passed"] and crlf["passed"]
