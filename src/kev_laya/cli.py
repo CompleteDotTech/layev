@@ -91,24 +91,51 @@ def main(argv=None) -> int:
     if args.command == "freeze-smoke":
         print(json.dumps(freeze_smoke(args.out, args.count), indent=2))
     elif args.command == "native-init":
+        # Fail cheap prerequisites before architecture/weight allocation.
+        if (args.out.exists() or args.out.is_symlink()
+                or args.out.with_suffix(".manifest.json").exists()
+                or args.out.with_suffix(".manifest.json").is_symlink()):
+            raise FileExistsError(args.out)
         src = args.backbone_dir
         provenance = strict_loads((src / "source.json").read_bytes())
-        if provenance.get("repository") != "Qwen/Qwen2.5-0.5B" or provenance.get("revision") != "060db6499f32faf8b98477b0a26969ef7d8b9987":
+        if not isinstance(provenance, dict) or provenance.get("repository") != "Qwen/Qwen2.5-0.5B" or provenance.get("revision") != "060db6499f32faf8b98477b0a26969ef7d8b9987":
             raise ValueError("backbone provenance is not the frozen revision")
-        if set(provenance.get("sha256", {})) != {"config.json", "model.safetensors", "tokenizer.json", "tokenizer_config.json", "LICENSE"}:
+        digests = provenance.get("sha256")
+        if not isinstance(digests, dict) or set(digests) != {"config.json", "model.safetensors", "tokenizer.json", "tokenizer_config.json", "LICENSE"}:
             raise ValueError("complete pinned-backbone file manifest required")
-        for file, digest in provenance["sha256"].items():
-            if Path(file).name != file or sha256_file(src / file) != digest:
+        import hashlib
+        import re
+        if any(not isinstance(d, str) or re.fullmatch(r"[0-9a-f]{64}", d) is None
+               for d in digests.values()):
+            raise ValueError("backbone manifest requires lowercase SHA-256 values")
+        # Retain config bytes from the same read that was verified. Tokenizer
+        # construction similarly binds its own single read to its identity.
+        config_raw = (src / "config.json").read_bytes()
+        if hashlib.sha256(config_raw).hexdigest() != digests["config.json"]:
+            raise ValueError("backbone file checksum mismatch")
+        for file in ("tokenizer_config.json", "LICENSE"):
+            if sha256_file(src / file) != digests[file]:
                 raise ValueError("backbone file checksum mismatch")
-        config = BackboneConfig.from_qwen(strict_loads((src / "config.json").read_bytes()),
+        tokenizer = QwenTokenizer(src / "tokenizer.json")
+        if tokenizer.identity != "qwen-tokenizer-sha256:" + digests["tokenizer.json"]:
+            raise ValueError("backbone tokenizer checksum mismatch")
+        config_document = strict_loads(config_raw)
+        if not isinstance(config_document, dict):
+            raise ValueError("native backbone config must be a JSON object")
+        config = BackboneConfig.from_qwen(config_document,
                     source=provenance["repository"], revision=provenance["revision"], lora_rank=args.lora_rank,
                     activation_checkpointing=args.checkpointing)
+        if max(tokenizer.special) >= config.vocab_size or tokenizer.metadata()["vocab_size"] > config.vocab_size:
+            raise ValueError("tokenizer vocabulary does not fit native embeddings")
         model = DecisionEngine(config)
-        model.load_qwen_weights(src / "model.safetensors")
+        model.load_qwen_weights(src / "model.safetensors", expected_sha256=digests["model.safetensors"])
         model.backbone_source = provenance
-        if args.out.exists():
+        # Recheck before export; exclusive output ownership is still required.
+        if (args.out.exists() or args.out.is_symlink()
+                or args.out.with_suffix(".manifest.json").exists()
+                or args.out.with_suffix(".manifest.json").is_symlink()):
             raise FileExistsError(args.out)
-        result = save_checkpoint(args.out, model, QwenTokenizer(src / "tokenizer.json"),
+        result = save_checkpoint(args.out, model, tokenizer,
                                  provenance={"backbone_source": provenance, "context_limits": {"branch": 32768, "aggregate": 65536}})
         print(json.dumps(result, indent=2))
     elif args.command in {"train", "reward-train"}:

@@ -14,7 +14,7 @@ dependencies = ["torch>=2.6,<2.11", "pydantic>=2.9,<3", "fastapi>=0.115,<1", "ht
 monitoring = ["psutil>=7,<8"]
 native = ["tokenizers==0.22.1"]
 reference = ["transformers==4.57.1"]
-dev = ["pytest>=9,<10", "jsonschema>=4,<5", "psutil>=7,<8"]
+dev = ["pytest>=9,<10", "jsonschema>=4,<5", "psutil>=7,<8", "numpy>=2,<3"]
 [project.scripts]
 kev-laya = "kev_laya.cli:main"
 [tool.setuptools.packages.find]
