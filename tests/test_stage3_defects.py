@@ -139,7 +139,7 @@ def test_checkpoint_preprocessing_round_trip_and_mismatch(tmp_path,tiny,monkeypa
 def test_missed_attempts_durable_restart_and_cache_restart(tmp_path):
     st={'experiment_id':'e','run_id':'r','attempt_id':'a0','attempt_index':0,'parent_attempt_id':None}
     begin_attempt(tmp_path,st,resumed=False); first=copy.deepcopy(st)
-    s0=snapshot(st,v2=True);env=merge_snapshots({},collection(s0))
+    s0=snapshot(st,v2=True);env=merge_snapshots(None,collection(s0))
     begin_attempt(tmp_path,st,resumed=True)
     s1=snapshot(st,v2=True)
     # Restore an older optimizer checkpoint; receipt file still remembers attempt 1.
@@ -154,13 +154,13 @@ def test_missed_attempts_durable_restart_and_cache_restart(tmp_path):
 
 
 def test_unproven_new_observation_is_visible_not_silently_current():
-    s0=snapshot();env=merge_snapshots({},collection(s0))
+    s0=snapshot();env=merge_snapshots(None,collection(s0))
     new=copy.deepcopy(s0);new.update(attempt_id='a2',attempt_index=2,parent_attempt_id='a1')
     out=merge_snapshots(env,collection(new));view=presentation(out)['runs'][0]
     assert view['attempt_index']==0
     assert view['verification']=='last_verified_with_newer_uncertainty'
     assert view['unverified_observations'][0]['attempt_index']==2
-    first=merge_snapshots({},collection(new));view=presentation(first)['runs'][0]
+    first=merge_snapshots(None,collection(new));view=presentation(first)['runs'][0]
     assert view['verification']=='unverified' and view['attempt_index']==2
 
 
@@ -174,7 +174,7 @@ def test_attempt_receipt_tampering_and_identity_rejected(tmp_path):
 
 def test_conflicting_transports_retained_as_uncertain():
     s=snapshot();other=copy.deepcopy(s);other['metrics']={'loss/ce':1.}
-    env=merge_snapshots({},collection(s,other))
+    env=merge_snapshots(None,collection(s,other))
     assert env['observations'] and presentation(env)['runs'][0]['verification']=='unverified'
 
 
@@ -249,7 +249,7 @@ def test_request_budget_stops_before_next_get(tmp_path):
 
 
 def test_partial_and_missing_registry_preserve_cached_sources(tmp_path):
-    s=snapshot();env=merge_snapshots({},collection(s))
+    s=snapshot();env=merge_snapshots(None,collection(s))
     p=tmp_path/'reg.json';write_registry(p,[{'id':'s0','transport':'s3','bucket':'b','key':'x'}])
     out=collect_snapshots(p,s3_client=S3Double(b'{}'),limits=CollectionLimits(seconds=0))
     merged=merge_snapshots(env,out)

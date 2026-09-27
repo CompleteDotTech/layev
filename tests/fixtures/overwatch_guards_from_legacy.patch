@@ -1,0 +1,58 @@
+diff --git a/src/overwatch/kev_laya_adapter.py b/src/overwatch/kev_laya_adapter.py
+index 6df6d81c974a8b8db70bf0178d36d82859ef2e46..99e5a25c1047f89750d7b12f6427307c7af7575d 100644
+--- a/src/overwatch/kev_laya_adapter.py
++++ b/src/overwatch/kev_laya_adapter.py
+@@ -13,0 +14,7 @@
++def _readable_cache_envelope(envelope: object) -> bool:
++    """Guard the version before set membership: cache JSON may contain any type."""
++    return (isinstance(envelope, dict)
++            and isinstance(envelope.get("schema_version"), str)
++            and envelope["schema_version"] in READABLE_CACHE_VERSIONS)
++
++
+@@ -30,2 +37 @@
+-    previous = previous if isinstance(previous, dict) else {}
+-    if previous and previous.get("schema_version") not in READABLE_CACHE_VERSIONS:
++    if previous is not None and not _readable_cache_envelope(previous):
+@@ -33 +39,2 @@
+-        previous = {}
++        previous = None
++    previous = previous if previous is not None else {}
+@@ -214 +221 @@
+-    if not isinstance(envelope, dict) or envelope.get("schema_version") not in READABLE_CACHE_VERSIONS:
++    if not _readable_cache_envelope(envelope):
+diff --git a/src/overwatch/providers/kev_laya.py b/src/overwatch/providers/kev_laya.py
+index 19c5d510130537a6153bcafdc1ec4cc56b6b6dab..9c08ed6b759429043e4ff25859caa97bb47e0730 100644
+--- a/src/overwatch/providers/kev_laya.py
++++ b/src/overwatch/providers/kev_laya.py
+@@ -214,2 +214,9 @@
+-        length = response.headers.get('Content-Length')
+-        return {'Body': response, 'ContentLength': int(length) if length is not None else None}
++        # Until the body is returned, this method owns it. Header failures must
++        # not leak an unread response outside the collector's cleanup scope.
++        try:
++            length = response.headers.get('Content-Length')
++            declared_length = int(length) if length is not None else None
++        except BaseException:
++            response.close()
++            raise
++        return {'Body': response, 'ContentLength': declared_length}
+@@ -299,0 +307,10 @@
++                    page_info = runs.get('pageInfo')
++                    if not isinstance(page_info, dict) or type(page_info.get('hasNextPage')) is not bool:
++                        raise ValueError('invalid W&B page completion flag')
++                    has_next = page_info['hasNextPage']
++                    next_cursor = page_info.get('endCursor')
++                    if has_next and (not isinstance(next_cursor, str) or not next_cursor
++                                     or next_cursor in seen or not edges):
++                        raise ValueError('invalid or repeating W&B cursor')
++                    # Validate page completeness before accepting this page's
++                    # records. Prior valid pages remain available on failure.
+@@ -311 +328 @@
+-                    if not runs['pageInfo']['hasNextPage']:
++                    if not has_next:
+@@ -313,3 +330 @@
+-                    cursor = runs['pageInfo']['endCursor']
+-                    if not isinstance(cursor, str) or not cursor or cursor in seen or not edges:
+-                        raise ValueError('invalid or repeating W&B cursor')
++                    cursor = next_cursor
