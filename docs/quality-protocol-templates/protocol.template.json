@@ -1,0 +1,94 @@
+{
+  "baselines": {
+    "Kev": {
+      "artifact_sha256": null,
+      "source_revision": null
+    },
+    "Laya": {
+      "artifact_sha256": null,
+      "source_revision": null
+    }
+  },
+  "budget": {
+    "max_peak_gpu_memory_bytes": null,
+    "max_total_optimizer_steps": null,
+    "max_wall_seconds": null,
+    "paid_usd_limit": 0
+  },
+  "calibration": {
+    "fit_partition": "calibration",
+    "report": [
+      "raw",
+      "calibrated"
+    ]
+  },
+  "data_review_sha256": null,
+  "fixture_accuracy_threshold": 0.7,
+  "metrics": [
+    "accuracy",
+    "brier",
+    "ece",
+    "nll",
+    "ordinal_error",
+    "risk_coverage"
+  ],
+  "protocol_id": null,
+  "regression": {
+    "failure_policy": "retain_and_report",
+    "required_types": [
+      "choice",
+      "noul",
+      "score"
+    ],
+    "state": "color=red; level=1; case=99999"
+  },
+  "repository_revision": null,
+  "schema_version": "layev-quality-protocol/1",
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "selection": {
+    "checkpoint_partition": "development",
+    "rule": null,
+    "test_evaluations_per_arm_seed": 1,
+    "test_partition": "test"
+  },
+  "slices": [
+    "context_length",
+    "domain",
+    "language",
+    "option_order",
+    "question_type"
+  ],
+  "suite_manifest_sha256": null,
+  "training": {
+    "arms": {
+      "reward": {
+        "optimizer_steps": null,
+        "useful_token_budget": null
+      },
+      "supervised": {
+        "optimizer_steps": null,
+        "useful_token_budget": null
+      }
+    },
+    "parent_checkpoint_sha256": null
+  },
+  "uncertainty": {
+    "bootstrap_replicates": 1000,
+    "confidence": 0.95,
+    "resampling_unit": "source_group"
+  },
+  "variations": [
+    "colors",
+    "context_lengths",
+    "domains",
+    "languages",
+    "levels",
+    "option_order",
+    "question_ids",
+    "wording"
+  ]
+}

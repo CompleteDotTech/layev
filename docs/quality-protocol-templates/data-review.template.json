@@ -1,0 +1,17 @@
+{
+  "approved_uses": [
+    "local_training",
+    "local_evaluation"
+  ],
+  "data_kind": "representative_candidate",
+  "grouping_policy": null,
+  "intended_population": null,
+  "license_id": null,
+  "license_reference": null,
+  "limitations": [],
+  "near_duplicate_review": null,
+  "review_id": null,
+  "reviewer": null,
+  "sampling_method": null,
+  "schema_version": 1
+}
