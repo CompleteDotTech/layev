@@ -1,9 +1,10 @@
 # Release readiness — intentionally incomplete
 
-This is an **unreleased source-hardening change**, not a completed Jev replacement
-or an approved model deployment. Public name Layev and package/import/CLI names
-`kev-laya`/`kev_laya` remain unchanged. The existing package version and lock are
-not changed by this overlay; no package release was published.
+The source-hardening change is **merged**, not a completed Jev replacement or
+an approved model deployment. Public name Layev and package/import/CLI names
+`kev-laya`/`kev_laya` remain unchanged. A source merge is not a package release,
+trained-model release or native acceptance result. This readback is dated
+September 27, 2026; later changes require fresh verification.
 
 ## Changes and boundaries
 
@@ -37,20 +38,75 @@ silently retaining an earlier fit.
 
 ## Publication and verification status
 
-The Linux handoff sandbox lacked Git push/administration permission, signing,
-and access to the primary Windows checkouts. Those statements describe that
-handoff, not this checkout. Here the source patch was applied in the primary
-Layev checkout, the guarded installer updated the primary Overwatch checkout,
-and local Windows software/frontend checks passed. Hosted CI, signed PR/merge
-state and live UI readback require separate readback before any completion claim.
+[Layev PR #1](https://github.com/CompleteDotTech/layev/pull/1) merged on
+September 26, 2026 into `080aa7183bb5d8f6576bde9d41e3c5115c7ab132`.
+[Hosted run 36224185965](https://github.com/CompleteDotTech/layev/actions/runs/36224185965)
+reports all five source/model jobs completed successfully:
+`source-integrity-and-critical-lint`, `model-ubuntu-latest-py3.12`,
+`model-ubuntu-latest-py3.13`, `model-windows-latest-py3.12`, and
+`model-windows-latest-py3.13`. This is evidence for that existing revision,
+not for subsequent unpublished source patches or pinned Qwen weights.
 
-After actual CI execution, required checks must include
-`source-integrity-and-critical-lint` and all four `model-<os>-py<version>` jobs.
-Configure normal review/signature/check requirements through authorized repository
-administration; never use an admin/bypass merge to skip them. Then verify signatures,
-remote merged state, clean primary checkouts and divergence `0 0` before calling
-the Git lifecycle complete. The integration must first be reconciled with the
-actual primary Overwatch revision and its unrelated local changes.
+The existing merge's GitHub verification is `verified=true`, `reason=valid`,
+with a GitHub PGP merge signature. It is not a new SSH-signed execution-session
+commit. The branch listing reports `protected=false`; the connected integration's
+branch-protection read returned HTTP 403, `Resource not accessible by integration`.
+No rule change or failing-required-check merge-block experiment was performed.
+[Layev #8](https://github.com/CompleteDotTech/layev/issues/8) remains open.
+The owner's repository role does not establish this integration's admin API access.
+
+[Layev PR #11](https://github.com/CompleteDotTech/layev/pull/11) also merged on
+September 27, 2026 at 08:18:33 UTC. Main is now
+`b4cb9df97be61729ebd68b8e0f5ee9bb2d193c73`; its five existing check names all
+passed in [run 36305789586](https://github.com/CompleteDotTech/layev/actions/runs/36305789586).
+The package commit `6ad6ee8770eaebf9e68f2ee30fd5c33bf328e145` has a verified SSH
+signature; the merge has a verified GitHub PGP signature. That PR delivers the
+TypeScript package portion, not all of
+[interface issue #6](https://github.com/CompleteDotTech/layev/issues/6).
+The issue records an eight-step calibrated CPU byte-tokenizer fixture served over
+actual loopback HTTP, with two packaged-client model/request checks. These are
+reported workstation interface results, not native Qwen or official SDK proof.
+The issue also reports clean primary main and divergence 0/0. This Windows
+checkout independently confirmed main at that merge, clean before this
+documentation edit, and 0/0 against origin/main. The final branch listing
+still reports `protected=false`.
+
+[Overwatch PR #1](https://github.com/CompleteDotTech/Overwatch/pull/1) remains draft
+and unmerged, now at `ed825bf1c2c4c19eb3de99ad46564c5803bb4a39` on
+`feat/layev-model-runs`. Its added cache-guard and CI commits both have verified
+SSH signatures. Overwatch main remains
+`501bd99a0cb0c6b321feb022f5747d6dcbd5e9c4`.
+[Hosted run 36305664862](https://github.com/CompleteDotTech/Overwatch/actions/runs/36305664862)
+has two completed jobs: `frontend-typecheck-vitest-build` succeeded, while
+`backend-lint-and-locked-tests` failed. The backend log records
+`BLOCKED: missing_authorized_tscore_index_token` and exit code 2, before the
+locked backend suite. The PR records focused 44/44 cache/CI tests under isolated
+Python 3.13.12, Ruff, and frontend checks on the primary workstation; those
+reported results do not replace the full authenticated locked backend or
+populated UI gate. Do not reapply the old cache/CI patches already on this branch.
+Use the existing PR, not a second integration PR. Tracking:
+[backend/CI #2](https://github.com/CompleteDotTech/Overwatch/issues/2),
+[fresh visible pipeline #3](https://github.com/CompleteDotTech/Overwatch/issues/3),
+[cache boundary #4](https://github.com/CompleteDotTech/Overwatch/issues/4), and
+[live transports #5](https://github.com/CompleteDotTech/Overwatch/issues/5).
+
+These later remote readbacks supersede earlier reports of the old heads and zero
+Overwatch checks. The package merge and two Overwatch commits predate this
+documentation update. This Windows workstation independently confirmed the
+Layev main and Overwatch draft branch heads above, clean checkout states before
+this edit, and divergence 0/0 against their respective origin branches. It has
+not verified the running Overwatch service checkout, populated report, or UI.
+The archive author's isolated session could not inspect either primary checkout;
+its access limitation is historical, not a limitation of this readback. No WSL
+process, cloud CUDA environment, paid Jev call, or live telemetry run was changed
+for this documentation update.
+
+Configure review/signature/required-check policy only through authorized
+administration; never use a bypass merge. Run the repository-required checks on
+each candidate revision and verify hosted results before accepted merge. Then
+fetch and safely synchronize the actual primary checkout without discarding
+unrelated work; verify signatures, remote merged state and divergence `0 0`.
+For Overwatch, verify the actual service's checkout and populated report/UI too.
 
 ## Missing acceptance sources and quality
 

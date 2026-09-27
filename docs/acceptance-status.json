@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "kind": "workstream-evidence-ledger-not-original-feature-matrix",
-  "base_revision": "480005c722027a254f1129bd83dbc09bf9f0a496",
+  "base_revision": "b4cb9df97be61729ebd68b8e0f5ee9bb2d193c73",
   "original_research_matrix": {
     "expected_columns": 45,
     "retrieved": false,
@@ -13,11 +13,11 @@
     {
       "workstream": "source_stabilization",
       "implemented": "partial",
-      "tested": "Linux CPU tests, source audit and package checks",
+      "tested": "five existing hosted checks passed on b4cb9df97be61729ebd68b8e0f5ee9bb2d193c73; not validation of later patches",
       "native_validated": "unknown",
       "quality_measured": "unknown",
       "Jev_compared": "unknown",
-      "remaining_gate": "clean-clone locked install; full formatting; remote CI"
+      "remaining_gate": "main protection and negative enforcement test; full formatting and native gates remain separate"
     },
     {
       "workstream": "model_invariants",
@@ -67,11 +67,11 @@
     {
       "workstream": "overwatch_primary",
       "implemented": "partial",
-      "tested": "guarded payload migration fixtures on Linux",
+      "tested": "PR #1 reports primary Windows focused 44/44 cache/CI cases, Ruff and frontend success; this workstation confirmed the draft branch head, clean checkout and origin divergence 0/0",
       "native_validated": "unknown",
       "quality_measured": "unknown",
       "Jev_compared": "unknown",
-      "remaining_gate": "actual primary checkout and Windows execution"
+      "remaining_gate": "running service checkout identity, supported locked backend, populated report/UI and accepted integration delivery"
     },
     {
       "workstream": "monitoring_pipeline",
@@ -85,11 +85,11 @@
     {
       "workstream": "documentation_git_delivery",
       "implemented": "partial",
-      "tested": "local documentation/patch/evidence preparation",
+      "tested": "Layev source PRs #1 and #11 merged; five main checks passed; Overwatch draft has frontend success and blocked backend failure",
       "native_validated": "unknown",
       "quality_measured": "unknown",
       "Jev_compared": "unknown",
-      "remaining_gate": "original 45 columns; signing, push, PR, required checks/protection, merge, clean synchronization"
+      "remaining_gate": "original 45 definitions; new candidate SSH signing, hosted checks, protection enforcement, accepted merges and safe primary synchronization"
     }
   ],
   "historical_quality_only": {
@@ -107,5 +107,120 @@
       "threshold_percent": 70
     }
   },
-  "overall_replacement_status": "unknown; full validation and Git lifecycle not complete"
+  "overall_replacement_status": "unknown; full validation and Git lifecycle not complete",
+  "historical_base_revision": "480005c722027a254f1129bd83dbc09bf9f0a496",
+  "remote_readback_2026_09_27": {
+    "evidence_scope": "existing remote source revisions only; not subsequent unpublished patches",
+    "layev": {
+      "main": "b4cb9df97be61729ebd68b8e0f5ee9bb2d193c73",
+      "source_pr": 11,
+      "source_pr_merged": true,
+      "workflow_run_id": 36305789586,
+      "check_names": [
+        "source-integrity-and-critical-lint",
+        "model-ubuntu-latest-py3.12",
+        "model-ubuntu-latest-py3.13",
+        "model-windows-latest-py3.12",
+        "model-windows-latest-py3.13"
+      ],
+      "check_conclusions": [
+        "success",
+        "success",
+        "success",
+        "success",
+        "success"
+      ],
+      "merge_signature_verified": true,
+      "merge_signature_type": "GitHub PGP",
+      "branch_listing_protected": false,
+      "protection_api_read": {
+        "http_status": 403,
+        "message": "Resource not accessible by integration"
+      },
+      "protection_applied_by_session": false,
+      "failing_required_check_block_demonstrated": false,
+      "source_hardening_pr": 1,
+      "package_commit": "6ad6ee8770eaebf9e68f2ee30fd5c33bf328e145",
+      "package_commit_signature_verified": true,
+      "package_commit_signature_type": "SSH",
+      "package_source_merged": true,
+      "interface_acceptance_complete": false
+    },
+    "overwatch": {
+      "main": "501bd99a0cb0c6b321feb022f5747d6dcbd5e9c4",
+      "integration_pr": 1,
+      "draft": true,
+      "merged": false,
+      "head": "ed825bf1c2c4c19eb3de99ad46564c5803bb4a39",
+      "head_signature_verified": true,
+      "head_signature_type": "SSH",
+      "head_check_runs": 2,
+      "check_conclusions": {
+        "frontend-typecheck-vitest-build": "success",
+        "backend-lint-and-locked-tests": "failure"
+      },
+      "backend_failure": "missing_authorized_tscore_index_token",
+      "backend_preflight_exit": 2,
+      "workflow_run_id": 36305664862,
+      "cache_commit": "1ea1bf2d67bb9925f27e7f71502047798710064c",
+      "cache_commit_signature_verified": true,
+      "new_source_commits_created_by_this_session": false
+    },
+    "primary_checkouts": {
+      "accessed": false,
+      "worktrees": "unknown",
+      "service_checkout": "unknown",
+      "clean": "unknown",
+      "divergence": "unknown",
+      "reported_layev_primary_state": {
+        "source": "https://github.com/CompleteDotTech/layev/issues/6",
+        "clean": true,
+        "divergence": [
+          0,
+          0
+        ],
+        "independently_checked_by_this_session": false
+      }
+    },
+    "references": [
+      "https://github.com/CompleteDotTech/layev/pull/1",
+      "https://github.com/CompleteDotTech/layev/actions/runs/36224185965",
+      "https://github.com/CompleteDotTech/Overwatch/pull/1",
+      "https://github.com/CompleteDotTech/layev/pull/11",
+      "https://github.com/CompleteDotTech/layev/actions/runs/36305789586",
+      "https://github.com/CompleteDotTech/Overwatch/actions/runs/36305664862",
+      "https://github.com/CompleteDotTech/layev/issues/6"
+    ]
+  },
+  "workstation_readback_2026_09_27": {
+    "scope": "repository state before this documentation edit; not running service or UI acceptance",
+    "layev_main": "b4cb9df97be61729ebd68b8e0f5ee9bb2d193c73",
+    "layev_main_clean_before_edit": true,
+    "layev_main_origin_divergence": [0, 0],
+    "overwatch_draft_head": "ed825bf1c2c4c19eb3de99ad46564c5803bb4a39",
+    "overwatch_checkout_clean": true,
+    "overwatch_origin_branch_divergence": [0, 0],
+    "running_service_checkout_verified": false,
+    "populated_ui_verified": false
+  },
+  "issue_tracking": {
+    "layev": {
+      "2": "https://github.com/CompleteDotTech/layev/issues/2",
+      "3": "https://github.com/CompleteDotTech/layev/issues/3",
+      "4": "https://github.com/CompleteDotTech/layev/issues/4",
+      "5": "https://github.com/CompleteDotTech/layev/issues/5",
+      "6": "https://github.com/CompleteDotTech/layev/issues/6",
+      "7": "https://github.com/CompleteDotTech/layev/issues/7",
+      "8": "https://github.com/CompleteDotTech/layev/issues/8",
+      "9": "https://github.com/CompleteDotTech/layev/issues/9",
+      "10": "https://github.com/CompleteDotTech/layev/issues/10"
+    },
+    "overwatch": {
+      "2": "https://github.com/CompleteDotTech/Overwatch/issues/2",
+      "3": "https://github.com/CompleteDotTech/Overwatch/issues/3",
+      "4": "https://github.com/CompleteDotTech/Overwatch/issues/4",
+      "5": "https://github.com/CompleteDotTech/Overwatch/issues/5"
+    }
+  },
+  "source_hardening_base_revision": "080aa7183bb5d8f6576bde9d41e3c5115c7ab132"
 }
