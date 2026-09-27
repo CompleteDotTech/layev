@@ -1,0 +1,8 @@
+Layev TypeScript client
+Copyright 2026 Kev-Laya contributors
+Licensed under Apache License 2.0.
+
+This package contains the independent Layev HTTP client, not the TypeSafe SDK,
+model weights, backbone, training code, or Overwatch application.
+Source repository: https://github.com/CompleteDotTech/layev
+No association with or endorsement by TypeSafe, Kev, Laya or Qwen is implied.

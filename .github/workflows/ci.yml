@@ -32,6 +32,20 @@ jobs:
       - name: Critical Python lint (not a whole-tree autoformat claim)
         run: python -m ruff check --select E9,F63,F7,F82 src tests scripts integrations
 
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22.16.0'
+      - name: Locked TypeScript client toolchain
+        working-directory: clients/typescript
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Typed source and installed-tarball transport gates (not native or Jev evidence)
+        working-directory: clients/typescript
+        run: |
+          npm run typecheck
+          npm test
+          npm run test:installed
+          git diff --exit-code -- package.json package-lock.json
+
   model:
     name: model-${{ matrix.os }}-py${{ matrix.python }}
     runs-on: ${{ matrix.os }}

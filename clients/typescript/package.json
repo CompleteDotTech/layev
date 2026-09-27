@@ -1,0 +1,43 @@
+{
+  "name": "layev-client",
+  "version": "0.1.0-dev.1",
+  "private": true,
+  "description": "Independent typed Layev HTTP client; no model or Jev parity claim",
+  "license": "Apache-2.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist/index.js",
+    "dist/index.d.ts",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test tests/transport.test.mjs",
+    "prepack": "npm run build",
+    "test:installed": "node scripts/test-installed.mjs",
+    "verify:live": "node scripts/verify-live.mjs"
+  },
+  "devDependencies": {
+    "typescript": "5.8.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CompleteDotTech/layev.git",
+    "directory": "clients/typescript"
+  }
+}
