@@ -27,7 +27,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "npm run build && node --test tests/transport.test.mjs",
+    "test": "npm run build && node --test tests/transport.test.mjs tests/verify-live.test.mjs",
     "prepack": "npm run build",
     "test:installed": "node scripts/test-installed.mjs",
     "verify:live": "node scripts/verify-live.mjs"
