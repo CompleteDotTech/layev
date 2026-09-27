@@ -6,6 +6,15 @@ an approved model deployment. Public name Layev and package/import/CLI names
 trained-model release or native acceptance result. This readback is dated
 September 27, 2026; later changes require fresh verification.
 
+## Current branch policy
+
+Main protection was enabled later on September 27, 2026. It now requires pull
+requests, the five stable checks, signed commits and administrator enforcement.
+The [policy and failing-check receipt](RELEASE_POLICY.md) records the live
+readback and the closed, unmerged negative probe. Historical `protected=false`
+and HTTP 403 statements below describe earlier revisions and credential contexts;
+they are not the current policy state.
+
 ## Changes and boundaries
 
 The guarded Overwatch payload now reverses both historical component import
