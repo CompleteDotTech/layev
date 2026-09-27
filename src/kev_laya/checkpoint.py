@@ -2,8 +2,9 @@
 from __future__ import annotations
 from pathlib import Path
 import random
+import hashlib
 import torch
-from .encoding import ByteTokenizer, QwenTokenizer, SERIALIZATION, NATIVE_SERIALIZATION, LEGACY_ESCAPE, preprocessing_identity
+from .encoding import ByteTokenizer, QwenTokenizer, SERIALIZATION, NATIVE_SERIALIZATION, LEGACY_ESCAPE, LITERAL_ENCODING, preprocessing_identity, validate_preprocessing_metadata
 from .io import atomic_file, atomic_json, sha256_file
 from .model import BackboneConfig, DecisionEngine
 from .execution import BatchPolicy
@@ -39,6 +40,8 @@ def save_checkpoint(path: Path, model: DecisionEngine, tokenizer, *, training_st
             raise ValueError("refusing to replace a different checkpoint tokenizer")
         if not target.exists():
             raw = tokenizer.path.read_bytes()
+            if hashlib.sha256(raw).hexdigest() != expected:
+                raise ValueError("tokenizer source changed since initialization; refusing checkpoint export")
             atomic_file(target, lambda f: f.write(raw))
         token_meta = token_meta | {"path": "tokenizer.json"}
     from .exposure import snapshot_exposure
@@ -110,8 +113,12 @@ def load_checkpoint(path: Path, device="cpu", *, expected_sha256: str | None = N
     recorded_serialization = meta.get("serialization", SERIALIZATION)
     if recorded_serialization != tokenizer.serialization:
         raise ValueError("checkpoint serialization/tokenizer mismatch; explicit migration required")
-    if payload.get("preprocessing", preprocessing_identity(tokenizer)) != preprocessing_identity(tokenizer):
-        raise ValueError("checkpoint preprocessing identity mismatch")
+    recorded_preprocessing = payload.get("preprocessing", preprocessing_identity(tokenizer))
+    # v4 was never valid without an explicit identity. A missing key must not
+    # synthesize the very evidence that this comparison is intended to check.
+    if tokenizer.metadata().get("literal_encoding") == LITERAL_ENCODING and "preprocessing" not in payload:
+        recorded_preprocessing = None
+    validate_preprocessing_metadata(tokenizer, meta, recorded_preprocessing)
     if max(tokenizer.special) >= model.cfg.vocab_size or tokenizer.metadata()["vocab_size"] > model.cfg.vocab_size:
         raise ValueError("tokenizer vocabulary does not fit checkpoint embeddings")
     if tokenizer.identity != meta["identity"]:
