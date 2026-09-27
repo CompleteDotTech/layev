@@ -243,9 +243,32 @@ class DecisionEngine(nn.Module):
                 base = getattr(layer.self_attn, name)
                 setattr(layer.self_attn, name, LoRALinear(base, self.cfg.lora_rank, self.cfg.lora_alpha))
 
-    def load_qwen_weights(self, path: str | Path):
-        from safetensors.torch import load_file
-        tensors = load_file(str(path), device="cpu")
+    def load_qwen_weights(self, path: str | Path, *, expected_sha256: str | None = None):
+        """Load one immutable source read, validating before parameter mutation.
+
+        The optional expected digest is required by native-init's manifest route.
+        A digest calculated from local bytes is integrity evidence, not proof of
+        upstream origin. This byte-based path uses additional CPU memory rather
+        than silently falling back to mutable memory-mapped source tensors.
+        Call only on an exclusively owned model, not during concurrent serving.
+        """
+        import hashlib
+        import re
+        from safetensors.torch import load
+
+        if expected_sha256 is not None and (
+            not isinstance(expected_sha256, str)
+            or re.fullmatch(r"[0-9a-f]{64}", expected_sha256) is None
+        ):
+            raise ValueError("expected native weight checksum must be lowercase SHA-256")
+        raw = Path(path).read_bytes()
+        digest = hashlib.sha256(raw).hexdigest()
+        if expected_sha256 is not None and digest != expected_sha256:
+            raise ValueError("native weight checksum mismatch")
+        # Hash and deserialize the SAME immutable bytes. Hashing the pathname
+        # after load_file could instead describe a replacement file.
+        tensors = load(raw)
+        del raw
         tensors = {k.removeprefix("model."): v for k, v in tensors.items() if k.startswith("model.")}
         if not tensors:
             raise ValueError("checkpoint contains no model backbone weights")
@@ -256,15 +279,34 @@ class DecisionEngine(nn.Module):
                     prefix, leaf = k.rsplit(".", 1)
                     k = prefix + ".base." + leaf
                 rewritten[k] = v
-            expected = {k for k in self.backbone.state_dict() if not k.endswith((".a", ".b"))}
-            if set(rewritten) != expected:
-                raise ValueError("native weight keys do not match architecture")
-            self.backbone.load_state_dict(rewritten, strict=False)
-        else:
-            self.backbone.load_state_dict(tensors, strict=True)
+            tensors = rewritten
+        destinations = {k: v for k, v in self.backbone.state_dict().items()
+                        if not k.endswith((".a", ".b"))}
+        if set(tensors) != set(destinations):
+            raise ValueError("native weight keys do not match architecture")
+        # load_state_dict can copy earlier keys before a later shape error.
+        # Validate every source tensor before it has permission to change any.
+        for key, value in tensors.items():
+            target = destinations[key]
+            if value.shape != target.shape:
+                raise ValueError("native weight shape does not match architecture: " + key)
+            if not value.is_floating_point() or not target.is_floating_point():
+                raise ValueError("native backbone weights must be floating point: " + key)
+            if not bool(torch.isfinite(value).all()):
+                raise ValueError("native backbone weights must be finite: " + key)
+            # A finite wider-dtype input can become infinity during copy_.
+            # Only wider-range source types require an explicit bound check.
+            if torch.finfo(value.dtype).max > torch.finfo(target.dtype).max and value.numel() and (
+                value.abs().max().item() > torch.finfo(target.dtype).max
+            ):
+                raise ValueError("native weight is outside destination dtype range: " + key)
+        # Unexpected copy/device failures may still partially mutate parameters.
+        # Never leave a prior native-success receipt attached to that state.
+        self.native_weights_loaded = False
+        self.loaded_backbone_sha256 = None
+        self.backbone.load_state_dict(tensors, strict=not bool(self.cfg.lora_rank))
+        self.loaded_backbone_sha256 = digest
         self.native_weights_loaded = True
-        from .io import sha256_file
-        self.loaded_backbone_sha256 = sha256_file(Path(path))
 
     def forward(self, encoding: Encoding, *, reference: bool = False,
                 serial_reference: bool = False, policy: BatchPolicy | None = None) -> tuple[list[Tensor], dict]:

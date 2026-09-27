@@ -331,6 +331,7 @@ dependencies = [
 [package.optional-dependencies]
 dev = [
     { name = "jsonschema" },
+    { name = "numpy" },
     { name = "psutil" },
     { name = "pytest" },
 ]
@@ -349,6 +350,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.115,<1" },
     { name = "httpx", specifier = ">=0.28,<1" },
     { name = "jsonschema", marker = "extra == 'dev'", specifier = ">=4,<5" },
+    { name = "numpy", marker = "extra == 'dev'", specifier = ">=2,<3" },
     { name = "psutil", marker = "extra == 'dev'", specifier = ">=7,<8" },
     { name = "psutil", marker = "extra == 'monitoring'", specifier = ">=7,<8" },
     { name = "pydantic", specifier = ">=2.9,<3" },
