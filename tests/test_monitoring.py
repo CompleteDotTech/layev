@@ -62,7 +62,7 @@ def test_local_registration_provider_cache_presentation(tmp_path,snapshot):
     path=tmp_path/'snapshot.json';writer=TelemetryWriter(path,snapshot);writer.update(metrics={'loss/ce':.7})
     registry=tmp_path/'registry.json';register(registry,path,'local')
     batch=collect_snapshots(registry)
-    env=merge_snapshots({},batch)
+    env=merge_snapshots(None,batch)
     view=presentation(env)
     assert len(view['runs'])==1 and view['runs'][0]['association']['status']=='local'
     assert view['runs'][0]['provider_status']['skypilot'] is None
@@ -73,7 +73,7 @@ def test_local_registration_provider_cache_presentation(tmp_path,snapshot):
 def test_corrupt_source_keeps_last_valid_and_reports_error(tmp_path,snapshot):
     path=tmp_path/'snapshot.json';TelemetryWriter(path,snapshot).export()
     registry=tmp_path/'registry.json';register(registry,path,'local')
-    env=merge_snapshots({},collect_snapshots(registry))
+    env=merge_snapshots(None,collect_snapshots(registry))
     path.write_text('{corrupt')
     merged=merge_snapshots(env,collect_snapshots(registry))
     assert len(merged['records'])==1 and merged['warnings']
@@ -106,7 +106,7 @@ def test_wandb_enabled_structured_listing_and_dedup(tmp_path,snapshot):
                 'pageInfo':{'hasNextPage':False,'endCursor':None}}}}}).encode()
             return {'Body':io.BytesIO(payload),'ContentLength':len(payload)}
         def run(self,*a):raise AssertionError('no per-run hydration')
-    api=API();batch=collect_snapshots(registry,wandb_api=api);env=merge_snapshots({},batch)
+    api=API();batch=collect_snapshots(registry,wandb_api=api);env=merge_snapshots(None,batch)
     assert api.calls==1 and len(batch['records'])==2 and len(env['records'])==1
     view=presentation(env)['runs'][0]
     assert set(view['transports'])=={'local','wandb'}
@@ -120,7 +120,7 @@ def test_s3_enabled_compact_snapshot(tmp_path,snapshot):
 
 def test_sequence_regression_conflict_restart(snapshot):
     snapshot['sequence']=10
-    env=merge_snapshots({},collected(snapshot,ids=['file']))
+    env=merge_snapshots(None,collected(snapshot,ids=['file']))
     old=copy.deepcopy(snapshot);old['sequence']=9
     reg=merge_snapshots(env,collected(old,ids=['file']))
     assert reg['records'][0]['snapshot']['sequence']==10 and reg['warnings']
@@ -135,7 +135,7 @@ def test_sequence_regression_conflict_restart(snapshot):
 
 def test_ambiguous_attempt_identity_is_not_silently_chosen(snapshot):
     other=copy.deepcopy(snapshot);other['attempt_id']='conflicting-attempt'
-    env=merge_snapshots({},collected(snapshot,other))
+    env=merge_snapshots(None,collected(snapshot,other))
     assert env['warnings']
 
 def test_stale_heartbeat_and_explicit_namespace_join(snapshot):
@@ -143,7 +143,7 @@ def test_stale_heartbeat_and_explicit_namespace_join(snapshot):
     then=(now-timedelta(minutes=10)).isoformat()
     snapshot.update(started_at=then,updated_at=then,heartbeat_at=then)
     snapshot['scheduler']={'provider':'skypilot','namespace':'controller-a','job_id':7}
-    env=merge_snapshots({},collected(snapshot),now=now)
+    env=merge_snapshots(None,collected(snapshot),now=now)
     jobs=[{'job_id':7,'job_name':'different-name','status':'RUNNING','recovery_count':5,'scheduler_namespace':'controller-a'}]
     view=presentation(env,jobs,now=now)['runs'][0]
     assert view['freshness']=='stale' and view['association']['status']=='matched'
@@ -155,18 +155,18 @@ def test_stale_heartbeat_and_explicit_namespace_join(snapshot):
     assert presentation(env,jobs+jobs,now=now)['runs'][0]['association']['status']=='ambiguous'
 
 def test_source_revocation_removes_run(snapshot):
-    env=merge_snapshots({},collected(snapshot))
+    env=merge_snapshots(None,collected(snapshot))
     result=merge_snapshots(env,{'records':[],'warnings':[],'configured_ids':[]})
     assert result['records']==[]
 
 def test_reporting_functions_do_not_read_sources(monkeypatch,snapshot):
-    env=merge_snapshots({},collected(snapshot))
+    env=merge_snapshots(None,collected(snapshot))
     def fail(*a,**k):raise AssertionError('report opened a source')
     monkeypatch.setattr(builtins,'open',fail)
     assert presentation(env)['runs'][0]['run_id']=='run'
 
 def test_corrupt_cache_wrapper_does_not_crash_presentation(snapshot):
-    env=merge_snapshots({},collected(snapshot))
+    env=merge_snapshots(None,collected(snapshot))
     env['records'].extend([{}, {'snapshot':{'wandb':{'entity':'missing'}}}])
     out=presentation(env)
     assert len(out['runs'])==1 and len(out['warnings'])==2
@@ -174,12 +174,12 @@ def test_corrupt_cache_wrapper_does_not_crash_presentation(snapshot):
 def test_retention_does_not_reingest_expired_registered_snapshot(snapshot):
     then=(datetime.now(timezone.utc)-timedelta(days=30)).isoformat()
     snapshot.update(started_at=then,updated_at=then,heartbeat_at=then)
-    env=merge_snapshots({},collected(snapshot),retention_days=14)
+    env=merge_snapshots(None,collected(snapshot),retention_days=14)
     assert env['records']==[] and env['warnings'][0]['code']=='expired_snapshot_ignored'
 
 def test_counter_regression_rejected(snapshot):
     snapshot['progress']['optimizer_steps']=10
-    env=merge_snapshots({},collected(snapshot))
+    env=merge_snapshots(None,collected(snapshot))
     other=copy.deepcopy(snapshot);other['sequence']+=1;other['progress']['optimizer_steps']=9
     out=merge_snapshots(env,collected(other))
     assert out['records'][0]['snapshot']['progress']['optimizer_steps']==10

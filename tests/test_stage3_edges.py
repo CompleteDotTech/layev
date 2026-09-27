@@ -77,7 +77,7 @@ def test_overwatch_review_and_symlink_targets_refused(tmp_path):
 def test_missed_many_attempts_window_bound_is_explicit(tmp_path):
     state={'experiment_id':'e','run_id':'r','attempt_id':'a0','attempt_index':0,'parent_attempt_id':None}
     begin_attempt(tmp_path,state,resumed=False)
-    original=merge_snapshots({},collection(snapshot(state,v2=True)))
+    original=merge_snapshots(None,collection(snapshot(state,v2=True)))
     for _ in range(20):begin_attempt(tmp_path,state,resumed=True)
     recovered=merge_snapshots(json.loads(json.dumps(original)),collection(snapshot(state,v2=True)))
     assert recovered['records'][0]['snapshot']['attempt_index']==20
@@ -93,7 +93,7 @@ def test_missed_many_attempts_window_bound_is_explicit(tmp_path):
 def test_rehashed_conflicting_parent_receipt_not_accepted(tmp_path):
     state={'experiment_id':'e','run_id':'r','attempt_id':'a0','attempt_index':0,'parent_attempt_id':None}
     begin_attempt(tmp_path,state,resumed=False)
-    old=merge_snapshots({},collection(snapshot(state,v2=True)))
+    old=merge_snapshots(None,collection(snapshot(state,v2=True)))
     begin_attempt(tmp_path,state,resumed=True);new=snapshot(state,v2=True)
     rows=new['extensions']['attempt_lineage']
     rows[0]['attempt_id']='someone-else';rows[0]['sha256']=attempt_digest(rows[0])
@@ -106,7 +106,7 @@ def test_rehashed_conflicting_parent_receipt_not_accepted(tmp_path):
 def test_budget_skipped_source_keeps_last_success_timestamp(tmp_path):
     export=tmp_path/'export.json';export.write_text(json.dumps(snapshot()))
     reg=tmp_path/'reg.json';write_registry(reg,[{'id':'s','transport':'local','path':str(export)}])
-    first=merge_snapshots({},collect_snapshots(reg))
+    first=merge_snapshots(None,collect_snapshots(reg))
     stamp=first['collection_sources'][0]['last_successful_refresh_at']
     export.unlink()
     after=merge_snapshots(json.loads(json.dumps(first)),collect_snapshots(reg,limits=CollectionLimits(seconds=0)))
@@ -193,7 +193,7 @@ def test_real_pinned_qwen_tokenizer_literals():
 
 
 def test_bad_cached_collection_and_observation_shapes_warn_not_crash():
-    s=snapshot();base=merge_snapshots({},collection(s))
+    s=snapshot();base=merge_snapshots(None,collection(s))
     base['collection_sources']=None
     base['observations']=[{'snapshot':s}]
     after=merge_snapshots(base,collection(s))
