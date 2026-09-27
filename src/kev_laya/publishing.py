@@ -26,19 +26,28 @@ class WandbPublisher:
             raise ValueError('snapshot W&B identity differs from publishing target')
         if not self.enabled:
             return False
-        if self.run is None:
+        run = self.run
+        if run is None:
             sdk = self.sdk
             if sdk is None:
                 import wandb as sdk
             api = sdk.Api(timeout=10)
-            self.run = api.run('/'.join(self.identity[k] for k in ('entity', 'project', 'run_id')))
-            config = dict(self.run.config)
-            if config.get('framework') not in (None, 'kev_laya'):
-                raise ValueError('refusing to relabel a different framework W&B run')
-            self.run.config.update({'framework': 'kev_laya', 'telemetry_schema_version': snapshot['schema_version']})
-            self.run.update()
-        self.run.summary['kev_laya/snapshot'] = snapshot
-        self.run.summary.update()
+            run = api.run('/'.join(self.identity[k] for k in ('entity', 'project', 'run_id')))
+        # A failed lookup/setup must never cache a target that bypasses this
+        # policy on retry. Also recheck the available config of a cached run;
+        # this is not a remote refresh or an atomic cross-writer guarantee.
+        config = dict(run.config)
+        if config.get('framework') not in (None, 'kev_laya'):
+            raise ValueError('refusing to relabel a different framework W&B run')
+        if self.run is None:
+            run.config.update({'framework': 'kev_laya', 'telemetry_schema_version': snapshot['schema_version']})
+            run.update()
+            # Commit the cached handle only after validation and setup succeed.
+            # A remote failure can have an uncertain outcome; no rollback or
+            # implicit retry is claimed here. The caller owns retry scheduling.
+            self.run = run
+        run.summary['kev_laya/snapshot'] = snapshot
+        run.summary.update()
         return True
 
 
