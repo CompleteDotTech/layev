@@ -57,10 +57,17 @@ class LiteralTokenizerDouble:
     def no_truncation(self):pass
     @classmethod
     def from_file(cls,path):return cls()
+    @classmethod
+    def from_str(cls,text):
+        obj=cls()
+        obj.literal_backend=json.loads(text).get('added_tokens')==[]
+        obj.encode_special_tokens=obj.literal_backend
+        return obj
     def token_to_id(self,s):
         from kev_laya.encoding import SPECIAL
         return 256+SPECIAL.index(s)
-    def get_added_tokens_decoder(self):return {i:SimpleNamespace(special=True) for i in range(256,261)}
+    def get_added_tokens_decoder(self):
+        return {} if getattr(self,'literal_backend',False) else {i:SimpleNamespace(special=True) for i in range(256,261)}
     def get_vocab_size(self):return 261
     def encode(self,text,add_special_tokens=False):
         from kev_laya.encoding import SPECIAL
@@ -72,7 +79,7 @@ class LiteralTokenizerDouble:
 
 def qwen_double(tmp_path, monkeypatch, mode=LITERAL_ENCODING):
     monkeypatch.setitem(sys.modules,'tokenizers',SimpleNamespace(Tokenizer=LiteralTokenizerDouble))
-    path=tmp_path/'tokenizer.json';path.write_text('{}')
+    path=tmp_path/'tokenizer.json';path.write_text(json.dumps({'model':{'type':'BPE'}, 'decoder':{'type':'ByteLevel'}, 'added_tokens':[{'id':256}]}))
     return QwenTokenizer(path,literal_encoding=mode)
 
 
