@@ -2,11 +2,12 @@
 import { createHash } from 'node:crypto';
 import { writeFileSync } from 'node:fs';
 import { KevLayaClient, CLIENT_CONTRACT_VERSION } from '../dist/index.js';
+import { LIVE_GATE_VERSION, resolveAdvertisedModel, verifyInterfaceResponse } from './verify-contract.mjs';
 
 const baseURL = process.env.LAYEV_BASE_URL;
 const model = process.env.LAYEV_MODEL;
 const output = process.argv[2];
-const receipt = { gate: 'live-loopback-interface', contract: CLIENT_CONTRACT_VERSION,
+const receipt = { gate: 'live-loopback-interface', gate_version: LIVE_GATE_VERSION, contract: CLIENT_CONTRACT_VERSION,
   status: 'blocked', native_weights_verified: false, quality_measured: false,
   official_typesafe_sdk_tested: false, jev_compared: false, requests_attempted: 0 };
 const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
@@ -18,7 +19,7 @@ try {
   receipt.status = 'failed';
   receipt.requests_attempted++;
   const models = await client.models();
-  if (!models.models?.some(row => row.name === model)) throw new Error('requested_model_not_advertised');
+  const resolvedModel = resolveAdvertisedModel(models, model);
   const state = { text: 'color=red; level=1; case=99999', unicode: 'e\u0301中文🙂' };
   const questions = {
     choice: { type: 'choice', instructions: 'Choose the color.', criteria: { red: 'red', blue: 'blue' } },
@@ -27,19 +28,14 @@ try {
   };
   receipt.requests_attempted++;
   const response = await client.systemOne(state, questions);
-  if (response.model !== model || !response.usage || !response.answers ||
-      response.answers.choice?.type !== 'choice' || response.answers.score?.type !== 'score' ||
-      response.answers.noul?.type !== 'noul' || !response.answers.score.legend ||
-      !response.answers.choice.probabilities || !response.confidence_definition) {
-    throw new Error('client_contract_shape_mismatch');
-  }
-  Object.assign(receipt, { status: 'passed', model, request_sha256: hash({ state, questions, model }),
+  verifyInterfaceResponse(response, questions, resolvedModel);
+  Object.assign(receipt, { status: 'passed', model, requested_model: model, resolved_model: resolvedModel, request_sha256: hash({ state, questions, model }),
     response_sha256: hash(response), models_sha256: hash(models),
     note: 'Interface receipt only; does not score or repair the preserved quality regression.' });
 } catch (error) {
   // Only these locally authored codes are safe to publish; network errors may contain URLs.
   const allowed = ['missing_explicit_base_url_or_model', 'non_loopback_endpoint_refused',
-    'requested_model_not_advertised', 'client_contract_shape_mismatch'];
+    'requested_model_not_advertised', 'models_contract_shape_mismatch', 'client_contract_shape_mismatch'];
   receipt.reason = allowed.includes(error.message) ? error.message : 'request_or_configuration_failure';
   process.exitCode = receipt.status === 'blocked' ? 2 : 1;
 }
