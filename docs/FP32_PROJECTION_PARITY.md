@@ -57,11 +57,36 @@ short FP32 Choice/Noul/Score logits; private receipt SHA-256
 These were two short examples and 288 useful forward tokens, not long-context
 training exposure or predictive-quality evidence.
 
-This is a numerical repair on one full-length request, not the complete FP32
-native validator or trained 32k/64k backward exposure. The separate complete
-BF16 validator on the previous main source passed 6/6 numerical and overflow
-cases but **failed overall** with 0/18 diagnostic marker decisions correct;
-private report SHA-256
+## Complete FP32 native readout on merged source
+
+On merged source `7e207d0c488466615a295385efea439a9c228d60`, the same
+pinned actual-weight checkpoint completed all six English/Spanish
+beginning/middle/end cases at exactly 65,536 logical tokens each. All six passed
+the unchanged combined absolute and relative 1e-5 numerical comparison and
+both structured overflow checks. Maximum logit and probability errors across
+the matrix were `1.9073486328125e-05` and `9.822982885293596e-07`;
+optimized latency ranged from 77.84 to 87.37 seconds and independent full-row
+reference latency from 482.64 to 522.24 seconds under the 70% RTX 3060
+PyTorch allocation cap. The short pinned Transformers oracle passed, and the
+existing training-exposure chain verified 32,768 branch and 65,536 aggregate
+observation.
+
+**The overall report failed**: only 1 of 18 diagnostic marker decisions was
+correct, or 5.6%, below the frozen 80% threshold. The private composite report
+SHA-256 is
+`50cbd14f93f7e8e92343d7cac6fce079d89f9ef783c89db5814c182fc263b919`.
+The original process stopped after five durable cases. A one-case continuation
+evaluated only the missing Spanish end case; an assembly retry hash-verified all
+six request/result pairs and recomputed the short oracle and exposure chain.
+The recovery is explicit in the report. A temporally adjacent NVIDIA driver
+event 153 does not establish why the original process stopped. The first
+assembly attempt had a private import error after writing the sixth result;
+it did not require another long inference.
+
+The separate complete BF16 validator on the previous main source passed 6/6
+numerical and overflow cases but **failed overall** with 0/18 diagnostic marker
+decisions correct; private report SHA-256
 `0cba4a5181ecd55176a73fe32166952a7411913b12adbfecee4fb8a6c756df`.
-The marker failure and the observed `case=99999` quality regression remain
-open. Do not use either numerical result as representative quality evidence.
+Trained long-context backward, the marker failure and the observed
+`case=99999` quality regression remain open. Neither numerical matrix is
+representative quality or Jev-relative evidence.
