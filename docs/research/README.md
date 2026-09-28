@@ -30,3 +30,13 @@ September 25 definitions were retained rather than rewritten. Run
 `python scripts/verify_feature_matrix.py` from the repository root to check
 the original bytes, exact ID mapping, project-cell count and local source/test
 paths. Hosted CI runs that verifier on each PR and main push.
+
+Later evidence is recorded separately so the original inventory snapshot is
+not silently reclassified. The [native short probe](../NATIVE_SHORT_PROBE.md)
+and [official SDK interface gate](../OFFICIAL_SDK_GATE.md) cover specific
+short requests with actual pinned Qwen weights and a trained local service.
+Their passing receipts do not establish all 45 features, 32k/64k trained
+context, calibrated quality, or Jev parity. Layev's local checkpoint and
+loopback service are intentionally different from TypeSafe's hosted model and
+service policy; proprietary state handling and hosted operational promises
+are outside this local compatibility gate.
