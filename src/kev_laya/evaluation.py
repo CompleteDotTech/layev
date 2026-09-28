@@ -44,7 +44,19 @@ def summarize(rows: list[dict], bins: int = 10) -> dict:
 
 
 @torch.no_grad()
-def evaluate(model: DecisionEngine, data: list[Datum], tokenizer: Tokenizer, limits: Limits, *, split: str) -> dict:
+def evaluate(model: DecisionEngine, data: list[Datum], tokenizer: Tokenizer, limits: Limits, *,
+             split: str, test_claim=None, test_readout_kind: str | None = None,
+             checkpoint_sha256: str | None = None, diagnostic: bool = False) -> dict:
+    if split == "test":
+        from .quality_readout import QualityReadoutLedger
+        if diagnostic and any(value is not None for value in (test_claim, test_readout_kind, checkpoint_sha256)):
+            raise ValueError("diagnostic test cannot use a quality claim")
+        if not diagnostic:
+            if not isinstance(test_claim, QualityReadoutLedger):
+                raise ValueError("untouched test requires a durable readout claim")
+            test_claim.consume_test_readout(test_readout_kind, checkpoint_sha256)
+    elif diagnostic or any(value is not None for value in (test_claim, test_readout_kind, checkpoint_sha256)):
+        raise ValueError("test access arguments require the test split")
     model.eval()
     rows = []
     for datum in data:
@@ -79,7 +91,10 @@ def evaluate(model: DecisionEngine, data: list[Datum], tokenizer: Tokenizer, lim
         for row in rows:
             grouped[row["variations"].get(feature, "unknown")].append(row)
         variation_breakdowns[feature] = {name: summarize(values) for name, values in sorted(grouped.items())}
-    return {"split": split, "evidence_class": "pretrained-backbone" if model.native_weights_loaded else "tiny-synthetic-fixture",
+    return {"split": split,
+            "quality_gate": ("untracked_diagnostic_no_representative_claim" if diagnostic else
+                             "claimed_paired_test" if split == "test" else "development_only"),
+            "evidence_class": "pretrained-backbone" if model.native_weights_loaded else "tiny-synthetic-fixture",
             "confidence_evaluated": "max probability, not public entropy concentration", "summary": summarize(rows),
             "by": breakdowns, "variation_by": variation_breakdowns,
             "rows": rows, "temperatures": dict(model.temperatures)}

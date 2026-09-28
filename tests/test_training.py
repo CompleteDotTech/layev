@@ -120,7 +120,7 @@ def test_missing_calibration_types_keep_artifact_partial(tiny, suite):
 
 def test_evaluation_breakdowns_and_probability_metrics(tiny,suite):
     data,_=suite
-    report=evaluate(tiny,data['test'][:4],ByteTokenizer(),Limits(512,8192),split='test')
+    report=evaluate(tiny,data['test'][:4],ByteTokenizer(),Limits(512,8192),split='test',diagnostic=True)
     assert report['summary']['count']==12
     assert 0<=report['summary']['accuracy']<=1 and report['summary']['nll']>=0
     assert 0<=report['summary']['ece']<=1

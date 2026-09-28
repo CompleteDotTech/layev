@@ -63,7 +63,7 @@ def run(output: Path):
     checkpoints = {k: Path(v['checkpoint']) for k, v in runs.items()} | {'pgps-200-calibrated': calibrated}
     for label, checkpoint in checkpoints.items():
         evaluated, tok, point = load_checkpoint(checkpoint)
-        report = evaluate(evaluated, suite['test'], tok, limits, split='test')
+        report = evaluate(evaluated, suite['test'], tok, limits, split='test', diagnostic=True)
         report.update(checkpoint_sha256=point['checkpoint_sha256'],
                       split_sha256=manifest['partitions']['test']['sha256'], protocol_sha256=sha256_file(output/'protocol.json'))
         path = output / (label + '-evaluation.json')

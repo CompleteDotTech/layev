@@ -23,9 +23,12 @@ def test_evaluation_and_calibration_cli_write_real_artifacts(tmp_path,tiny,suite
     checkpoint=tmp_path/'trained-fixture.pt';tiny.training_steps=1
     save_checkpoint(checkpoint,tiny,ByteTokenizer(),provenance={'context_limits':{'branch':512,'aggregate':8192}})
     report=tmp_path/'evaluation.json'
-    main(['evaluate','--checkpoint',str(checkpoint),'--suite',str(tmp_path/'suite'),'--split','test','--out',str(report)])
+    main(['evaluate','--checkpoint',str(checkpoint),'--suite',str(tmp_path/'suite'),'--split','test',
+          '--diagnostic-test','--out',str(report)])
     telemetry=json.loads(report.with_suffix('.telemetry.json').read_text())
     assert telemetry['phase']=='completed' and telemetry['artifacts'][0]['kind']=='evaluation'
+    assert telemetry['provenance']['evidence_class']=='untracked-diagnostic-test-ineligible-for-quality'
+    assert json.loads(report.read_text())['quality_gate']=='untracked_diagnostic_no_representative_claim'
     schema=json.loads((ROOT/'schemas/telemetry.schema.json').read_text())
     jsonschema.validate(telemetry,schema)
     calibrated=tmp_path/'calibrated.pt'
