@@ -60,6 +60,14 @@ def test_refuse_resume_config_changes(tmp_path,tiny,suite):
     with pytest.raises(ValueError,match='configuration'):
         train(tiny,ByteTokenizer(),data['train'],manifest,tmp_path/'run',TrainSettings(steps=3),cfg,limits,resume=Path(result['checkpoint']))
 
+def test_fused_optimizer_requires_cuda(tiny,suite,tmp_path):
+    data,manifest=suite
+    with pytest.raises(ValueError,match='unsupported optimizer backend'):
+        TrainSettings(optimizer_backend='invalid')
+    with pytest.raises(ValueError,match='fused optimizer backend requires CUDA'):
+        train(tiny,ByteTokenizer(),data['train'],manifest,tmp_path/'fused',
+              TrainSettings(steps=1,optimizer_backend='fused'),ObjectiveConfig(),Limits(512,8192))
+
 def test_sampler_continuation():
     s=Sampler(13,9)
     for _ in range(19): s.next()

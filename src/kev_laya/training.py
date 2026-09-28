@@ -32,6 +32,7 @@ class TrainSettings:
     keep_checkpoints: int = 3
     precision: str = "fp32"
     choice_permutation: bool = False
+    optimizer_backend: str = "default"
     resource_sample_seconds: float = 1.0
     def __post_init__(self):
         if min(self.steps, self.accumulation, self.save_every, self.keep_checkpoints) < 1:
@@ -42,6 +43,8 @@ class TrainSettings:
             raise ValueError("invalid resource sampling interval")
         if self.precision not in {"fp32", "bf16"}:
             raise ValueError("unsupported precision")
+        if self.optimizer_backend not in {"default", "fused"}:
+            raise ValueError("unsupported optimizer backend")
 
 
 def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, output: Path,
@@ -59,6 +62,8 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
     recorded_settings = asdict(settings)
     if not settings.choice_permutation:
         recorded_settings.pop("choice_permutation")  # preserve the original v1 no-augmentation config hash
+    if settings.optimizer_backend == "default":
+        recorded_settings.pop("optimizer_backend")  # preserve existing optimizer config hashes
     cfg = {"settings": recorded_settings, "objective": asdict(loss_config), "limits": asdict(limits),
            "backbone": model.config_dict(), "preprocessing": preprocessing_identity(tokenizer),
            "execution": model.batch_policy.to_dict()}
@@ -69,8 +74,11 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
     device = next(model.parameters()).device
     if settings.precision == "bf16" and device.type != "cuda":
         raise ValueError("bf16 training profile requires CUDA; no silent fallback")
+    if settings.optimizer_backend == "fused" and device.type != "cuda":
+        raise ValueError("fused optimizer backend requires CUDA")
     optimizer = torch.optim.AdamW((p for p in model.parameters() if p.requires_grad), lr=settings.learning_rate,
-                                  weight_decay=settings.weight_decay)
+                                  weight_decay=settings.weight_decay,
+                                  **({"fused": True} if settings.optimizer_backend == "fused" else {}))
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lambda n: max(0.05, 1 - n / settings.steps))
     sampler = Sampler(len(data), settings.seed)
     state = {"step": 0, "microbatches": 0, "examples": 0, "forward_tokens": 0, "accumulation_position": 0,
@@ -84,7 +92,10 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
     random.seed(settings.seed)
     torch.manual_seed(settings.seed)
     if resume is not None:
-        restored, restored_tokenizer, payload = load_checkpoint(resume, str(device))
+        # The caller's model is already on the training device. Keep the
+        # temporary checkpoint model on CPU while validating/copying its state;
+        # a second GPU model can exhaust memory before optimizer restoration.
+        restored, restored_tokenizer, payload = load_checkpoint(resume, "cpu")
         if preprocessing_identity(restored_tokenizer) != preprocessing_identity(tokenizer):
             raise ValueError("resume tokenizer/preprocessing differs")
         old = payload["training_state"]
@@ -266,8 +277,10 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
                     key = str(size)
                     execution["batch_size_histogram"][key] = execution["batch_size_histogram"].get(key, 0) + 1
             trainable = [p for p in model.parameters() if p.requires_grad]
-            if any(p.grad is None or not torch.isfinite(p.grad).all() for p in trainable):
-                raise FloatingPointError("missing or nonfinite trainable parameter gradient")
+            if any(p.grad is None for p in trainable):
+                raise FloatingPointError("missing trainable parameter gradient")
+            # clip_grad_norm_ checks the total norm before clipping. Its
+            # nonfinite guard avoids a full-size isfinite mask per gradient.
             norm = torch.nn.utils.clip_grad_norm_(trainable, settings.gradient_clip, error_if_nonfinite=True)
             if quality_budget is not None:
                 quality_budget.check_resources(peak_gpu_bytes=quality_gpu_peak())

@@ -135,6 +135,11 @@
           "title": "Choice Permutation",
           "type": "boolean"
         },
+        "optimizer_backend": {
+          "default": "default",
+          "title": "Optimizer Backend",
+          "type": "string"
+        },
         "resource_sample_seconds": {
           "default": 1.0,
           "title": "Resource Sample Seconds",
