@@ -16,7 +16,7 @@ from fastapi.testclient import TestClient
 from kev_laya.checkpoint import load_checkpoint, save_checkpoint
 from kev_laya.encoding import ByteTokenizer, Limits, encode_request
 from kev_laya.execution import BatchBudgetExceeded, BatchPolicy, plan_batches
-from kev_laya.model import BackboneConfig, DecisionEngine
+from kev_laya.model import BackboneConfig, DecisionEngine, PointerHead
 from kev_laya.objectives import ObjectiveConfig, objective
 from kev_laya.schema import SystemOneRequest
 from kev_laya.service import InferenceRuntime, ServeSettings, create_app
@@ -264,6 +264,29 @@ def test_255_choice_and_10_level_actual_model_execution():
         assert torch.isfinite(a).all()
         assert abs(float(a.softmax(-1).sum())-1)<1e-6
         torch.testing.assert_close(a,b,atol=1e-5,rtol=1e-5)
+
+
+@pytest.mark.parametrize("hidden_dtype", [torch.bfloat16, torch.float32])
+def test_bf16_pointer_scores_are_batch_shape_invariant_and_differentiable(hidden_dtype):
+    torch.manual_seed(67)
+    head = PointerHead(32, 16)
+    decide = torch.randn(2, 32, dtype=hidden_dtype, requires_grad=True)
+    options = torch.randn(6, 32, dtype=hidden_dtype, requires_grad=True)
+    owner = torch.tensor([0, 0, 0, 1, 1, 1])
+    with torch.autocast("cpu", dtype=torch.bfloat16):
+        batched = head.logits(decide, options, owner)
+        separate = torch.cat((head(decide[0], options[:3]),
+                              head(decide[1], options[3:])))
+    with torch.autocast("cpu", enabled=False):
+        query = torch.nn.functional.linear(decide.double(), head.q.weight.double(), head.q.bias.double())
+        keys = torch.nn.functional.linear(options.double(), head.k.weight.double(), head.k.bias.double())
+        expected = (keys * query[owner]).sum(-1).float() * head.scale
+    assert batched.dtype == torch.float32
+    torch.testing.assert_close(batched, separate, atol=0, rtol=0)
+    torch.testing.assert_close(batched, expected, atol=0, rtol=0)
+    batched.sum().backward()
+    assert all(gradient is not None and torch.isfinite(gradient).all()
+               for gradient in (decide.grad, options.grad, head.q.weight.grad, head.k.weight.grad))
 
 
 @pytest.mark.parametrize('lora,checkpointing', [(0,False),(0,True),(2,False),(2,True)])
