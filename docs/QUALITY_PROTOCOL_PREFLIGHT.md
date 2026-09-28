@@ -98,6 +98,68 @@ receipts to that immutable digest. Retrospective local timestamps are not proof.
 The full issue remains open until its real data, execution and measured-result
 gates are demonstrated.
 
+## Claimed untouched-test readout
+
+The quality CLI now requires a single-use claim for `evaluate --split test`.
+Ordinary development evaluation remains available. Existing fixture experiments
+must explicitly request `--diagnostic-test`, which the CLI accepts only for
+known synthetic fixture IDs. Their report and telemetry mark them ineligible
+for representative quality claims. The direct Python evaluator
+also requires an active claim for test scoring, unless called as an explicit
+diagnostic. This is an ordinary software guard, not a filesystem access-control
+boundary against code that deliberately reads the suite directly.
+
+After development-only checkpoint selection and calibration-only fitting, write
+an immutable JSON selection record with exactly these fields:
+`schema_version=layev-quality-selection/1`, `protocol_sha256`,
+`suite_manifest_sha256`, `arm`, `seed`, `development_report_sha256`,
+`raw_checkpoint_sha256`, and `calibrated_checkpoint_sha256`. The development
+report must bind the selected raw checkpoint and frozen development split. The
+calibrated checkpoint manifest must name the raw checkpoint as parent. Preserve
+the selection record before opening the test partition, ideally under an
+externally witnessed preregistration receipt; a local file timestamp alone does
+not prove selection chronology or that the development rule chose the best arm.
+The selected raw checkpoint must record positive training steps, the declared
+seed, all frozen split hashes, unfitted after-training calibration status and
+unit temperatures. These recorded fields provide a local consistency check;
+they are not independent proof that an optimization run actually occurred.
+
+```powershell
+python -m kev_laya evaluate --split test `
+  --checkpoint C:\approved-research\selected-raw.pt `
+  --calibrated-checkpoint C:\approved-research\selected-calibrated.pt `
+  --suite C:\approved-research\suite `
+  --quality-protocol C:\approved-research\protocol.json `
+  --quality-data-review C:\approved-research\data-review.json `
+  --quality-selection C:\approved-research\selection.json `
+  --development-report C:\approved-research\selected-development.json `
+  --quality-readout-ledger C:\approved-research\test-readout-ledger.json `
+  --out C:\approved-research\paired-test.json
+```
+
+The ledger claims `arm:seed` under an exclusive lock before preflight or the
+suite loader reads test rows. Its in-process permit is consumed exactly once for
+the selected raw checkpoint and once for its calibrated descendant, before each
+model forward pass. Both results are written to one paired output. The claim
+permanently blocks another evaluation for that arm and
+seed under the frozen protocol, even after a failure. If the process crashes
+after writing a complete paired output but before committing its receipt,
+reconcile that existing output without reading the test data again:
+
+```powershell
+python -m kev_laya reconcile-test-readout `
+  --quality-protocol C:\approved-research\protocol.json `
+  --quality-readout-ledger C:\approved-research\test-readout-ledger.json `
+  --arm supervised --seed 42 --out C:\approved-research\paired-test.json
+```
+
+An incomplete or missing output stays claimed and cannot be retried. The ledger
+checks the output's protocol, selection, arm/seed, test split and both checkpoint
+hashes. It cannot authenticate a data-use review, independently prove the
+development selection rule, or prevent an operator from bypassing the library
+by directly reading data with unrelated code. Those remain acceptance review
+requirements; this source guard does not establish representative quality.
+
 ## Running on existing approved data
 
 Use the isolated Layev environment and a complete checkout. Keep CUDA and

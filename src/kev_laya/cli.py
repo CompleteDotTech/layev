@@ -1,7 +1,6 @@
 """Reproducible local training, reward, calibration, evaluation and serving stages."""
 from __future__ import annotations
 import argparse
-from dataclasses import asdict
 from pathlib import Path
 import hashlib
 import json
@@ -20,7 +19,7 @@ from .objectives import ObjectiveConfig
 from .schema import strict_loads
 from .training import TrainSettings, train
 from .quality_budget import StepTokenBudget, configure_cuda_allocator_limit
-from .quality_protocol import preflight
+from .quality_protocol import KNOWN_FIXTURE_IDS, preflight
 
 
 def limits_for(payload: dict) -> Limits:
@@ -69,6 +68,14 @@ def main(argv=None) -> int:
         p.add_argument("--run-id")
         if command == "evaluate":
             p.add_argument("--split", choices=("development", "test"), default="development")
+            p.add_argument("--quality-protocol", type=Path)
+            p.add_argument("--quality-data-review", type=Path)
+            p.add_argument("--quality-selection", type=Path)
+            p.add_argument("--development-report", type=Path)
+            p.add_argument("--calibrated-checkpoint", type=Path)
+            p.add_argument("--quality-readout-ledger", type=Path)
+            p.add_argument("--diagnostic-test", action="store_true",
+                           help="Explicit untracked fixture/debug test; no representative quality claim")
     p = sub.add_parser("serve")
     p.add_argument("--checkpoint", type=Path, required=True)
     p.add_argument("--host", default="127.0.0.1")
@@ -91,6 +98,12 @@ def main(argv=None) -> int:
     p.add_argument("--registry", type=Path, required=True)
     p.add_argument("--snapshot", type=Path, required=True)
     p.add_argument("--source-id", required=True)
+    p = sub.add_parser("reconcile-test-readout")
+    p.add_argument("--quality-protocol", type=Path, required=True)
+    p.add_argument("--quality-readout-ledger", type=Path, required=True)
+    p.add_argument("--arm", choices=("supervised", "reward"), required=True)
+    p.add_argument("--seed", type=int, required=True)
+    p.add_argument("--out", type=Path, required=True)
     args = parser.parse_args(argv)
     if args.threads < 1:
         parser.error("threads must be positive")
@@ -219,6 +232,30 @@ def main(argv=None) -> int:
                            quality_allocation_id=f"{arm}:{settings.seed}" if quality_protocol is not None else None)
         print(json.dumps({k: v for k, v in result.items() if k != "metrics"}, indent=2))
     elif args.command in {"calibrate", "evaluate"}:
+        if args.command == "evaluate":
+            quality_paths = (args.quality_protocol, args.quality_data_review,
+                             args.quality_selection, args.development_report,
+                             args.calibrated_checkpoint, args.quality_readout_ledger)
+            if args.split == "test" and not args.diagnostic_test:
+                if not all(path is not None for path in quality_paths):
+                    raise ValueError("test evaluation requires the paired quality readout claim")
+                from .quality_readout import run_paired_test
+                report = run_paired_test(protocol_path=args.quality_protocol,
+                    review_path=args.quality_data_review, selection_path=args.quality_selection,
+                    development_report_path=args.development_report,
+                    raw_checkpoint=args.checkpoint, calibrated_checkpoint=args.calibrated_checkpoint,
+                    suite_path=args.suite, ledger_path=args.quality_readout_ledger,
+                    output=args.out, device=args.device)
+                print(json.dumps({name: value["summary"] for name, value in report["readouts"].items()}, indent=2))
+                return 0
+            if args.diagnostic_test and (args.split != "test" or any(path is not None for path in quality_paths)):
+                raise ValueError("diagnostic test cannot be combined with a quality readout")
+            if args.diagnostic_test:
+                fixture_manifest = strict_loads((args.suite / "manifest.json").read_bytes())
+                if fixture_manifest.get("id") not in KNOWN_FIXTURE_IDS:
+                    raise ValueError("diagnostic test requires a known synthetic fixture")
+            if args.split == "development" and any(path is not None for path in quality_paths):
+                raise ValueError("quality readout arguments require the test split")
         suite, manifest = load_suite(args.suite)
         model, tokenizer, point = load_checkpoint(args.checkpoint, args.device)
         limits = limits_for(point)
@@ -229,6 +266,10 @@ def main(argv=None) -> int:
         writer = stage_writer(args.telemetry or args.out.with_suffix(".telemetry.json"), args.command,
                               model, tokenizer, point, limits, manifest=manifest,
                               experiment_id=args.experiment_id, run_id=args.run_id)
+        if args.command == "evaluate" and args.diagnostic_test:
+            provenance = dict(writer.snapshot["provenance"])
+            provenance["evidence_class"] = "untracked-diagnostic-test-ineligible-for-quality"
+            writer.update(provenance=provenance)
         started = time.perf_counter()
         try:
             if args.command == "calibrate":
@@ -245,7 +286,8 @@ def main(argv=None) -> int:
                               artifact(calibration_path,"evaluation")])
                 print(json.dumps(fitted, indent=2))
             else:
-                report = evaluate(model, suite[args.split], tokenizer, limits, split=args.split)
+                report = evaluate(model, suite[args.split], tokenizer, limits, split=args.split,
+                                  diagnostic=args.diagnostic_test)
                 report.update(checkpoint_sha256=point["checkpoint_sha256"], model_id=point["model_id"],
                               split_sha256=manifest["partitions"][args.split]["sha256"])
                 atomic_json(args.out, report)
@@ -273,6 +315,18 @@ def main(argv=None) -> int:
     elif args.command == "register":
         from .registration import register
         print(json.dumps(register(args.registry, args.snapshot, args.source_id), indent=2))
+    elif args.command == "reconcile-test-readout":
+        from .quality_readout import QualityReadoutLedger
+        protocol_raw = args.quality_protocol.read_bytes()
+        protocol = strict_loads(protocol_raw)
+        if args.arm not in protocol["training"]["arms"] or args.seed not in protocol["seeds"]:
+            raise ValueError("readout arm/seed absent from frozen protocol")
+        with QualityReadoutLedger(args.quality_readout_ledger,
+                protocol_sha256=hashlib.sha256(protocol_raw).hexdigest(),
+                suite_manifest_sha256=protocol["suite_manifest_sha256"]) as ledger:
+            ledger.reconcile_output(f"{args.arm}:{args.seed}", args.out)
+        print(json.dumps({"status": "existing_output_reconciled", "arm": args.arm,
+                          "seed": args.seed, "output_sha256": sha256_file(args.out)}, indent=2))
     elif args.command == "serve":
         from .service import InferenceRuntime, ServeSettings, create_app
         import uvicorn

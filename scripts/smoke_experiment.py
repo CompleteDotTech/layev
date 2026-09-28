@@ -48,7 +48,7 @@ tokenizer, limits = ByteTokenizer(), Limits(branch=512, aggregate=8192, max_ques
 settings = TrainSettings(steps=a.steps, save_every=max(1, a.steps // 4),choice_permutation=a.choice_permutation)
 base = train(model, tokenizer, suite["train"], manifest, a.out / "supervised", settings,
              ObjectiveConfig(ordinal=.1), limits, experiment_id=experiment_id, run_id="supervised")
-reports = {"supervised": evaluate(model, suite["test"], tokenizer, limits, split="test")}
+reports = {"supervised": evaluate(model, suite["test"], tokenizer, limits, split="test", diagnostic=True)}
 results = {"supervised": base}
 for label, reward in (("supervised-compute-matched", 0.0), ("added-pgps", 0.1)):
     arm, tokenizer, point = load_checkpoint(Path(base["checkpoint"]))
@@ -56,7 +56,7 @@ for label, reward in (("supervised-compute-matched", 0.0), ("added-pgps", 0.1)):
                    TrainSettings(steps=a.extension_steps, learning_rate=.001, save_every=a.extension_steps, seed=43,choice_permutation=a.choice_permutation),
                    ObjectiveConfig(ordinal=.1, reinforce=reward), limits,
                    experiment_id=experiment_id, run_id=label, parent_sha256=point["checkpoint_sha256"])
-    reports[label] = evaluate(arm, suite["test"], tokenizer, limits, split="test")
+    reports[label] = evaluate(arm, suite["test"], tokenizer, limits, split="test", diagnostic=True)
     results[label] = result
     if reward:
         calibration = calibrate(arm, suite["calibration"], tokenizer, limits, split="calibration",
@@ -66,7 +66,7 @@ for label, reward in (("supervised-compute-matched", 0.0), ("added-pgps", 0.1)):
         save_checkpoint(calibrated, arm, tokenizer, provenance=trained_point["provenance"],
                          parent_sha256=sha256_file(Path(result["checkpoint"])),
                          parent_checkpoint=Path(result["checkpoint"]), exposure_operation="calibration")
-        reports["added-pgps-plus-temperature"] = evaluate(arm, suite["test"], tokenizer, limits, split="test")
+        reports["added-pgps-plus-temperature"] = evaluate(arm, suite["test"], tokenizer, limits, split="test", diagnostic=True)
         atomic_json(a.out / label / "calibration.json", calibration)
         results["calibrated_checkpoint"] = str(calibrated)
 for name, report in reports.items():
