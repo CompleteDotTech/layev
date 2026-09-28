@@ -29,7 +29,7 @@ The repository's existing lock is retained unchanged.
 - `docs/`: architecture, telemetry, correctness, and validation notes. [The archive README (link-normalized copy)](docs/ARCHIVE_README.md) is retained for provenance; its relative evidence paths refer to the separate delivery ZIP.
 - `licenses/` and `NOTICE`: upstream attribution and license texts.
 
-The source came from `Kev_Laya_Correctness_Integration.zip` (delivery version `0.1.0+stage3`). That ZIP contains the larger historical evidence and trained fixture artifacts. Those artifacts and any private environment values are not part of this source repository. The 45-column reference comparison is in the companion `overwatch-model-research/FEATURE_MATRIX.json` checkout and must be reconciled against this implementation before parity claims.
+The source came from `Kev_Laya_Correctness_Integration.zip` (delivery version `0.1.0+stage3`). That ZIP contains the larger historical evidence and trained fixture artifacts. Those artifacts and any private environment values are not part of this source repository. The [original 45-feature research matrix](docs/research/FEATURE_MATRIX.original.json) is preserved byte-for-byte with its [Layev evidence mapping](docs/research/layev-feature-mapping.json). The mapping records separate source, test, native, quality, and Jev evidence states. It does not establish Jev parity.
 
 ## Local setup
 

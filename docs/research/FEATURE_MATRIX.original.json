@@ -1,0 +1,2468 @@
+{
+  "title": "Jev feature comparison",
+  "date": "2026-09-25",
+  "features": [
+    {
+      "id": "text",
+      "title": "Text state",
+      "definition": "Accept natural-language state directly.",
+      "source": "https://docs.typesafe.ai/concepts/state",
+      "group": "Inputs"
+    },
+    {
+      "id": "json_state",
+      "title": "JSON state",
+      "definition": "Accept objects/arrays directly, preserving their content in model input.",
+      "source": "https://docs.typesafe.ai/concepts/state",
+      "group": "Inputs"
+    },
+    {
+      "id": "json_instructions",
+      "title": "Structured instructions",
+      "definition": "Accept object/array instructions, not only a string.",
+      "source": "https://docs.typesafe.ai/primitives/advanced",
+      "group": "Inputs"
+    },
+    {
+      "id": "json_criteria",
+      "title": "Structured criteria",
+      "definition": "Accept object/array option or level descriptions.",
+      "source": "https://docs.typesafe.ai/primitives/advanced",
+      "group": "Inputs"
+    },
+    {
+      "id": "noul_criteria",
+      "title": "Custom yes/no criteria",
+      "definition": "Describe what true and false mean in a Noul question.",
+      "source": "https://docs.typesafe.ai/primitives/noul",
+      "group": "Inputs"
+    },
+    {
+      "id": "languages",
+      "title": "Other languages",
+      "definition": "Non-English input is supported or documented; equal accuracy is not implied.",
+      "source": "https://docs.typesafe.ai/models",
+      "group": "Inputs"
+    },
+    {
+      "id": "images",
+      "title": "Image input",
+      "definition": "Decision path consumes image content directly, beyond OCR/text preprocessing.",
+      "source": "https://docs.typesafe.ai/models",
+      "group": "Inputs"
+    },
+    {
+      "id": "audio_video",
+      "title": "Audio/video input",
+      "definition": "Decision path directly accepts audio or video.",
+      "source": "https://docs.typesafe.ai/models",
+      "group": "Inputs"
+    },
+    {
+      "id": "choice",
+      "title": "Choice",
+      "definition": "Select a member of a runtime-defined answer set.",
+      "source": "https://docs.typesafe.ai/primitives/choice",
+      "group": "Decisions"
+    },
+    {
+      "id": "score",
+      "title": "Score expectation",
+      "definition": "Return the probability-weighted index of ordered rubric levels.",
+      "source": "https://docs.typesafe.ai/primitives/score",
+      "group": "Decisions"
+    },
+    {
+      "id": "noul",
+      "title": "Noul",
+      "definition": "Return a native yes-probability field for a binary question.",
+      "source": "https://docs.typesafe.ai/primitives/noul",
+      "group": "Decisions"
+    },
+    {
+      "id": "probabilities",
+      "title": "Full probabilities",
+      "definition": "Expose a probability for every choice or level.",
+      "source": "https://docs.typesafe.ai/api",
+      "group": "Decisions"
+    },
+    {
+      "id": "confidence",
+      "title": "Confidence field",
+      "definition": "Return a separate scalar confidence/concentration measure. Formulas may differ.",
+      "source": "https://docs.typesafe.ai/confidence",
+      "group": "Decisions"
+    },
+    {
+      "id": "legend",
+      "title": "Score legend",
+      "definition": "Return level-index-to-description mapping with an ordinal score.",
+      "source": "https://docs.typesafe.ai/primitives/score",
+      "group": "Decisions"
+    },
+    {
+      "id": "bounded",
+      "title": "Constrained answers",
+      "definition": "Construct the decision from declared options or numeric values; no generated-answer parsing.",
+      "source": "https://docs.typesafe.ai/concepts/system-one",
+      "group": "Decisions"
+    },
+    {
+      "id": "dynamic",
+      "title": "Runtime answer sets",
+      "definition": "Options/rubrics can change per request without retraining a fixed-label classifier.",
+      "source": "https://docs.typesafe.ai/primitives/choice",
+      "group": "Execution"
+    },
+    {
+      "id": "many",
+      "title": "Multiple questions",
+      "definition": "An exposed interface accepts multiple decisions in one invocation.",
+      "source": "https://docs.typesafe.ai/introduction",
+      "group": "Execution"
+    },
+    {
+      "id": "mixed",
+      "title": "Mixed question types",
+      "definition": "Choice, Score and Noul can be requested together.",
+      "source": "https://docs.typesafe.ai/introduction",
+      "group": "Execution"
+    },
+    {
+      "id": "parallel",
+      "title": "Parallel questions",
+      "definition": "Questions are evaluated together, rather than a serial question loop.",
+      "source": "https://docs.typesafe.ai/introduction",
+      "group": "Execution"
+    },
+    {
+      "id": "isolation",
+      "title": "Question isolation",
+      "definition": "Another question does not become context for this question. Sequential independent calls count.",
+      "source": "https://docs.typesafe.ai/introduction",
+      "group": "Execution"
+    },
+    {
+      "id": "shared",
+      "title": "Encode state once",
+      "definition": "Reuse model state computation across questions. Reusing tokenization alone does not count.",
+      "source": "https://docs.typesafe.ai/models",
+      "group": "Execution"
+    },
+    {
+      "id": "no_decode",
+      "title": "No text decoding",
+      "definition": "Decision inference has no autoregressive answer-generation loop. Not necessarily one backbone call.",
+      "source": "https://docs.typesafe.ai/concepts/system-one",
+      "group": "Execution"
+    },
+    {
+      "id": "qid",
+      "title": "Question IDs ignored",
+      "definition": "Question IDs are response metadata, not model-visible instructions.",
+      "source": "https://docs.typesafe.ai/api",
+      "group": "Execution"
+    },
+    {
+      "id": "trained",
+      "title": "Decision-specific training",
+      "definition": "Weights or adapters are trained for bounded decision outputs.",
+      "source": "https://docs.typesafe.ai/introduction/machine-learning-primer",
+      "group": "Learning"
+    },
+    {
+      "id": "calibration",
+      "title": "Calibration method",
+      "definition": "An explicit method targets probability calibration; this is not an accuracy guarantee.",
+      "source": "https://docs.typesafe.ai/introduction/machine-learning-primer",
+      "group": "Learning"
+    },
+    {
+      "id": "rl_calibration",
+      "title": "Calibration-oriented RL",
+      "definition": "An RL objective includes probability/calibration incentives. Independent methods are not exact Jev RLCD.",
+      "source": "https://docs.typesafe.ai/introduction/machine-learning-primer",
+      "group": "Learning"
+    },
+    {
+      "id": "temperature",
+      "title": "Fitted temperature",
+      "definition": "A fitted temperature is supplied or a fitting method is present; a user-set scalar alone is insufficient.",
+      "source": "https://docs.typesafe.ai/confidence",
+      "group": "Learning"
+    },
+    {
+      "id": "finetune",
+      "title": "User fine-tuning",
+      "definition": "The inspected project exposes model adaptation with user data; service-specific for Jev.",
+      "source": "https://docs.typesafe.ai/models",
+      "group": "Learning"
+    },
+    {
+      "id": "options255",
+      "title": "255 choices",
+      "definition": "An individual decision supports Jev's 255-option cardinality. Variable-size heads alone are only partial evidence.",
+      "source": "https://docs.typesafe.ai/primitives/choice",
+      "group": "Limits"
+    },
+    {
+      "id": "levels10",
+      "title": "10 score levels",
+      "definition": "Native Score accepts ten ordered levels.",
+      "source": "https://docs.typesafe.ai/primitives/score",
+      "group": "Limits"
+    },
+    {
+      "id": "context32",
+      "title": "32k state + question",
+      "definition": "Direct model input accepts a 32k-token state-plus-question branch; chunking does not count.",
+      "source": "https://docs.typesafe.ai/models",
+      "group": "Limits"
+    },
+    {
+      "id": "request64",
+      "title": "64k total request",
+      "definition": "One multi-question request supports Jev's 64k total-input contract.",
+      "source": "https://docs.typesafe.ai/models",
+      "group": "Limits"
+    },
+    {
+      "id": "generation",
+      "title": "Free-text generation",
+      "definition": "The inspected decision interface generates arbitrary answer text.",
+      "source": "https://docs.typesafe.ai/concepts/system-one",
+      "group": "Limits"
+    },
+    {
+      "id": "http",
+      "title": "SystemOne HTTP route",
+      "definition": "A local/service POST /v1/systemone endpoint exists. Exact wire parity is not implied.",
+      "source": "https://docs.typesafe.ai/api",
+      "group": "Interface"
+    },
+    {
+      "id": "version",
+      "title": "Model/version selection",
+      "definition": "Select or pin the model/checkpoint used. This is broader than Jev's alias API.",
+      "source": "https://docs.typesafe.ai/models",
+      "group": "Interface"
+    },
+    {
+      "id": "usage",
+      "title": "Token usage",
+      "definition": "Decision results expose input/output token accounting; semantics may differ.",
+      "source": "https://docs.typesafe.ai/api",
+      "group": "Interface"
+    },
+    {
+      "id": "python",
+      "title": "Python interface",
+      "definition": "A Python client or callable model/scorer interface is supplied.",
+      "source": "https://docs.typesafe.ai/sdk",
+      "group": "Interface"
+    },
+    {
+      "id": "javascript",
+      "title": "JS/TS package",
+      "definition": "A dedicated JavaScript/TypeScript package is supplied; generic HTTP access is not counted.",
+      "source": "https://docs.typesafe.ai/sdk",
+      "group": "Interface"
+    },
+    {
+      "id": "weights",
+      "title": "Local weights",
+      "definition": "Public model weights/adapters can be used locally. Download/installation status is irrelevant.",
+      "source": "https://typesafe.ai/blog/introducing-system-one-models-and-jev",
+      "group": "Interface"
+    },
+    {
+      "id": "latency",
+      "title": "Published low latency",
+      "definition": "Provider latency claim, not a controlled cross-project benchmark.",
+      "source": "https://typesafe.ai/blog/introducing-system-one-models-and-jev",
+      "group": "Service terms"
+    },
+    {
+      "id": "pricing",
+      "title": "Input-token pricing",
+      "definition": "Hosted input-token charge. Local compute cost is a different quantity.",
+      "source": "https://docs.typesafe.ai/models",
+      "group": "Service terms"
+    },
+    {
+      "id": "free_output",
+      "title": "Free output tokens",
+      "definition": "Hosted billing policy, separate from whether inference generates text.",
+      "source": "https://docs.typesafe.ai/models",
+      "group": "Service terms"
+    },
+    {
+      "id": "rate",
+      "title": "Published rate limits",
+      "definition": "Hosted account quotas, not model throughput.",
+      "source": "https://docs.typesafe.ai/models",
+      "group": "Service terms"
+    },
+    {
+      "id": "data_training",
+      "title": "No training on requests",
+      "definition": "Provider commitment about customer requests/responses; not inferred from local execution.",
+      "source": "https://docs.typesafe.ai/legal",
+      "group": "Service terms"
+    },
+    {
+      "id": "zdr",
+      "title": "Enterprise ZDR",
+      "definition": "An enterprise zero-data-retention service offering.",
+      "source": "https://docs.typesafe.ai/legal",
+      "group": "Service terms"
+    }
+  ],
+  "projects": [
+    {
+      "id": "jev",
+      "name": "Jev 1.13 (reference)",
+      "url": "https://typesafe.ai/",
+      "scope": "Official documentation; proprietary model.",
+      "cells": {
+        "text": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "json_state": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "json_instructions": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "json_criteria": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "noul_criteria": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "languages": {
+          "status": "Partial",
+          "comment": "English strongest; others accepted"
+        },
+        "images": {
+          "status": "No",
+          "comment": "Text only"
+        },
+        "audio_video": {
+          "status": "No",
+          "comment": "Text only"
+        },
+        "choice": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "score": {
+          "status": "Yes",
+          "comment": "Expected level index"
+        },
+        "noul": {
+          "status": "Yes",
+          "comment": "P(yes)"
+        },
+        "probabilities": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "confidence": {
+          "status": "Yes",
+          "comment": "Derived from distribution"
+        },
+        "legend": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "bounded": {
+          "status": "Yes",
+          "comment": "Schema-bounded; can still be wrong"
+        },
+        "dynamic": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "many": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "mixed": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "parallel": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "isolation": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "shared": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "no_decode": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "qid": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "trained": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "calibration": {
+          "status": "Yes",
+          "comment": "RLCD objective; not a universal guarantee"
+        },
+        "rl_calibration": {
+          "status": "Yes",
+          "comment": "Proprietary RLCD"
+        },
+        "temperature": {
+          "status": "Unknown",
+          "comment": "Not disclosed"
+        },
+        "finetune": {
+          "status": "No",
+          "comment": "Same weights for every account"
+        },
+        "options255": {
+          "status": "Yes",
+          "comment": "Maximum 255"
+        },
+        "levels10": {
+          "status": "Yes",
+          "comment": "2–10 levels"
+        },
+        "context32": {
+          "status": "Yes",
+          "comment": "32k branch"
+        },
+        "request64": {
+          "status": "Yes",
+          "comment": "64k total"
+        },
+        "generation": {
+          "status": "No",
+          "comment": ""
+        },
+        "http": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "version": {
+          "status": "Yes",
+          "comment": "Version IDs and aliases"
+        },
+        "usage": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "python": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "javascript": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "weights": {
+          "status": "No",
+          "comment": "Closed service"
+        },
+        "latency": {
+          "status": "Comment",
+          "comment": "Published 70–500 ms; workload-dependent"
+        },
+        "pricing": {
+          "status": "Comment",
+          "comment": "$0.042 / million input tokens"
+        },
+        "free_output": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "rate": {
+          "status": "Comment",
+          "comment": "250k tokens/s; 1,200 requests/min; may change"
+        },
+        "data_training": {
+          "status": "Yes",
+          "comment": "Provider commitment"
+        },
+        "zdr": {
+          "status": "Yes",
+          "comment": "Enterprise offering"
+        }
+      },
+      "sources": [],
+      "commit": "Official docs checked 2026-09-25"
+    },
+    {
+      "id": "laya",
+      "name": "Laya",
+      "url": "https://github.com/NandhaKishorM/laya",
+      "scope": "Encoder + typed scoring head; notebook learning recipe.",
+      "cells": {
+        "text": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "json_state": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "json_instructions": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "json_criteria": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "noul_criteria": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "languages": {
+          "status": "Yes",
+          "comment": "Multilingual checkpoint path"
+        },
+        "images": {
+          "status": "No",
+          "comment": ""
+        },
+        "audio_video": {
+          "status": "No",
+          "comment": ""
+        },
+        "choice": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "score": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "noul": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "probabilities": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "confidence": {
+          "status": "Yes",
+          "comment": "Entropy; also max-p answer_confidence"
+        },
+        "legend": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "bounded": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "dynamic": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "many": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "mixed": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "parallel": {
+          "status": "Yes",
+          "comment": "Batched question rows"
+        },
+        "isolation": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "shared": {
+          "status": "No",
+          "comment": "Tokenization reused; state re-encoded"
+        },
+        "no_decode": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "qid": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "trained": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "calibration": {
+          "status": "Yes",
+          "comment": "Proper rewards + temperature"
+        },
+        "rl_calibration": {
+          "status": "Yes",
+          "comment": "Independent logit-noise policy gradient"
+        },
+        "temperature": {
+          "status": "Yes",
+          "comment": "Per type/options/language"
+        },
+        "finetune": {
+          "status": "Yes",
+          "comment": "Notebook training"
+        },
+        "options255": {
+          "status": "Partial",
+          "comment": "Variable K; head token budget can reject"
+        },
+        "levels10": {
+          "status": "Yes",
+          "comment": "Subject to input budget"
+        },
+        "context32": {
+          "status": "Unknown",
+          "comment": "Checkpoint/config dependent; default window 512"
+        },
+        "request64": {
+          "status": "Unknown",
+          "comment": "No equivalent total-request contract established"
+        },
+        "generation": {
+          "status": "No",
+          "comment": ""
+        },
+        "http": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "version": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "usage": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "python": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "javascript": {
+          "status": "Yes",
+          "comment": "laya-ts"
+        },
+        "weights": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "latency": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "pricing": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "free_output": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "rate": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "data_training": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "zdr": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        }
+      },
+      "sources": [
+        {
+          "label": "laya/common.py",
+          "local": "repos/laya/laya/common.py",
+          "url": "https://github.com/NandhaKishorM/laya/blob/4066d5d5fbf08b66c6757ddeedbd797bd7655bc0/laya/common.py"
+        },
+        {
+          "label": "laya/agent.py",
+          "local": "repos/laya/laya/agent.py",
+          "url": "https://github.com/NandhaKishorM/laya/blob/4066d5d5fbf08b66c6757ddeedbd797bd7655bc0/laya/agent.py"
+        },
+        {
+          "label": "laya/serve.py",
+          "local": "repos/laya/laya/serve.py",
+          "url": "https://github.com/NandhaKishorM/laya/blob/4066d5d5fbf08b66c6757ddeedbd797bd7655bc0/laya/serve.py"
+        },
+        {
+          "label": "laya-ts/package.json",
+          "local": "repos/laya/laya-ts/package.json",
+          "url": "https://github.com/NandhaKishorM/laya/blob/4066d5d5fbf08b66c6757ddeedbd797bd7655bc0/laya-ts/package.json"
+        },
+        {
+          "label": "notebooks/laya_finetune_typed_decisions_2xT4_kaggle.ipynb",
+          "local": "repos/laya/notebooks/laya_finetune_typed_decisions_2xT4_kaggle.ipynb",
+          "url": "https://github.com/NandhaKishorM/laya/blob/4066d5d5fbf08b66c6757ddeedbd797bd7655bc0/notebooks/laya_finetune_typed_decisions_2xT4_kaggle.ipynb"
+        }
+      ],
+      "commit": "4066d5d5fbf08b66c6757ddeedbd797bd7655bc0"
+    },
+    {
+      "id": "kev",
+      "name": "Kev",
+      "url": "https://github.com/jaredpalmer/kev",
+      "scope": "Pointer head + adapted backbone; shared-state serving.",
+      "cells": {
+        "text": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "json_state": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "json_instructions": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "json_criteria": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "noul_criteria": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "languages": {
+          "status": "Partial",
+          "comment": "Depends on selected Qwen base"
+        },
+        "images": {
+          "status": "No",
+          "comment": "Inspected decision path is text"
+        },
+        "audio_video": {
+          "status": "No",
+          "comment": ""
+        },
+        "choice": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "score": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "noul": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "probabilities": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "confidence": {
+          "status": "Yes",
+          "comment": "Separate choice/score statistics"
+        },
+        "legend": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "bounded": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "dynamic": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "many": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "mixed": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "parallel": {
+          "status": "Yes",
+          "comment": "Mask or cached question rows"
+        },
+        "isolation": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "shared": {
+          "status": "Yes",
+          "comment": "Serving; training may repeat state"
+        },
+        "no_decode": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "qid": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "trained": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "calibration": {
+          "status": "Yes",
+          "comment": "Cross-entropy + temperature"
+        },
+        "rl_calibration": {
+          "status": "No",
+          "comment": "Inspected recipe is supervised"
+        },
+        "temperature": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "finetune": {
+          "status": "Yes",
+          "comment": "LoRA and full-weight paths"
+        },
+        "options255": {
+          "status": "Yes",
+          "comment": "API limit 255; token budget still applies"
+        },
+        "levels10": {
+          "status": "Yes",
+          "comment": "API accepts up to 255 levels"
+        },
+        "context32": {
+          "status": "No",
+          "comment": "Serving branch budget 8,192"
+        },
+        "request64": {
+          "status": "Unknown",
+          "comment": "Row batching; no equivalent 64k contract"
+        },
+        "generation": {
+          "status": "No",
+          "comment": ""
+        },
+        "http": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "version": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "usage": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "python": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "javascript": {
+          "status": "No",
+          "comment": "No dedicated package found"
+        },
+        "weights": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "latency": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "pricing": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "free_output": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "rate": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "data_training": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "zdr": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        }
+      },
+      "sources": [
+        {
+          "label": "kev/api.py",
+          "local": "repos/kev/kev/api.py",
+          "url": "https://github.com/jaredpalmer/kev/blob/3d9973b80b34d187f9fc8ce81de940b5767eb624/kev/api.py"
+        },
+        {
+          "label": "kev/model.py",
+          "local": "repos/kev/kev/model.py",
+          "url": "https://github.com/jaredpalmer/kev/blob/3d9973b80b34d187f9fc8ce81de940b5767eb624/kev/model.py"
+        },
+        {
+          "label": "kev/train.py",
+          "local": "repos/kev/kev/train.py",
+          "url": "https://github.com/jaredpalmer/kev/blob/3d9973b80b34d187f9fc8ce81de940b5767eb624/kev/train.py"
+        },
+        {
+          "label": "kev/serve.py",
+          "local": "repos/kev/kev/serve.py",
+          "url": "https://github.com/jaredpalmer/kev/blob/3d9973b80b34d187f9fc8ce81de940b5767eb624/kev/serve.py"
+        },
+        {
+          "label": "README.md",
+          "local": "repos/kev/README.md",
+          "url": "https://github.com/jaredpalmer/kev/blob/3d9973b80b34d187f9fc8ce81de940b5767eb624/README.md"
+        }
+      ],
+      "commit": "3d9973b80b34d187f9fc8ce81de940b5767eb624"
+    },
+    {
+      "id": "cua",
+      "name": "Cua-S1",
+      "url": "https://github.com/trycua/cua/tree/main/libs/cua-s1",
+      "scope": "Compact scorers and 4B GUI policy; features vary by path.",
+      "cells": {
+        "text": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "json_state": {
+          "status": "Partial",
+          "comment": "Typed UI observations; not general Jev state"
+        },
+        "json_instructions": {
+          "status": "No",
+          "comment": "General structured-question API absent"
+        },
+        "json_criteria": {
+          "status": "No",
+          "comment": "General rubric API absent"
+        },
+        "noul_criteria": {
+          "status": "No",
+          "comment": "No native Noul criteria"
+        },
+        "languages": {
+          "status": "Partial",
+          "comment": "4B base dependent; task quality unverified"
+        },
+        "images": {
+          "status": "Yes",
+          "comment": "4B multimodal screenshot path"
+        },
+        "audio_video": {
+          "status": "No",
+          "comment": "No such decision path found"
+        },
+        "choice": {
+          "status": "Yes",
+          "comment": "Bounded GUI action choices"
+        },
+        "score": {
+          "status": "No",
+          "comment": "No Jev Score result"
+        },
+        "noul": {
+          "status": "Partial",
+          "comment": "Binary actions possible; no Noul result"
+        },
+        "probabilities": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "confidence": {
+          "status": "Partial",
+          "comment": "Chosen-action probability"
+        },
+        "legend": {
+          "status": "No",
+          "comment": ""
+        },
+        "bounded": {
+          "status": "Yes",
+          "comment": "Bounded actions"
+        },
+        "dynamic": {
+          "status": "Yes",
+          "comment": "Actions/entities built from state"
+        },
+        "many": {
+          "status": "Partial",
+          "comment": "Compact planner batches elements"
+        },
+        "mixed": {
+          "status": "No",
+          "comment": "No mixed Jev primitives"
+        },
+        "parallel": {
+          "status": "Partial",
+          "comment": "Compact element batch; 4B stepwise"
+        },
+        "isolation": {
+          "status": "Partial",
+          "comment": "Independent compact examples"
+        },
+        "shared": {
+          "status": "No",
+          "comment": "No general shared-question cache"
+        },
+        "no_decode": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "qid": {
+          "status": "Comment",
+          "comment": "Uses task/element IDs, not Jev question IDs"
+        },
+        "trained": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "calibration": {
+          "status": "Yes",
+          "comment": "RL episode-confidence Brier term"
+        },
+        "rl_calibration": {
+          "status": "Yes",
+          "comment": "Outcome RL + episode calibration; not Jev RLCD"
+        },
+        "temperature": {
+          "status": "Unknown",
+          "comment": "No fitted-temperature evidence reviewed"
+        },
+        "finetune": {
+          "status": "Yes",
+          "comment": "Supervised and RL adapters"
+        },
+        "options255": {
+          "status": "Partial",
+          "comment": "4B max 26; compact head variable K"
+        },
+        "levels10": {
+          "status": "No",
+          "comment": "No native Score"
+        },
+        "context32": {
+          "status": "Unknown",
+          "comment": "No equivalent supported contract established"
+        },
+        "request64": {
+          "status": "No",
+          "comment": "No Jev multi-question request contract"
+        },
+        "generation": {
+          "status": "No",
+          "comment": "Bounded action output"
+        },
+        "http": {
+          "status": "No",
+          "comment": "Inspected server is MCP form API"
+        },
+        "version": {
+          "status": "Yes",
+          "comment": "Checkpoint/base/adapter selection"
+        },
+        "usage": {
+          "status": "Partial",
+          "comment": "Path-specific; no common Jev usage envelope"
+        },
+        "python": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "javascript": {
+          "status": "No",
+          "comment": "No dedicated Cua-S1 JS package found"
+        },
+        "weights": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "latency": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "pricing": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "free_output": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "rate": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "data_training": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "zdr": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        }
+      },
+      "sources": [
+        {
+          "label": "libs/cua-s1/python/src/cua_s1/schema.py",
+          "local": "repos/cua/libs/cua-s1/python/src/cua_s1/schema.py",
+          "url": "https://github.com/trycua/cua/blob/ccc6243ddb47ee400fca873cd5f0db89e4732f67/libs/cua-s1/python/src/cua_s1/schema.py"
+        },
+        {
+          "label": "libs/cua-s1/python/src/cua_s1/model.py",
+          "local": "repos/cua/libs/cua-s1/python/src/cua_s1/model.py",
+          "url": "https://github.com/trycua/cua/blob/ccc6243ddb47ee400fca873cd5f0db89e4732f67/libs/cua-s1/python/src/cua_s1/model.py"
+        },
+        {
+          "label": "libs/cua-s1/python/src/cua_s1/four_b.py",
+          "local": "repos/cua/libs/cua-s1/python/src/cua_s1/four_b.py",
+          "url": "https://github.com/trycua/cua/blob/ccc6243ddb47ee400fca873cd5f0db89e4732f67/libs/cua-s1/python/src/cua_s1/four_b.py"
+        },
+        {
+          "label": "libs/cua-s1/python/src/cua_s1/server.py",
+          "local": "repos/cua/libs/cua-s1/python/src/cua_s1/server.py",
+          "url": "https://github.com/trycua/cua/blob/ccc6243ddb47ee400fca873cd5f0db89e4732f67/libs/cua-s1/python/src/cua_s1/server.py"
+        },
+        {
+          "label": "libs/cua-s1/training/train_4b_rl.py",
+          "local": "repos/cua/libs/cua-s1/training/train_4b_rl.py",
+          "url": "https://github.com/trycua/cua/blob/ccc6243ddb47ee400fca873cd5f0db89e4732f67/libs/cua-s1/training/train_4b_rl.py"
+        }
+      ],
+      "commit": "ccc6243ddb47ee400fca873cd5f0db89e4732f67"
+    },
+    {
+      "id": "nagi",
+      "name": "Nagi",
+      "url": "https://github.com/nagisanzenin/nagi",
+      "scope": "Smol encoder model; Big/Huge/Enormous adapted LMs.",
+      "cells": {
+        "text": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "json_state": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "json_instructions": {
+          "status": "Partial",
+          "comment": "Objects become string representations"
+        },
+        "json_criteria": {
+          "status": "Partial",
+          "comment": "Objects become string representations"
+        },
+        "noul_criteria": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "languages": {
+          "status": "Partial",
+          "comment": "Depends on base; quality not established here"
+        },
+        "images": {
+          "status": "No",
+          "comment": "Reviewed SDK paths use text"
+        },
+        "audio_video": {
+          "status": "No",
+          "comment": ""
+        },
+        "choice": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "score": {
+          "status": "Yes",
+          "comment": "Expected index; release validation differs"
+        },
+        "noul": {
+          "status": "Yes",
+          "comment": "Release validation differs"
+        },
+        "probabilities": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "confidence": {
+          "status": "Yes",
+          "comment": "max probability; differs from Jev concentration"
+        },
+        "legend": {
+          "status": "No",
+          "comment": "Inspected SDK omits legend"
+        },
+        "bounded": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "dynamic": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "many": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "mixed": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "parallel": {
+          "status": "No",
+          "comment": "Question loop"
+        },
+        "isolation": {
+          "status": "Yes",
+          "comment": "Separate forwards"
+        },
+        "shared": {
+          "status": "No",
+          "comment": "Re-encodes each question"
+        },
+        "no_decode": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "qid": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "trained": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "calibration": {
+          "status": "Partial",
+          "comment": "Big supplies temperature; other releases differ"
+        },
+        "rl_calibration": {
+          "status": "Unknown",
+          "comment": "Full research recipe unavailable"
+        },
+        "temperature": {
+          "status": "Partial",
+          "comment": "Big stored T≈0.849; fitting provenance not reviewed"
+        },
+        "finetune": {
+          "status": "Unknown",
+          "comment": "Training entrypoint not in inspected checkout"
+        },
+        "options255": {
+          "status": "Partial",
+          "comment": "Smol variable K; larger paths commonly 26"
+        },
+        "levels10": {
+          "status": "Yes",
+          "comment": "SDK supports ten; quality not established"
+        },
+        "context32": {
+          "status": "No",
+          "comment": "Reviewed large SDK limit 4,096"
+        },
+        "request64": {
+          "status": "No",
+          "comment": "No equivalent native request contract"
+        },
+        "generation": {
+          "status": "No",
+          "comment": ""
+        },
+        "http": {
+          "status": "No",
+          "comment": "No local HTTP route found"
+        },
+        "version": {
+          "status": "Yes",
+          "comment": "Version-pinned loaders"
+        },
+        "usage": {
+          "status": "No",
+          "comment": "Inspected SDK returns answers only"
+        },
+        "python": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "javascript": {
+          "status": "No",
+          "comment": "No dedicated package found"
+        },
+        "weights": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "latency": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "pricing": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "free_output": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "rate": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "data_training": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "zdr": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        }
+      },
+      "sources": [
+        {
+          "label": "src/nagi/api.py",
+          "local": "repos/nagi/src/nagi/api.py",
+          "url": "https://github.com/nagisanzenin/nagi/blob/0e8516b47ca0c6912ff3b7a0d05276ff1e8d3b54/src/nagi/api.py"
+        },
+        {
+          "label": "src/nagi/model.py",
+          "local": "repos/nagi/src/nagi/model.py",
+          "url": "https://github.com/nagisanzenin/nagi/blob/0e8516b47ca0c6912ff3b7a0d05276ff1e8d3b54/src/nagi/model.py"
+        },
+        {
+          "label": "src/nagi/render.py",
+          "local": "repos/nagi/src/nagi/render.py",
+          "url": "https://github.com/nagisanzenin/nagi/blob/0e8516b47ca0c6912ff3b7a0d05276ff1e8d3b54/src/nagi/render.py"
+        },
+        {
+          "label": "docs/HUGE_RELEASE.md",
+          "local": "repos/nagi/docs/HUGE_RELEASE.md",
+          "url": "https://github.com/nagisanzenin/nagi/blob/0e8516b47ca0c6912ff3b7a0d05276ff1e8d3b54/docs/HUGE_RELEASE.md"
+        },
+        {
+          "label": "docs/ENORMOUS_RELEASE.md",
+          "local": "repos/nagi/docs/ENORMOUS_RELEASE.md",
+          "url": "https://github.com/nagisanzenin/nagi/blob/0e8516b47ca0c6912ff3b7a0d05276ff1e8d3b54/docs/ENORMOUS_RELEASE.md"
+        }
+      ],
+      "commit": "0e8516b47ca0c6912ff3b7a0d05276ff1e8d3b54"
+    },
+    {
+      "id": "ballot",
+      "name": "Ballot",
+      "url": "https://huggingface.co/vigneshlabs/ballot",
+      "scope": "Released Arm E; distinguish model capability from response wrappers.",
+      "cells": {
+        "text": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "json_state": {
+          "status": "No",
+          "comment": "Caller must serialize state"
+        },
+        "json_instructions": {
+          "status": "No",
+          "comment": "String instruction path"
+        },
+        "json_criteria": {
+          "status": "No",
+          "comment": "Caller supplies option text"
+        },
+        "noul_criteria": {
+          "status": "Partial",
+          "comment": "Binary option text can express criteria"
+        },
+        "languages": {
+          "status": "Partial",
+          "comment": "mmBERT base; quality not established here"
+        },
+        "images": {
+          "status": "No",
+          "comment": ""
+        },
+        "audio_video": {
+          "status": "No",
+          "comment": ""
+        },
+        "choice": {
+          "status": "Yes",
+          "comment": "Option logits/probabilities"
+        },
+        "score": {
+          "status": "Partial",
+          "comment": "Ordinal tasks trained; caller computes expectation"
+        },
+        "noul": {
+          "status": "Partial",
+          "comment": "Binary tasks trained; caller maps P(true)"
+        },
+        "probabilities": {
+          "status": "Yes",
+          "comment": "Softmax shown in usage"
+        },
+        "confidence": {
+          "status": "No",
+          "comment": "No native confidence result"
+        },
+        "legend": {
+          "status": "No",
+          "comment": ""
+        },
+        "bounded": {
+          "status": "Yes",
+          "comment": "Option scorer"
+        },
+        "dynamic": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "many": {
+          "status": "No",
+          "comment": "Released E interface takes one question"
+        },
+        "mixed": {
+          "status": "No",
+          "comment": "No native mixed-question interface"
+        },
+        "parallel": {
+          "status": "No",
+          "comment": "Options batched, not questions"
+        },
+        "isolation": {
+          "status": "Yes",
+          "comment": "One question per invocation"
+        },
+        "shared": {
+          "status": "No",
+          "comment": "State repeated in independent option units"
+        },
+        "no_decode": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "qid": {
+          "status": "Comment",
+          "comment": "No question-ID input"
+        },
+        "trained": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "calibration": {
+          "status": "No",
+          "comment": "Release explicitly lacks calibration stage"
+        },
+        "rl_calibration": {
+          "status": "No",
+          "comment": ""
+        },
+        "temperature": {
+          "status": "No",
+          "comment": ""
+        },
+        "finetune": {
+          "status": "Unknown",
+          "comment": "Trainable architecture; release has no trainer"
+        },
+        "options255": {
+          "status": "Partial",
+          "comment": "Variable K; no 255-option validation reviewed"
+        },
+        "levels10": {
+          "status": "Partial",
+          "comment": "Can score ten options; no Score wrapper"
+        },
+        "context32": {
+          "status": "Unknown",
+          "comment": "Released default 256 tokens/unit; larger inputs unverified"
+        },
+        "request64": {
+          "status": "No",
+          "comment": "No equivalent request interface"
+        },
+        "generation": {
+          "status": "No",
+          "comment": ""
+        },
+        "http": {
+          "status": "No",
+          "comment": ""
+        },
+        "version": {
+          "status": "Yes",
+          "comment": "Local checkpoint selection"
+        },
+        "usage": {
+          "status": "No",
+          "comment": ""
+        },
+        "python": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "javascript": {
+          "status": "No",
+          "comment": ""
+        },
+        "weights": {
+          "status": "Yes",
+          "comment": "Published LFS weights; not downloaded here"
+        },
+        "latency": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "pricing": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "free_output": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "rate": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "data_training": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "zdr": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        }
+      },
+      "sources": [
+        {
+          "label": "README.md",
+          "local": "repos/ballot/README.md",
+          "url": "https://huggingface.co/vigneshlabs/ballot/blob/7c50bfb9cdaea16716c442a7429d0237e3bc6e4c/README.md"
+        },
+        {
+          "label": "ballot/hf_model.py",
+          "local": "repos/ballot/ballot/hf_model.py",
+          "url": "https://huggingface.co/vigneshlabs/ballot/blob/7c50bfb9cdaea16716c442a7429d0237e3bc6e4c/ballot/hf_model.py"
+        },
+        {
+          "label": "ballot/hf_backbone.py",
+          "local": "repos/ballot/ballot/hf_backbone.py",
+          "url": "https://huggingface.co/vigneshlabs/ballot/blob/7c50bfb9cdaea16716c442a7429d0237e3bc6e4c/ballot/hf_backbone.py"
+        },
+        {
+          "label": "ballot/model.py",
+          "local": "repos/ballot/ballot/model.py",
+          "url": "https://huggingface.co/vigneshlabs/ballot/blob/7c50bfb9cdaea16716c442a7429d0237e3bc6e4c/ballot/model.py"
+        }
+      ],
+      "commit": "7c50bfb9cdaea16716c442a7429d0237e3bc6e4c"
+    },
+    {
+      "id": "jevlike",
+      "name": "Jevlike",
+      "url": "https://github.com/vinnylarouge/jevlike",
+      "scope": "Tiny or frozen-encoder scorer with trained cross-attention head.",
+      "cells": {
+        "text": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "json_state": {
+          "status": "No",
+          "comment": "Caller must serialize context"
+        },
+        "json_instructions": {
+          "status": "No",
+          "comment": "Question belongs in text context"
+        },
+        "json_criteria": {
+          "status": "No",
+          "comment": "Option strings"
+        },
+        "noul_criteria": {
+          "status": "Partial",
+          "comment": "Caller can define two options"
+        },
+        "languages": {
+          "status": "Unknown",
+          "comment": "Encoder-dependent; no reviewed language claim"
+        },
+        "images": {
+          "status": "No",
+          "comment": ""
+        },
+        "audio_video": {
+          "status": "No",
+          "comment": ""
+        },
+        "choice": {
+          "status": "Yes",
+          "comment": "Option scoring"
+        },
+        "score": {
+          "status": "Partial",
+          "comment": "Caller derives ordinal expectation"
+        },
+        "noul": {
+          "status": "Partial",
+          "comment": "Caller maps binary probability"
+        },
+        "probabilities": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "confidence": {
+          "status": "No",
+          "comment": "No separate confidence field"
+        },
+        "legend": {
+          "status": "No",
+          "comment": ""
+        },
+        "bounded": {
+          "status": "Yes",
+          "comment": "Supplied-option scores"
+        },
+        "dynamic": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "many": {
+          "status": "Partial",
+          "comment": "Model batches independent examples"
+        },
+        "mixed": {
+          "status": "No",
+          "comment": "No mixed primitive interface"
+        },
+        "parallel": {
+          "status": "Partial",
+          "comment": "Independent examples, not shared-state questions"
+        },
+        "isolation": {
+          "status": "Yes",
+          "comment": "Independent examples"
+        },
+        "shared": {
+          "status": "No",
+          "comment": "Batch repeats context encoding"
+        },
+        "no_decode": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "qid": {
+          "status": "Comment",
+          "comment": "No question-ID input"
+        },
+        "trained": {
+          "status": "Yes",
+          "comment": "Trained scoring head"
+        },
+        "calibration": {
+          "status": "No",
+          "comment": "No explicit calibration stage"
+        },
+        "rl_calibration": {
+          "status": "No",
+          "comment": ""
+        },
+        "temperature": {
+          "status": "No",
+          "comment": ""
+        },
+        "finetune": {
+          "status": "Yes",
+          "comment": "Head/tiny-model trainer"
+        },
+        "options255": {
+          "status": "Partial",
+          "comment": "Variable K; no 255-option validation reviewed"
+        },
+        "levels10": {
+          "status": "Partial",
+          "comment": "Ten options possible; no Score wrapper"
+        },
+        "context32": {
+          "status": "Unknown",
+          "comment": "Encoder/collator dependent"
+        },
+        "request64": {
+          "status": "No",
+          "comment": "No equivalent request interface"
+        },
+        "generation": {
+          "status": "No",
+          "comment": ""
+        },
+        "http": {
+          "status": "No",
+          "comment": ""
+        },
+        "version": {
+          "status": "Yes",
+          "comment": "Checkpoint selection"
+        },
+        "usage": {
+          "status": "No",
+          "comment": ""
+        },
+        "python": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "javascript": {
+          "status": "No",
+          "comment": ""
+        },
+        "weights": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "latency": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "pricing": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "free_output": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "rate": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "data_training": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "zdr": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        }
+      },
+      "sources": [
+        {
+          "label": "jevlike/model.py",
+          "local": "repos/jevlike/jevlike/model.py",
+          "url": "https://github.com/vinnylarouge/jevlike/blob/94f5fd1b0b11d52bbdfdf4e0ee6aa96b568f8452/jevlike/model.py"
+        },
+        {
+          "label": "jevlike/train.py",
+          "local": "repos/jevlike/jevlike/train.py",
+          "url": "https://github.com/vinnylarouge/jevlike/blob/94f5fd1b0b11d52bbdfdf4e0ee6aa96b568f8452/jevlike/train.py"
+        },
+        {
+          "label": "jevlike/predict.py",
+          "local": "repos/jevlike/jevlike/predict.py",
+          "url": "https://github.com/vinnylarouge/jevlike/blob/94f5fd1b0b11d52bbdfdf4e0ee6aa96b568f8452/jevlike/predict.py"
+        },
+        {
+          "label": "jevlike/data.py",
+          "local": "repos/jevlike/jevlike/data.py",
+          "url": "https://github.com/vinnylarouge/jevlike/blob/94f5fd1b0b11d52bbdfdf4e0ee6aa96b568f8452/jevlike/data.py"
+        }
+      ],
+      "commit": "94f5fd1b0b11d52bbdfdf4e0ee6aa96b568f8452"
+    },
+    {
+      "id": "daseinlabs-open-jev",
+      "name": "daseinlabs/open-jev",
+      "url": "https://github.com/daseinlabs/open-jev",
+      "scope": "Default likelihood scorer plus separate Jevlike-derived head.",
+      "cells": {
+        "text": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "json_state": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "json_instructions": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "json_criteria": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "noul_criteria": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "languages": {
+          "status": "Partial",
+          "comment": "Depends on chosen base model"
+        },
+        "images": {
+          "status": "No",
+          "comment": "Reviewed decision paths use text"
+        },
+        "audio_video": {
+          "status": "No",
+          "comment": ""
+        },
+        "choice": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "score": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "noul": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "probabilities": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "confidence": {
+          "status": "Yes",
+          "comment": "Normalized entropy"
+        },
+        "legend": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "bounded": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "dynamic": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "many": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "mixed": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "parallel": {
+          "status": "No",
+          "comment": "Question loop"
+        },
+        "isolation": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "shared": {
+          "status": "No",
+          "comment": "Prefix shared across options, not questions"
+        },
+        "no_decode": {
+          "status": "Yes",
+          "comment": "Scores known continuations"
+        },
+        "qid": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "trained": {
+          "status": "Partial",
+          "comment": "Separate learned head; default base frozen"
+        },
+        "calibration": {
+          "status": "No",
+          "comment": "No explicit calibration method"
+        },
+        "rl_calibration": {
+          "status": "No",
+          "comment": ""
+        },
+        "temperature": {
+          "status": "No",
+          "comment": ""
+        },
+        "finetune": {
+          "status": "Yes",
+          "comment": "Head on frozen features"
+        },
+        "options255": {
+          "status": "Yes",
+          "comment": "API caps Choice at 255"
+        },
+        "levels10": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "context32": {
+          "status": "Unknown",
+          "comment": "Base/runtime dependent"
+        },
+        "request64": {
+          "status": "Unknown",
+          "comment": "No equivalent 64k request contract established"
+        },
+        "generation": {
+          "status": "No",
+          "comment": ""
+        },
+        "http": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "version": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "usage": {
+          "status": "Yes",
+          "comment": "Context/option token counts"
+        },
+        "python": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "javascript": {
+          "status": "No",
+          "comment": ""
+        },
+        "weights": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "latency": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "pricing": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "free_output": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "rate": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "data_training": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "zdr": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        }
+      },
+      "sources": [
+        {
+          "label": "openjev/systemone.py",
+          "local": "repos/daseinlabs-open-jev/openjev/systemone.py",
+          "url": "https://github.com/daseinlabs/open-jev/blob/6cb37c3cee9d8477d49d8ac0c99056e48ccc292c/openjev/systemone.py"
+        },
+        {
+          "label": "openjev/scorer.py",
+          "local": "repos/daseinlabs-open-jev/openjev/scorer.py",
+          "url": "https://github.com/daseinlabs/open-jev/blob/6cb37c3cee9d8477d49d8ac0c99056e48ccc292c/openjev/scorer.py"
+        },
+        {
+          "label": "openjev/head.py",
+          "local": "repos/daseinlabs-open-jev/openjev/head.py",
+          "url": "https://github.com/daseinlabs/open-jev/blob/6cb37c3cee9d8477d49d8ac0c99056e48ccc292c/openjev/head.py"
+        },
+        {
+          "label": "openjev/train.py",
+          "local": "repos/daseinlabs-open-jev/openjev/train.py",
+          "url": "https://github.com/daseinlabs/open-jev/blob/6cb37c3cee9d8477d49d8ac0c99056e48ccc292c/openjev/train.py"
+        },
+        {
+          "label": "openjev/server.py",
+          "local": "repos/daseinlabs-open-jev/openjev/server.py",
+          "url": "https://github.com/daseinlabs/open-jev/blob/6cb37c3cee9d8477d49d8ac0c99056e48ccc292c/openjev/server.py"
+        }
+      ],
+      "commit": "6cb37c3cee9d8477d49d8ac0c99056e48ccc292c"
+    },
+    {
+      "id": "semif",
+      "name": "SemIf / OpenJev",
+      "url": "https://github.com/TheoLeeCJ/SemIf-OpenJev",
+      "scope": "Frozen-LM direct decisions with shared-prefix execution.",
+      "cells": {
+        "text": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "json_state": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "json_instructions": {
+          "status": "No",
+          "comment": "Question must be a string"
+        },
+        "json_criteria": {
+          "status": "No",
+          "comment": "Option descriptions must be strings"
+        },
+        "noul_criteria": {
+          "status": "Partial",
+          "comment": "Use two descriptive options; no Noul schema"
+        },
+        "languages": {
+          "status": "Partial",
+          "comment": "Depends on chosen base model"
+        },
+        "images": {
+          "status": "No",
+          "comment": "Reviewed decision paths use text"
+        },
+        "audio_video": {
+          "status": "No",
+          "comment": ""
+        },
+        "choice": {
+          "status": "Yes",
+          "comment": "Native option decisions"
+        },
+        "score": {
+          "status": "Partial",
+          "comment": "Caller computes expected level"
+        },
+        "noul": {
+          "status": "Partial",
+          "comment": "Caller maps binary probability"
+        },
+        "probabilities": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "confidence": {
+          "status": "No",
+          "comment": "No separate Jev confidence field"
+        },
+        "legend": {
+          "status": "No",
+          "comment": ""
+        },
+        "bounded": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "dynamic": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "many": {
+          "status": "Yes",
+          "comment": "Shared scorer accepts rows"
+        },
+        "mixed": {
+          "status": "No",
+          "comment": "Rows are generic categorical questions"
+        },
+        "parallel": {
+          "status": "Yes",
+          "comment": "Shared-prefix path"
+        },
+        "isolation": {
+          "status": "Yes",
+          "comment": "Independent suffix rows"
+        },
+        "shared": {
+          "status": "Yes",
+          "comment": "Shared scorer reuses prefix"
+        },
+        "no_decode": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "qid": {
+          "status": "Yes",
+          "comment": "Row ID is metadata"
+        },
+        "trained": {
+          "status": "No",
+          "comment": "Inspected models remain frozen"
+        },
+        "calibration": {
+          "status": "Yes",
+          "comment": "Per-workload temperature layer"
+        },
+        "rl_calibration": {
+          "status": "No",
+          "comment": ""
+        },
+        "temperature": {
+          "status": "Yes",
+          "comment": "Offline fitter"
+        },
+        "finetune": {
+          "status": "No",
+          "comment": "Calibration adjusts T, not weights"
+        },
+        "options255": {
+          "status": "No",
+          "comment": "Inspected schema allows 2–16"
+        },
+        "levels10": {
+          "status": "Partial",
+          "comment": "Ten options possible; no Score wrapper"
+        },
+        "context32": {
+          "status": "Unknown",
+          "comment": "Configurable; default direct limit 4,096"
+        },
+        "request64": {
+          "status": "Unknown",
+          "comment": "No equivalent 64k contract established"
+        },
+        "generation": {
+          "status": "No",
+          "comment": ""
+        },
+        "http": {
+          "status": "No",
+          "comment": "No SystemOne route in inspected package"
+        },
+        "version": {
+          "status": "Yes",
+          "comment": "Base revision selection"
+        },
+        "usage": {
+          "status": "Partial",
+          "comment": "Prompt/timing metadata; no Jev usage envelope"
+        },
+        "python": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "javascript": {
+          "status": "No",
+          "comment": ""
+        },
+        "weights": {
+          "status": "Yes",
+          "comment": "Uses public base-model weights"
+        },
+        "latency": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "pricing": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "free_output": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "rate": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "data_training": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "zdr": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        }
+      },
+      "sources": [
+        {
+          "label": "src/semif_phase1/core.py",
+          "local": "repos/semif/src/semif_phase1/core.py",
+          "url": "https://github.com/TheoLeeCJ/SemIf-OpenJev/blob/23cf1f39fc9534fe81437200959b6dfc7106e45a/src/semif_phase1/core.py"
+        },
+        {
+          "label": "src/semif_phase1/direct.py",
+          "local": "repos/semif/src/semif_phase1/direct.py",
+          "url": "https://github.com/TheoLeeCJ/SemIf-OpenJev/blob/23cf1f39fc9534fe81437200959b6dfc7106e45a/src/semif_phase1/direct.py"
+        },
+        {
+          "label": "src/semif_phase1/shared.py",
+          "local": "repos/semif/src/semif_phase1/shared.py",
+          "url": "https://github.com/TheoLeeCJ/SemIf-OpenJev/blob/23cf1f39fc9534fe81437200959b6dfc7106e45a/src/semif_phase1/shared.py"
+        },
+        {
+          "label": "docs/CALIBRATION.md",
+          "local": "repos/semif/docs/CALIBRATION.md",
+          "url": "https://github.com/TheoLeeCJ/SemIf-OpenJev/blob/23cf1f39fc9534fe81437200959b6dfc7106e45a/docs/CALIBRATION.md"
+        }
+      ],
+      "commit": "23cf1f39fc9534fe81437200959b6dfc7106e45a"
+    },
+    {
+      "id": "lookski-openjev",
+      "name": "lookski/OpenJev",
+      "url": "https://github.com/lookski/openjev",
+      "scope": "Local answer-label logits; remote Jev delegation excluded.",
+      "cells": {
+        "text": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "json_state": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "json_instructions": {
+          "status": "No",
+          "comment": "Validation requires a string"
+        },
+        "json_criteria": {
+          "status": "Partial",
+          "comment": "Descriptions stringified; not full structured schema"
+        },
+        "noul_criteria": {
+          "status": "Partial",
+          "comment": "Criteria inserted as Python text"
+        },
+        "languages": {
+          "status": "Partial",
+          "comment": "Depends on chosen base model"
+        },
+        "images": {
+          "status": "No",
+          "comment": "Reviewed local path uses text"
+        },
+        "audio_video": {
+          "status": "No",
+          "comment": ""
+        },
+        "choice": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "score": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "noul": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "probabilities": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "confidence": {
+          "status": "Yes",
+          "comment": "Normalized max probability"
+        },
+        "legend": {
+          "status": "Partial",
+          "comment": "Returns a list, not Jev index map"
+        },
+        "bounded": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "dynamic": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "many": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "mixed": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "parallel": {
+          "status": "No",
+          "comment": "Question loop"
+        },
+        "isolation": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "shared": {
+          "status": "No",
+          "comment": "No cross-question cache"
+        },
+        "no_decode": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "qid": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "trained": {
+          "status": "No",
+          "comment": "Frozen general LM readout"
+        },
+        "calibration": {
+          "status": "No",
+          "comment": "Raw masked softmax"
+        },
+        "rl_calibration": {
+          "status": "No",
+          "comment": ""
+        },
+        "temperature": {
+          "status": "No",
+          "comment": ""
+        },
+        "finetune": {
+          "status": "No",
+          "comment": "No decision trainer in package"
+        },
+        "options255": {
+          "status": "No",
+          "comment": "Schema says 255; local letter pool is 26"
+        },
+        "levels10": {
+          "status": "Yes",
+          "comment": "2–10 digit labels"
+        },
+        "context32": {
+          "status": "Unknown",
+          "comment": "Selected model/runtime dependent"
+        },
+        "request64": {
+          "status": "Unknown",
+          "comment": "No equivalent total-request contract"
+        },
+        "generation": {
+          "status": "No",
+          "comment": ""
+        },
+        "http": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "version": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "usage": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "python": {
+          "status": "Yes",
+          "comment": ""
+        },
+        "javascript": {
+          "status": "No",
+          "comment": ""
+        },
+        "weights": {
+          "status": "Yes",
+          "comment": "Uses public base-model weights"
+        },
+        "latency": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "pricing": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "free_output": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "rate": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "data_training": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        },
+        "zdr": {
+          "status": "Comment",
+          "comment": "Deployment-dependent; not a model feature"
+        }
+      },
+      "sources": [
+        {
+          "label": "openjev/types.py",
+          "local": "repos/lookski-openjev/openjev/types.py",
+          "url": "https://github.com/lookski/openjev/blob/3e97d9cd934a1bb573e4da41200bf4615760d2db/openjev/types.py"
+        },
+        {
+          "label": "openjev/core.py",
+          "local": "repos/lookski-openjev/openjev/core.py",
+          "url": "https://github.com/lookski/openjev/blob/3e97d9cd934a1bb573e4da41200bf4615760d2db/openjev/core.py"
+        },
+        {
+          "label": "openjev/server.py",
+          "local": "repos/lookski-openjev/openjev/server.py",
+          "url": "https://github.com/lookski/openjev/blob/3e97d9cd934a1bb573e4da41200bf4615760d2db/openjev/server.py"
+        }
+      ],
+      "commit": "3e97d9cd934a1bb573e4da41200bf4615760d2db"
+    }
+  ],
+  "groups": [
+    "Inputs",
+    "Decisions",
+    "Execution",
+    "Learning",
+    "Limits",
+    "Interface",
+    "Service terms"
+  ],
+  "notes": [
+    "Scope: the documented Jev 1.13 model/API feature surface, limits and service terms. Undisclosed internals cannot be inventoried. SDK retry/error conveniences are grouped under the client interfaces.",
+    "Yes means implemented or officially documented at the inspected revision, not benchmarked here. Partial means a different interface, narrower path, or qualified support. Unknown means the available evidence is insufficient. No is scoped to the inspected decision path.",
+    "The comparison does not score project maturity. A missing response wrapper and a missing learned capability are different gaps; comments distinguish them. Ballot, Jevlike, Cua-S1 and SemIf must not be treated as full Jev wire-format implementations merely because they score options.",
+    "Confidence is a distribution-derived convenience statistic. Jev does not publicly specify an exact universal formula here. The alternatives use different statistics; thresholds are not interchangeable. Nagi Big supplies a temperature, while Huge/Enormous explicitly use 1.0.",
+    "Shared state means reused model computation across questions. Laya reuses tokenization, Ballot batches option encodings, and daseinlabs caches a prefix across options; these are different from Jev/Kev/SemIf shared-question computation.",
+    "Calibration-oriented RL is not an exact-RLCD-reproduction claim. Laya implements a logit-noise reward objective. Cua-S1 calibrates an episode-confidence quantity. Neither establishes TypeSafe algorithm equivalence.",
+    "Native primitives support composed patterns such as routing, scoring, filtering, reranking, verification, bounded extraction, function/argument selection, taxonomy traversal and downstream feature generation. Those require application code and are not independent built-in model tools.",
+    "No cross-project accuracy, speed, language, context-length or calibration benchmark was run. Service prices/quotas are a dated snapshot and do not measure architectural alignment. Public weights were not all downloaded."
+  ],
+  "reference_sources": {
+    "state": "https://docs.typesafe.ai/concepts/state",
+    "api": "https://docs.typesafe.ai/api",
+    "structure": "https://docs.typesafe.ai/primitives/advanced",
+    "choice": "https://docs.typesafe.ai/primitives/choice",
+    "score": "https://docs.typesafe.ai/primitives/score",
+    "noul": "https://docs.typesafe.ai/primitives/noul",
+    "confidence": "https://docs.typesafe.ai/confidence",
+    "intro": "https://docs.typesafe.ai/introduction",
+    "models": "https://docs.typesafe.ai/models",
+    "rl": "https://docs.typesafe.ai/introduction/machine-learning-primer",
+    "sdk": "https://docs.typesafe.ai/sdk",
+    "legal": "https://docs.typesafe.ai/legal",
+    "system": "https://docs.typesafe.ai/concepts/system-one",
+    "limits": "https://docs.typesafe.ai/model-jaggedness/jev-1.13",
+    "launch": "https://typesafe.ai/blog/introducing-system-one-models-and-jev"
+  }
+}
