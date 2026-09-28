@@ -17,6 +17,7 @@ reference = ["transformers==4.57.1"]
 dev = ["pytest>=9,<10", "jsonschema>=4,<5", "psutil>=7,<8", "numpy>=2,<3"]
 [project.scripts]
 kev-laya = "kev_laya.cli:main"
+kev-laya-quality = "kev_laya.quality_supervisor:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 [tool.pytest.ini_options]

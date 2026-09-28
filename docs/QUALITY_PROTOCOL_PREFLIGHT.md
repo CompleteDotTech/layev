@@ -41,6 +41,19 @@ deadline and complete GPU-process accounting remain outstanding. This source
 gate alone does not prove that a review is authentic or the data is
 representative.
 
+For an approved quality training run, invoke the opt-in `kev-laya-quality`
+entry point with the frozen protocol, reviewed data declaration, suite,
+budget ledger and a new receipt path, followed by `-- train` or
+`-- reward-train` and the normal training arguments. The supervisor starts
+the ledger wall clock before launching a dedicated training child. It stops
+that child at the declared deadline and writes a content-free receipt;
+there is no automatic retry. On Unix, it stops the owned process group.
+On Windows, it stops the direct child; a child-created descendant is not
+covered. A supervisor crash can also leave the child running. Review any
+pending ledger step against its checkpoint before resuming. This wrapper
+does not measure non-PyTorch GPU allocations or establish the full quality
+acceptance gate.
+
 Selection uses development data only; calibration fits on calibration data only.
 The planned untouched-test readout is once per selected arm/seed, with raw and
 calibrated results paired. Kev/Laya source revisions and artifact hashes, all six
