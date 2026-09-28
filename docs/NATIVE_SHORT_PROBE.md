@@ -77,5 +77,9 @@ and `b6f14e189fc213dfc83eabdadeb357a5ede35b5fd48c00a6dcf362cd7574eb7e`.
 The trained report has two steps, 62 inference tokens and maximum absolute
 hidden-state difference `0.00011444091796875`. A separate GPU regression test
 uses the actual trained checkpoint when `KEV_LAYA_TRAINED_NATIVE_CHECKPOINT`
-is set. Full-weight and BF16 modes, broader gradient parity and long-context
-training remain open.
+is set. Later bounded BF16 LoRA train/resume and full-weight CPU train/resume
+were measured separately; full-weight CUDA exceeded the recorded RTX 3060
+memory cap. Actual-weight FP32 and BF16 batched/cached/full-row comparisons
+still fail their unchanged strict tolerances. Broader shape/resource and
+long-context trained acceptance remain open; see
+[release readiness](RELEASE_READINESS.md) for the dated current state.

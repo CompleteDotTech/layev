@@ -1,26 +1,38 @@
 # Release readiness — intentionally incomplete
 
-## Current delivery readback (September 27, 2026)
+## Current delivery readback (September 28, 2026)
 
-Layev main is `5740f8246f4518651962989753484d352740f6c4`, after protected
-[PR #22](https://github.com/CompleteDotTech/layev/pull/22). Its five required
-PR checks and five [post-merge jobs](https://github.com/CompleteDotTech/layev/actions/runs/36360108509)
-passed. [Issue #8](https://github.com/CompleteDotTech/layev/issues/8) is closed
-with a preserved failing-check enforcement probe and the live
-[policy receipt](RELEASE_POLICY.md). Overwatch [PR #1](https://github.com/CompleteDotTech/Overwatch/pull/1)
-remains draft at signed head `aef193862499734af552860744db667b64afebd1`;
-its frontend passes and backend stops at the missing authorized private-index
-token before locked installation/tests. The 45-feature original and mapping below
-record source/test inventory with native, quality and Jev evidence limits.
-Native initiation from actual pinned weights has succeeded locally, but an
-independent hidden-state comparison failed the `1e-4` parity tolerance. Older
+Layev main is `a6926f7b4585e840b36f1d9157c3af3907210ef5`, after protected
+[PR #33](https://github.com/CompleteDotTech/layev/pull/33). Its signed head
+passed all five required checks; the merge is verified, and the primary checkout
+was clean and synchronized at divergence 0/0. The exact-merge main run
+`36384521208` was queued at this readback. Earlier [PR #34](https://github.com/CompleteDotTech/layev/pull/34)
+also passed all five PR checks and merged at `821ffeaeb7914755969c64c6d7aee56cc1ce203e`,
+but its post-merge run `36383174403` was canceled by the newer main push before
+all five jobs finished. Do not count that canceled run as a post-merge pass.
+Main still has [enforced protection](RELEASE_POLICY.md).
+
+The pinned Qwen weights and literal tokenizer were verified, and a two-step
+trained LoRA checkpoint was reloaded and served locally. Its corrected
+independent Transformers comparison passed the unchanged `1e-4` combined
+hidden-state tolerance at 62 tokens; the earlier failed probe remains in
+[native evidence](NATIVE_SHORT_PROBE.md). Strict actual-weight FP32 and BF16
+cached/batched/full-row numerical comparisons still fail. The exact 32,768/65,536
+context request and overflow negatives were constructed with the pinned
+tokenizer, but trained and calibrated long-context execution has not passed.
+No licensed representative multi-seed quality, repaired case-99999 result, or
+live Jev comparison is established. PR #33 adds an offline scorer only; PR #34
+adds seed-variation reporting only.
+
+[Issue #8](https://github.com/CompleteDotTech/layev/issues/8) and the 45-feature
+mapping delivery are closed with their separate evidence boundaries. Overwatch
+[PR #1](https://github.com/CompleteDotTech/Overwatch/pull/1) remains draft at
+`aef193862499734af552860744db667b64afebd1`: frontend checks pass, while
+locked backend CI stops before installation because its `overwatch-ci`
+environment lacks the required CodeArtifact token. Live W&B/S3 targets and
+approved data transfer are also missing. These source and interface deliveries
+are not a completed Jev replacement or approved model deployment. Older
 revision and policy statements below are historical readbacks.
-
-The source-hardening change is **merged**, not a completed Jev replacement or
-an approved model deployment. Public name Layev and package/import/CLI names
-`kev-laya`/`kev_laya` remain unchanged. A source merge is not a package release,
-trained-model release or native acceptance result. This readback is dated
-September 27, 2026; later changes require fresh verification.
 
 ## Current branch policy
 

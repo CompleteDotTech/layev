@@ -2,6 +2,21 @@
   "schema_version": 1,
   "kind": "workstream-evidence-ledger-not-original-feature-matrix",
   "base_revision": "b4cb9df97be61729ebd68b8e0f5ee9bb2d193c73",
+  "current_readback_2026_09_28": {
+    "layev_main": "a6926f7b4585e840b36f1d9157c3af3907210ef5",
+    "primary_checkout_clean_and_synced": true,
+    "main_protected": true,
+    "five_required_pr_checks_on_latest_merge": "passed",
+    "latest_merge_postmerge_run": 36384521208,
+    "latest_merge_postmerge_status": "queued_at_readback",
+    "previous_merge": "821ffeaeb7914755969c64c6d7aee56cc1ce203e",
+    "previous_merge_postmerge_run": 36383174403,
+    "previous_merge_postmerge_status": "cancelled_by_newer_main_push_after_two_successful_jobs",
+    "layev_open_issues": [3, 4, 5, 7, 10],
+    "overwatch_open_issues": [2, 3, 4, 5],
+    "overwatch_pr_1": "draft; frontend passed; backend stopped before locked install for missing authorized CodeArtifact token",
+    "evidence_boundary": "source and short native gates are separate from long context, representative quality, billed Jev comparison and remote publication"
+  },
   "original_research_matrix": {
     "expected_columns": 45,
     "retrieved": true,
@@ -64,36 +79,36 @@
   "workstreams": [
     {
       "workstream": "source_stabilization",
-      "implemented": "partial",
-      "tested": "five existing hosted checks passed on b4cb9df97be61729ebd68b8e0f5ee9bb2d193c73; not validation of later patches",
-      "native_validated": "unknown",
+      "implemented": "source delivered through protected main a6926f7b4585e840b36f1d9157c3af3907210ef5",
+      "tested": "five required PR checks passed on signed head 2a8a8570d7c996268233cebdffb1c45a6318e876; postmerge queued",
+      "native_validated": "partial short checkpoint evidence, with strict FP32/BF16 numerical failures",
       "quality_measured": "unknown",
       "Jev_compared": "unknown",
-      "remaining_gate": "main protection and negative enforcement test; full formatting and native gates remain separate"
+      "remaining_gate": "native numerical, long-context, representative quality and remote gates remain separate"
     },
     {
       "workstream": "model_invariants",
       "implemented": "implemented",
-      "tested": "24 configurations and exact resume; measured one prefix plus 16 suffix rows",
-      "native_validated": "unknown",
+      "tested": "CPU 24-configuration audit and actual-weight branch isolation; strict actual-weight numerical comparisons fail",
+      "native_validated": "partial; short trained Qwen execution and independent oracle passed, parallel parity failed",
       "quality_measured": "unknown",
       "Jev_compared": "unknown",
-      "remaining_gate": "native device/weights confirmation"
+      "remaining_gate": "resolve FP32/BF16 batched/cached/full-row logits and gradients at unchanged tolerances"
     },
     {
       "workstream": "native_software",
-      "implemented": "partial",
-      "tested": "CPU fixtures only; native skips explicit",
-      "native_validated": "unknown",
+      "implemented": "partial native Qwen integration and local serving",
+      "tested": "pinned weight/tokenizer bytes; trained FP32/BF16 LoRA resume and full-weight CPU resume",
+      "native_validated": "short trained independent hidden parity passed; full-weight CUDA and strict parallel numerics open",
       "quality_measured": "unknown",
       "Jev_compared": "unknown",
-      "remaining_gate": "actual Rust/Qwen/reference/native weights and CUDA"
+      "remaining_gate": "full applicable native shape/resource matrix and numerical parity"
     },
     {
       "workstream": "real_context",
       "implemented": "partial",
-      "tested": "existing construction/overflow fixture contracts",
-      "native_validated": "unknown",
+      "tested": "pinned-tokenizer exact 32768/65536 construction and overflow negatives; default cache policy rejects singleton",
+      "native_validated": "unmeasured at trained/calibrated long context",
       "quality_measured": "unknown",
       "Jev_compared": "unknown",
       "remaining_gate": "trained/calibrated native 32768/65536 artifact and measured resource gates"
@@ -101,34 +116,34 @@
     {
       "workstream": "predictive_quality",
       "implemented": "partial",
-      "tested": "calibration receipt regression and group-bootstrap tests",
-      "native_validated": "unknown",
-      "quality_measured": "unknown",
+      "tested": "protocol, resource and seed-report source gates; known case 99999 failed 1/6 on a two-step native smoke checkpoint",
+      "native_validated": "two-step smoke checkpoint only",
+      "quality_measured": "unmeasured on licensed representative data",
       "Jev_compared": "unknown",
       "remaining_gate": "licensed representative multi-seed data, frozen final evaluation, Kev/Laya baselines"
     },
     {
       "workstream": "jev_comparison",
-      "implemented": "unknown",
-      "tested": "not run",
+      "implemented": "offline paired scorer delivered by PR 33",
+      "tested": "synthetic transcript scoring and protected five-check PR matrix passed",
       "native_validated": "unknown",
       "quality_measured": "unknown",
       "Jev_compared": "unknown",
-      "remaining_gate": "authorized Jev version/access, approved data and billed budget"
+      "remaining_gate": "authorized Jev access and data transfer, completed native/quality inputs, live latency and billed cost"
     },
     {
       "workstream": "overwatch_primary",
       "implemented": "partial",
-      "tested": "PR #1 reports primary Windows focused 44/44 cache/CI cases, Ruff and frontend success; this workstation confirmed the draft branch head, clean checkout and origin divergence 0/0",
+      "tested": "draft PR #1 frontend passed; local Ruff 0.16.5 passed; locked backend CI stopped before install/tests",
       "native_validated": "unknown",
       "quality_measured": "unknown",
       "Jev_compared": "unknown",
-      "remaining_gate": "running service checkout identity, supported locked backend, populated report/UI and accepted integration delivery"
+      "remaining_gate": "authorized CodeArtifact token and protected environment reviewers; locked backend, populated report/UI and integration delivery"
     },
     {
       "workstream": "monitoring_pipeline",
       "implemented": "partial",
-      "tested": "fresh local provider/adapter recovery/cache exercise",
+      "tested": "local adapter/cache exercises only; no authorized live W&B/S3 readback",
       "native_validated": "unknown",
       "quality_measured": "unknown",
       "Jev_compared": "unknown",
@@ -136,12 +151,12 @@
     },
     {
       "workstream": "documentation_git_delivery",
-      "implemented": "partial",
-      "tested": "Layev source PRs #1 and #11 merged; five main checks passed; Overwatch draft has frontend success and blocked backend failure",
+      "implemented": "45-feature original/mapping delivered; Layev protected PRs 33 and 34 merged; Overwatch PR 1 draft",
+      "tested": "five required checks passed on both PR heads; latest main postmerge queued and previous main run canceled",
       "native_validated": "unknown",
       "quality_measured": "unknown",
       "Jev_compared": "unknown",
-      "remaining_gate": "original 45 definitions; new candidate SSH signing, hosted checks, protection enforcement, accepted merges and safe primary synchronization"
+      "remaining_gate": "complete exact-merge postmerge checks, live source/evidence refresh and Overwatch protected delivery"
     }
   ],
   "historical_quality_only": {
