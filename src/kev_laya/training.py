@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from time import perf_counter
+import copy
 import hashlib
 import math
 import random
@@ -14,6 +15,7 @@ from .encoding import Limits, preprocessing_identity
 from .io import atomic_json
 from .model import DecisionEngine
 from .objectives import ObjectiveConfig, objective
+from .quality_budget import BudgetExceeded, StepTokenBudget
 from .schema import canonical
 from .telemetry import TelemetryWriter, artifact, new_snapshot
 
@@ -48,7 +50,8 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
           experiment_id: str | None = None, run_id: str | None = None,
           scheduler_ref: dict | None = None, wandb_ref: dict | None = None,
           parent_sha256: str | None = None, publish_wandb: bool = False, wandb_sdk=None,
-          source_root: Path | None = None) -> dict:
+          source_root: Path | None = None, quality_budget: StepTokenBudget | None = None,
+          quality_allocation_id: str | None = None) -> dict:
     output = Path(output)
     if output.exists() and any(output.iterdir()) and resume is None:
         raise FileExistsError("output is not empty; use resume or a new directory")
@@ -115,6 +118,11 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
         scheduler_ref = scheduler_ref or old.get("scheduler_identity")
         state["scheduler_identity"] = scheduler_ref
         parent_sha256 = payload["checkpoint_sha256"]
+    if quality_budget is not None:
+        if quality_allocation_id is not None:
+            quality_budget.claim_allocation(quality_allocation_id, state["run_id"])
+        quality_budget.verify_run(state["run_id"], steps=state["step"],
+                                  useful_tokens=state["forward_tokens"])
     from .exposure import start_exposure, observe
     from .lineage import begin_attempt
     from .provenance import capture_source, extensions, ResourceSampler, hardware_identity
@@ -199,12 +207,32 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
 
     start, initial_elapsed = perf_counter(), state["elapsed_seconds"]
     logs, kept, last_path = [], [], None
+    budget_stop_reason = None
     final_step = min(settings.steps, stop_after) if stop_after is not None else settings.steps
     if final_step < state["step"]:
         writer.close()
         raise ValueError("stop_after is before resumed position")
     try:
         while state["step"] < final_step:
+            step_start_tokens = state["forward_tokens"]
+            if quality_budget is not None:
+                preview_sampler = copy.deepcopy(sampler)
+                preview_random = random.Random()
+                preview_random.setstate(random.getstate())
+                planned_tokens = 0
+                for _ in range(settings.accumulation):
+                    preview_datum = data[preview_sampler.next()]
+                    if settings.choice_permutation:
+                        preview_datum = permute_choices(preview_datum, preview_random)
+                    planned_tokens += preview_datum.encode(tokenizer, limits).logical_tokens
+                try:
+                    quality_budget.reserve_step(state["run_id"], useful_tokens=planned_tokens)
+                except BudgetExceeded as exc:
+                    if str(exc) not in {"step_budget_exceeded", "useful_token_budget_exceeded",
+                                        "run_step_budget_exceeded", "run_useful_token_budget_exceeded"}:
+                        raise
+                    budget_stop_reason = str(exc)
+                    break
             optimizer.zero_grad(set_to_none=True)
             averaged = {}
             for _ in range(settings.accumulation):
@@ -242,6 +270,9 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
             model.training_steps += 1
             model.training_exposure["observed"]["optimizer_steps"] += 1
             state["exposure_observed"] = dict(model.training_exposure["observed"])
+            if quality_budget is not None:
+                quality_budget.commit_step(state["run_id"],
+                    useful_tokens=state["forward_tokens"] - step_start_tokens)
             elapsed = initial_elapsed + perf_counter() - start
             state["elapsed_seconds"] = elapsed
             averaged.update({"gradient/norm": float(norm), "learning_rate": float(scheduler.get_last_lr()[0])})
@@ -265,7 +296,7 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
                           extensions=extensions(tokenizer, source, lineage=lineage,
                                                 execution=execution_summary, resources=resources,
                                                 lineage_durable=state['lineage_durable'], calibration=model.calibration_provenance))
-            if state["step"] % settings.save_every == 0 or state["step"] == final_step:
+            if quality_budget is not None or state["step"] % settings.save_every == 0 or state["step"] == final_step:
                 last_path = output / f"checkpoint-{state['step']:06d}.pt"
                 saved = save_checkpoint(last_path, model, tokenizer, training_state=dict(state), optimizer=optimizer,
                                         scheduler=scheduler, sampler=sampler, provenance=provenance, parent_sha256=parent_sha256)
@@ -309,4 +340,5 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
     except OSError:
         writer.failures += 1  # committed checkpoint remains valid
     return {"checkpoint": str(last_path if last_path is not None else resume), "state": state, "metrics": logs,
+            "quality_budget_stop_reason": budget_stop_reason,
             "monitoring_export_failures": writer.failures, "snapshot": str(output / "telemetry.json")}

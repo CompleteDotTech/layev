@@ -3,9 +3,11 @@ from __future__ import annotations
 import argparse
 from dataclasses import asdict
 from pathlib import Path
+import hashlib
 import json
 import os
 import time
+from contextlib import nullcontext
 import torch
 from .checkpoint import load_checkpoint, save_checkpoint
 from .data import freeze_smoke, load_suite
@@ -17,6 +19,8 @@ from .execution import BatchPolicy
 from .objectives import ObjectiveConfig
 from .schema import strict_loads
 from .training import TrainSettings, train
+from .quality_budget import StepTokenBudget
+from .quality_protocol import preflight
 
 
 def limits_for(payload: dict) -> Limits:
@@ -51,6 +55,9 @@ def main(argv=None) -> int:
         p.add_argument("--wandb-project")
         p.add_argument("--wandb-run-id")
         p.add_argument("--wandb-publish", action="store_true", help="Opt-in summary/config update to an existing W&B run; no lifecycle ownership")
+        p.add_argument("--quality-protocol", type=Path, help="Frozen representative-quality protocol")
+        p.add_argument("--quality-data-review", type=Path, help="Reviewed data-use declaration")
+        p.add_argument("--quality-budget-ledger", type=Path, help="Exclusive durable aggregate budget ledger")
     for command in ("calibrate", "evaluate"):
         p = sub.add_parser(command)
         p.add_argument("--checkpoint", type=Path, required=True)
@@ -103,7 +110,6 @@ def main(argv=None) -> int:
         digests = provenance.get("sha256")
         if not isinstance(digests, dict) or set(digests) != {"config.json", "model.safetensors", "tokenizer.json", "tokenizer_config.json", "LICENSE"}:
             raise ValueError("complete pinned-backbone file manifest required")
-        import hashlib
         import re
         if any(not isinstance(d, str) or re.fullmatch(r"[0-9a-f]{64}", d) is None
                for d in digests.values()):
@@ -139,8 +145,33 @@ def main(argv=None) -> int:
                                  provenance={"backbone_source": provenance, "context_limits": {"branch": 32768, "aggregate": 65536}})
         print(json.dumps(result, indent=2))
     elif args.command in {"train", "reward-train"}:
+        quality_paths = (args.quality_protocol, args.quality_data_review, args.quality_budget_ledger)
+        if any(path is not None for path in quality_paths) and not all(path is not None for path in quality_paths):
+            raise ValueError("quality protocol, data review and budget ledger must be supplied together")
+        quality_protocol = None
+        quality_raw = None
+        if all(path is not None for path in quality_paths):
+            receipt = preflight(args.quality_protocol, args.quality_data_review, args.suite)
+            quality_raw = args.quality_protocol.read_bytes()
+            if hashlib.sha256(quality_raw).hexdigest() != receipt["protocol_sha256"]:
+                raise ValueError("quality protocol changed after preflight")
+            quality_protocol = strict_loads(quality_raw)
         cfg = strict_loads(args.config.read_bytes())
         suite, manifest = load_suite(args.suite)
+        settings = TrainSettings(**cfg.get("training", {}))
+        if quality_protocol is not None:
+            if args.run_id is None and args.resume is None:
+                raise ValueError("quality run requires an explicit run ID")
+            if settings.seed not in quality_protocol["seeds"]:
+                raise ValueError("quality seed is absent from the frozen protocol")
+            arm = "supervised" if args.command == "train" else "reward"
+            arm_budget = quality_protocol["training"]["arms"][arm]
+            if settings.steps != arm_budget["optimizer_steps"]:
+                raise ValueError("quality optimizer steps differ from the frozen protocol")
+            if sha256_file(args.quality_data_review) != quality_protocol["data_review_sha256"]:
+                raise ValueError("quality data review changed after preflight")
+            if sha256_file(args.suite / "manifest.json") != quality_protocol["suite_manifest_sha256"]:
+                raise ValueError("quality suite changed after preflight")
         torch.manual_seed(cfg.get("training", {}).get("seed", 42))
         initial = args.resume or args.init
         if initial:
@@ -163,11 +194,24 @@ def main(argv=None) -> int:
         if any(supplied_wandb) and not all(supplied_wandb):
             raise ValueError("all W&B identity components are required")
         wandb_ref = dict(zip(("entity", "project", "run_id"), supplied_wandb)) if all(supplied_wandb) else None
-        result = train(model, tokenizer, suite["train"], manifest, args.out, TrainSettings(**cfg.get("training", {})),
-                       loss_cfg, Limits(**cfg.get("limits", {})), resume=args.resume, stop_after=args.stop_after,
-                       experiment_id=args.experiment_id, run_id=args.run_id, scheduler_ref=scheduler_ref,
-                       wandb_ref=wandb_ref, publish_wandb=args.wandb_publish,
-                       parent_sha256=point.get("checkpoint_sha256") if not args.resume else None)
+        if quality_protocol is None:
+            budget_context = nullcontext(None)
+        else:
+            arms = quality_protocol["training"]["arms"]
+            budget_context = StepTokenBudget(args.quality_budget_ledger, quality_raw,
+                max_steps=quality_protocol["budget"]["max_total_optimizer_steps"],
+                max_useful_tokens=len(quality_protocol["seeds"]) *
+                    sum(value["useful_token_budget"] for value in arms.values()),
+                max_run_steps=arm_budget["optimizer_steps"],
+                max_run_useful_tokens=arm_budget["useful_token_budget"])
+        with budget_context as quality_budget:
+            result = train(model, tokenizer, suite["train"], manifest, args.out, settings,
+                           loss_cfg, Limits(**cfg.get("limits", {})), resume=args.resume, stop_after=args.stop_after,
+                           experiment_id=args.experiment_id, run_id=args.run_id, scheduler_ref=scheduler_ref,
+                           wandb_ref=wandb_ref, publish_wandb=args.wandb_publish,
+                           parent_sha256=point.get("checkpoint_sha256") if not args.resume else None,
+                           quality_budget=quality_budget,
+                           quality_allocation_id=f"{arm}:{settings.seed}" if quality_protocol is not None else None)
         print(json.dumps({k: v for k, v in result.items() if k != "metrics"}, indent=2))
     elif args.command in {"calibrate", "evaluate"}:
         suite, manifest = load_suite(args.suite)
