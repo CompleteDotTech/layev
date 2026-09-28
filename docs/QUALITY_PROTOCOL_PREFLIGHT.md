@@ -30,6 +30,13 @@ and group-level 95% uncertainty with at least 1,000 bootstrap replicates must be
 specified. Actual baseline execution, resampling and metric calculations are
 separate work, not performed by this script. Hash syntax is not artifact existence.
 
+The evaluator carries optional `meta.option_order` and named
+`meta.variations` strata into per-slice reports. Missing strata are reported as
+`unknown`, never inferred from question IDs or answer labels. These fields let
+approved suites supply independently reviewed variation labels; the evaluator
+does not establish that the variations were independently sampled. The full
+multi-seed quality experiment and budget enforcement remain outstanding.
+
 The retained synthetic accuracy threshold stays **0.70**. The exact
 `color=red; level=1; case=99999` state and Choice/Noul/Score readouts must remain in
 the planned regression, with failures retained and reported. No regression result

@@ -58,6 +58,23 @@ def test_evaluation_retains_group_identity(tiny, suite):
     assert {row["group"] for row in report["rows"]} == {d.meta["group"] for d in data["development"][:2]}
 
 
+def test_declared_variation_slices_keep_missing_values_unknown(tiny, suite):
+    from kev_laya.data import Datum
+
+    data, _ = suite
+    first, second = data["development"][:2]
+    first_meta = {**first.meta, "option_order": "reversed",
+                  "variations": {"colors": "red", "wording": "short"}}
+    selected = [Datum(first.request, first.targets, first_meta), second]
+    report = evaluate(tiny, selected, ByteTokenizer(), Limits(512, 8192), split="development")
+    assert report["by"]["option_order"]["reversed"]["count"] == len(first.targets)
+    assert report["by"]["option_order"]["unknown"]["count"] == len(second.targets)
+    assert report["variation_by"]["colors"]["red"]["count"] == len(first.targets)
+    assert report["variation_by"]["colors"]["unknown"]["count"] == len(second.targets)
+    assert report["variation_by"]["wording"]["short"]["count"] == len(first.targets)
+    assert report["variation_by"]["levels"]["unknown"]["count"] == len(report["rows"])
+
+
 def test_calibration_without_type_does_not_retain_unreported_old_temperature(tiny, suite):
     data, manifest = suite
     datum = copy.deepcopy(data["calibration"][0])

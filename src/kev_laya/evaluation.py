@@ -59,20 +59,29 @@ def evaluate(model: DecisionEngine, data: list[Datum], tokenizer: Tokenizer, lim
             context_length = len(enc.state) + len(branch.ids)
             rows.append({"record_id": datum.meta["id"], "group": datum.meta["group"], "question_id": branch.question_id,
                          "type": kind, "domain": datum.meta["domain"], "language": datum.meta["language"],
+                         "option_order": datum.meta.get("option_order", "unknown"),
+                         "variations": datum.meta.get("variations", {}),
                          "option_count": len(p), "context_length": context_length,
                          "length_bucket": next((n for n in (512, 2048, 8192, 16384, 32768) if context_length <= n), "over32k"),
                          "probabilities": p.tolist(), "target": target, "answer_probability": float(p.max()),
                          "correct": float(y[chosen]), "nll": float(-(lp * y).sum()), "brier": float((p - y).square().sum()),
                          "ordinal_mae": float(((p * levels).sum() - (y * levels).sum()).abs()) if kind == "score" else None})
     breakdowns = {}
-    for feature in ("type", "domain", "language", "option_count", "length_bucket"):
+    for feature in ("type", "domain", "language", "option_order", "option_count", "length_bucket"):
         grouped = defaultdict(list)
         for row in rows:
             grouped[str(row[feature])].append(row)
         breakdowns[feature] = {name: summarize(values) for name, values in sorted(grouped.items())}
+    variation_breakdowns = {}
+    for feature in ("colors", "levels", "wording", "question_ids", "domains", "languages", "context_lengths"):
+        grouped = defaultdict(list)
+        for row in rows:
+            grouped[row["variations"].get(feature, "unknown")].append(row)
+        variation_breakdowns[feature] = {name: summarize(values) for name, values in sorted(grouped.items())}
     return {"split": split, "evidence_class": "pretrained-backbone" if model.native_weights_loaded else "tiny-synthetic-fixture",
             "confidence_evaluated": "max probability, not public entropy concentration", "summary": summarize(rows),
-            "by": breakdowns, "rows": rows, "temperatures": dict(model.temperatures)}
+            "by": breakdowns, "variation_by": variation_breakdowns,
+            "rows": rows, "temperatures": dict(model.temperatures)}
 
 
 @torch.no_grad()
