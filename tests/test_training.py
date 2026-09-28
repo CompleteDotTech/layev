@@ -4,13 +4,14 @@ from pathlib import Path
 import pytest
 import torch
 from kev_laya.checkpoint import load_checkpoint, save_checkpoint
-from kev_laya.data import load_suite, Sampler
+from kev_laya.data import Datum, load_suite, Sampler
 from kev_laya.io import sha256_file, atomic_json
 from kev_laya.encoding import ByteTokenizer, Limits
 from kev_laya.model import DecisionEngine
 from kev_laya.objectives import ObjectiveConfig
 from kev_laya.training import train, TrainSettings
 from kev_laya.evaluation import calibrate, evaluate, summarize
+from kev_laya.schema import SystemOneRequest
 
 @pytest.mark.parametrize('reward', [0., .1])
 def test_interrupted_equals_uninterrupted(tmp_path,tiny,suite,reward):
@@ -99,6 +100,23 @@ def test_temperature_fit_does_not_change_weights(tiny,suite):
     assert all(.2<=v<=5 for v in tiny.temperatures.values())
     for n,p in tiny.state_dict().items():torch.testing.assert_close(p,before[n],atol=0,rtol=0)
     assert tiny.calibration_provenance['status']=='fitted-held-out'
+
+def test_missing_calibration_types_keep_artifact_partial(tiny, suite):
+    data, manifest = suite
+    item = data['calibration'][0]
+    key = next(key for key, question in item.request.questions.items() if question.type == 'noul')
+    index = list(item.request.questions).index(key)
+    request = SystemOneRequest(state=item.request.state, model=item.request.model,
+                               questions={key: item.request.questions[key]})
+    reduced = Datum(request=request, targets=[item.targets[index]], meta=item.meta)
+    fitted = calibrate(tiny, [reduced], ByteTokenizer(), Limits(512, 8192),
+                       split='calibration',
+                       split_sha256=manifest['partitions']['calibration']['sha256'])
+    assert fitted['status'] == 'partial-held-out'
+    assert fitted['fits']['choice']['status'] == 'unfitted-no-samples'
+    assert fitted['fits']['score']['status'] == 'unfitted-no-samples'
+    assert fitted['fits']['noul']['status'] == 'fitted-on-calibration'
+    assert tiny.temperatures['choice'] == tiny.temperatures['score'] == 1.0
 
 def test_evaluation_breakdowns_and_probability_metrics(tiny,suite):
     data,_=suite

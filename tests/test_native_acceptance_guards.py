@@ -297,7 +297,9 @@ def orchestration(monkeypatch, exact_request):
     class ModelDouble:
         native_weights_loaded = True
         training_steps = 1
-        calibration_provenance = {"status": "fitted-held-out"}
+        calibration_provenance = {"status": "fitted-held-out", "fits": {
+            kind: {"status": "fitted-on-calibration", "count": 1}
+            for kind in ("choice", "score", "noul")}}
         temperatures = {"choice": 1., "score": 1., "noul": 1.}
         cfg = SimpleNamespace(revision=native.PIN)
         batch_policy = SimpleNamespace(to_dict=lambda: {"fixture_only": True})
@@ -362,6 +364,13 @@ def test_real_run_rejects_incomplete_or_broadcast_outputs(orchestration, tmp_pat
     with pytest.raises(ValueError, match="one output per branch|complete option vectors"):
         native.run(tmp_path / "injected.pt", tmp_path / "out", torch.device("cpu"))
     assert not any(name == "report.json" for name, _ in orchestration.writes)
+
+
+def test_real_run_rejects_partial_calibration(orchestration, tmp_path):
+    orchestration.model.calibration_provenance['fits']['choice'] = {
+        'status': 'unfitted-no-samples', 'count': 0}
+    with pytest.raises(ValueError, match='held-out calibrated artifact'):
+        native.run(tmp_path / 'injected.pt', tmp_path / 'out', torch.device('cpu'))
 
 
 def test_real_run_propagates_nonoverflow_error(orchestration, monkeypatch, tmp_path):
