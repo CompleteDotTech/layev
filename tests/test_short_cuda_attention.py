@@ -3,7 +3,7 @@ import pytest
 import torch
 from torch.nn import functional as F
 
-from kev_laya.model import Attention, BackboneConfig
+from kev_laya.model import Attention, BackboneConfig, backbone_project
 
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA device unavailable")
@@ -24,9 +24,9 @@ def test_short_cuda_uses_eager_arithmetic_and_right_aligned_mask(monkeypatch, pr
 
     monkeypatch.setattr(F, "scaled_dot_product_attention", fail_sdpa)
     result, _ = attention(x, prefix_length, parent)
-    q = attention.q_proj(x).view(1, suffix_length, attention.h, attention.hd).transpose(1, 2)
-    k = attention.k_proj(x).view(1, suffix_length, attention.kh, attention.hd).transpose(1, 2)
-    v = attention.v_proj(x).view(1, suffix_length, attention.kh, attention.hd).transpose(1, 2)
+    q = backbone_project(attention.q_proj, x).view(1, suffix_length, attention.h, attention.hd).transpose(1, 2)
+    k = backbone_project(attention.k_proj, x).view(1, suffix_length, attention.kh, attention.hd).transpose(1, 2)
+    v = backbone_project(attention.v_proj, x).view(1, suffix_length, attention.kh, attention.hd).transpose(1, 2)
     pos = torch.arange(prefix_length, prefix_length + suffix_length, device="cuda")
     q, k = attention.rotate(q, pos), attention.rotate(k, pos)
     if parent is not None:
@@ -37,7 +37,7 @@ def test_short_cuda_uses_eager_arithmetic_and_right_aligned_mask(monkeypatch, pr
     allowed = torch.ones((suffix_length, k.shape[-2]), dtype=torch.bool, device="cuda").tril(diagonal=prefix_length)
     scores = scores.masked_fill(~allowed, torch.finfo(scores.dtype).min)
     expected = torch.matmul(F.softmax(scores, dim=-1, dtype=torch.float32).to(q.dtype), v)
-    expected = attention.o_proj(expected.transpose(1, 2).reshape(1, suffix_length, -1))
+    expected = backbone_project(attention.o_proj, expected.transpose(1, 2).reshape(1, suffix_length, -1))
     torch.testing.assert_close(result, expected, atol=0, rtol=0)
 
 

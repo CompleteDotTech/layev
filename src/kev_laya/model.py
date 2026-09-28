@@ -82,25 +82,28 @@ class LoRALinear(nn.Module):
 
 
 def backbone_project(module: nn.Linear | LoRALinear, x: Tensor) -> Tensor:
-    """Keep native BF16 projection GEMMs independent of request row count.
+    """Keep native CUDA projection GEMMs independent of request row count.
 
-    CUDA may select a different BF16 GEMM algorithm when the same token is
+    CUDA may select a different GEMM algorithm when the same token is
     projected as one cached branch, several branches, or part of a full row.
-    Each 1024-row tile uses the same matrix shape; the final tile is padded
-    before multiplication and trimmed afterwards. Apply the rule to the LoRA
-    path as well as its base, since both contribute to the same projection.
-    Other precision/device paths retain the pinned reference arithmetic.
+    BF16 uses 1024-row tiles; FP32 uses 64-row tiles to preserve the short
+    pinned Transformers oracle. The last tile is padded before multiplication
+    and trimmed afterwards. Apply the rule to LoRA base and low-rank terms.
+    CPU and other precision paths retain the pinned reference arithmetic.
     """
-    if not (x.is_cuda and torch.is_autocast_enabled("cuda")
-            and torch.get_autocast_dtype("cuda") == torch.bfloat16):
+    bf16 = (torch.is_autocast_enabled("cuda")
+            and torch.get_autocast_dtype("cuda") == torch.bfloat16)
+    fp32 = x.dtype == torch.float32 and not torch.is_autocast_enabled("cuda")
+    if not (x.is_cuda and (bf16 or fp32)):
         return module(x)
+    tile_rows = 1024 if bf16 else 64
     rows = x.reshape(-1, x.shape[-1])
     parts = []
-    for start in range(0, rows.shape[0], 1024):
-        tile = rows[start:start + 1024]
+    for start in range(0, rows.shape[0], tile_rows):
+        tile = rows[start:start + tile_rows]
         count = tile.shape[0]
-        if count < 1024:
-            tile = F.pad(tile, (0, 0, 0, 1024 - count))
+        if count < tile_rows:
+            tile = F.pad(tile, (0, 0, 0, tile_rows - count))
         if isinstance(module, LoRALinear):
             projected = module.base(tile) + F.linear(F.linear(tile, module.a), module.b) * module.scale
         else:
