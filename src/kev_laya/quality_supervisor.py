@@ -63,7 +63,15 @@ def _stop_child(child: subprocess.Popen) -> None:
         if os.name != "nt":
             os.killpg(child.pid, signal.SIGKILL)
         else:
-            child.kill()
+            # CREATE_NEW_PROCESS_GROUP does not make child.kill() reach Windows
+            # descendants. Stop the exact process tree owned by this supervisor.
+            stopped = subprocess.run(["taskkill", "/PID", str(child.pid), "/T", "/F"],
+                                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                     check=False)
+            if stopped.returncode != 0:
+                if child.poll() is None:
+                    child.kill()
+                raise RuntimeError("owned_child_tree_termination_unverified")
     except (ProcessLookupError, OSError):
         pass
     finally:
