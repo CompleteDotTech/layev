@@ -91,7 +91,9 @@ def test_seed_variation_requires_matched_frozen_rows_and_reports_spread():
              "correct": 1.0, "answer_probability": 0.8, "nll": 0.3,
              "brier": 0.1, "ordinal_mae": None}]}
 
-    reports = {11: report(0.0), 12: report(1.0), 13: report(1.0)}
+    reports = {seed: {**report(correct), "checkpoint_sha256": f"{seed:064x}",
+                      "split_sha256": "a" * 64}
+               for seed, correct in ((11, 0.0), (12, 1.0), (13, 1.0))}
     result = summarize_seed_variation(reports)
     assert result["seed_count"] == 3 and result["row_count_per_seed"] == 2
     assert result["between_seed"]["accuracy"]["values"] == [0.5, 1.0, 1.0]
@@ -102,6 +104,14 @@ def test_seed_variation_requires_matched_frozen_rows_and_reports_spread():
     altered = copy.deepcopy(reports)
     altered[13]["rows"][0]["target"] = [0.0, 1.0]
     with pytest.raises(ValueError, match="not_same_frozen_rows_and_targets"):
+        summarize_seed_variation(altered)
+    altered = copy.deepcopy(reports)
+    altered[13]["checkpoint_sha256"] = altered[12]["checkpoint_sha256"]
+    with pytest.raises(ValueError, match="seed_checkpoint_reused"):
+        summarize_seed_variation(altered)
+    altered = copy.deepcopy(reports)
+    altered[13]["split_sha256"] = "b" * 64
+    with pytest.raises(ValueError, match="seed_split_identity_mismatch"):
         summarize_seed_variation(altered)
     with pytest.raises(ValueError, match="at_least_three"):
         summarize_seed_variation({11: report(0.0), 12: report(1.0)})
@@ -114,6 +124,7 @@ def test_seed_report_cli_reads_three_actual_evaluation_reports(tmp_path, tiny, s
         path = tmp_path / f"seed-{seed}.json"
         report = evaluate(tiny, data["development"][:2], ByteTokenizer(), Limits(512, 8192),
                           split="development")
+        report.update(checkpoint_sha256=f"{seed:064x}", split_sha256="a" * 64)
         path.write_text(json.dumps(report), encoding="utf-8")
         paths.append((seed, path))
     output = tmp_path / "summary.json"

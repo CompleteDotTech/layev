@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections import defaultdict
 import math
 import random
+import re
 import torch
 from .data import Datum
 from .encoding import Tokenizer, Limits
@@ -193,10 +194,10 @@ def grouped_bootstrap(rows: list[dict], *, samples: int = 1000, seed: int = 42,
 
 
 def summarize_seed_variation(reports: dict[int, dict]) -> dict:
-    """Report observed variation across matched independent model seeds.
+    """Report observed variation across matched, declared model seeds.
 
-    Source-group uncertainty remains separate. This is descriptive variation
-    across the supplied seeds, not a confidence interval for a model family.
+    Source-group uncertainty remains separate. Distinct checkpoint hashes
+    prevent direct reuse, but do not authenticate independent training.
     """
     if not isinstance(reports, dict) or len(reports) < 3 or any(
         type(seed) is not int or seed < 0 for seed in reports
@@ -208,6 +209,8 @@ def summarize_seed_variation(reports: dict[int, dict]) -> dict:
                         "languages", "context_lengths")
     signatures = None
     split = None
+    split_sha256 = None
+    checkpoints = {}
     per_seed = {}
     per_slice = {field: {} for field in (*slices, *variation_slices)}
 
@@ -230,6 +233,19 @@ def summarize_seed_variation(reports: dict[int, dict]) -> dict:
             split = report["split"]
         elif report["split"] != split:
             raise ValueError("seed_report_split_mismatch")
+        checkpoint = report.get("checkpoint_sha256")
+        partition = report.get("split_sha256")
+        if not isinstance(checkpoint, str) or not re.fullmatch(r"[0-9a-f]{64}", checkpoint):
+            raise ValueError("seed_checkpoint_identity_missing")
+        if not isinstance(partition, str) or not re.fullmatch(r"[0-9a-f]{64}", partition):
+            raise ValueError("seed_split_identity_missing")
+        if checkpoint in checkpoints.values():
+            raise ValueError("seed_checkpoint_reused")
+        checkpoints[seed] = checkpoint
+        if split_sha256 is None:
+            split_sha256 = partition
+        elif partition != split_sha256:
+            raise ValueError("seed_split_identity_mismatch")
         rows = report.get("rows")
         if not isinstance(rows, list) or not rows:
             raise ValueError("seed_report_rows_missing")
@@ -263,6 +279,7 @@ def summarize_seed_variation(reports: dict[int, dict]) -> dict:
         return {field: spread([summaries[seed][field] for seed in sorted(reports)]) for field in fields}
 
     return {"method": "matched-model-seed-descriptive-v1", "split": split,
+            "split_sha256": split_sha256, "checkpoint_sha256_by_seed": checkpoints,
             "seeds": sorted(reports), "seed_count": len(reports), "row_count_per_seed": len(signatures),
             "per_seed": per_seed, "between_seed": metrics(per_seed),
             "by": {field: {name: metrics(summaries) for name, summaries in sorted(groups.items())}
