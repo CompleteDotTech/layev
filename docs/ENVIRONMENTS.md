@@ -1,5 +1,19 @@
 # Environments and verification boundaries
 
+## Current readback (September 27, 2026)
+
+Main at `5740f8246f4518651962989753484d352740f6c4` has all five hosted
+checks passing after merge and [enforced main protection](RELEASE_POLICY.md).
+The public source environment remains separate from an independently created
+local CUDA environment using Python 3.13.12, PyTorch 2.10.0+cu128,
+Transformers 4.57.1 and tokenizers 0.22.1. That environment verified actual
+pinned Qwen weight and tokenizer bytes and can see an RTX 3060. A preliminary
+real-weight hidden-state comparison failed the declared `1e-4` tolerance, so
+native parity, trained checkpoint behavior and representative quality remain
+open. The separate Overwatch private-index credential is not configured in
+the current local/hosted route. Historical environment statements below describe
+their earlier source-hardening scope.
+
 The supported model range remains **Python >=3.12,<3.14**. The separate Overwatch
 range remains **>=3.13.12,<3.14**. A Python 3.13.5 model run is not a supported
 Overwatch backend run. No dependency requirement was lowered in this change.
@@ -19,8 +33,8 @@ uv run --no-sync python scripts/check_source.py
 
 `--locked` fails rather than silently resolving a different environment. These
 commands require accessible public package indexes and suitable platform wheels.
-The new CI matrix exercises Windows/Linux and Python 3.12/3.13, but its remote
-execution and required-check protection are not yet verified.
+The CI matrix exercises Windows/Linux and Python 3.12/3.13. Its current hosted
+execution and required-check protection are documented in the readback above.
 
 `requirements-cpu.lock` is the unchanged historical Linux CPU closure, not a
 cross-platform wheel-hash lock. The local source-hardening exercise used the

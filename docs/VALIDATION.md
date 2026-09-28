@@ -88,12 +88,13 @@ comparison. Group-aware intervals now exist, but no representative quality or
 pinned Kev/Laya baseline run was executed. Jev version/quality/latency/billed-cost
 comparison requires authorized access, approved inputs and budget; it is unknown.
 
-The original 45-column research matrix and independent review were unavailable
-to the Linux handoff, but are present in the companion local research checkout.
-They have not yet been reconciled into this repository. Prompt-derived acceptance
-documents are not substitutes. See the
-explicit [acceptance status](acceptance-status.json), which is a workstream ledger,
-**not a reconstructed 45-column matrix**.
+The original 45-feature research matrix was unavailable to the historical Linux
+handoff. It is now preserved byte-for-byte in [the repository](research/FEATURE_MATRIX.original.json),
+with a [per-feature evidence mapping](research/layev-feature-mapping.json) at the
+inspected Layev revision. Source and test paths are inventory evidence; they do
+not establish passing current tests, native execution, representative quality,
+or Jev comparison. The [acceptance status](acceptance-status.json) retains its
+historical workstream and failure record.
 
 The [Overwatch guide](../integrations/overwatch/README.md) retains its primary-
 checkout-only workflow and separate Python/private-index environment. The
