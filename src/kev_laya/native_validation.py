@@ -212,8 +212,8 @@ def make_case(tokenizer, position: str, language: str) -> SystemOneRequest:
             return expanded
 
 
-def merged_backbone(model):
-    """Map the independent native backbone to the pinned HF oracle, merging LoRA."""
+def merged_backbone(model, *, merge_lora=True):
+    """Map native backbone weights to pinned HF names; optionally merge LoRA."""
     weights={}
     state=model.backbone.state_dict()
     for key,value in state.items():
@@ -221,12 +221,27 @@ def merged_backbone(model):
         if '.base.' in key:
             plain=key.replace('.base.','.')
             value=value.detach().clone()
-            if key.endswith('.weight'):
+            if merge_lora and key.endswith('.weight'):
                 parent=key.rsplit('.base.',1)[0]
                 value=value+(state[parent+'.b']@state[parent+'.a'])*(model.cfg.lora_alpha/model.cfg.lora_rank)
             weights[plain]=value
         else: weights[key]=value
     return weights
+
+
+class ReferenceLoRA(torch.nn.Module):
+    """Independent Qwen oracle adapter using the deployed two-linear arithmetic."""
+
+    def __init__(self, base, a, b, scale):
+        super().__init__()
+        self.base = base
+        self.register_buffer('a', a.detach().clone())
+        self.register_buffer('b', b.detach().clone())
+        self.scale = scale
+
+    def forward(self, x):
+        return self.base(x) + torch.nn.functional.linear(
+            torch.nn.functional.linear(x, self.a), self.b) * self.scale
 
 
 def hf_parity(model, ids):
@@ -242,7 +257,17 @@ def hf_parity(model, ids):
     config=Qwen2Config(**keep,hidden_act='silu',use_sliding_window=False,attention_dropout=0.0)
     config._attn_implementation='eager'
     oracle=Qwen2Model(config).to(next(model.parameters()).device)
-    oracle.load_state_dict(merged_backbone(model),strict=True)
+    # A merged matrix changes FP32 reduction order after LoRA is trained.
+    # Keep HF's independent Qwen backbone and apply the same adapter operation
+    # order as deployed inference, without changing training or model weights.
+    oracle.load_state_dict(merged_backbone(model, merge_lora=False),strict=True)
+    if model.cfg.lora_rank:
+        for native_layer, reference_layer in zip(model.backbone.layers, oracle.layers, strict=True):
+            for name in ('q_proj', 'v_proj'):
+                native = getattr(native_layer.self_attn, name)
+                reference = getattr(reference_layer.self_attn, name)
+                setattr(reference_layer.self_attn, name, ReferenceLoRA(
+                    reference, native.a, native.b, native.scale))
     oracle.eval()
     with torch.no_grad():
         a,_=model.backbone(ids)
@@ -253,7 +278,8 @@ def hf_parity(model, ids):
     if not bool(torch.isfinite(a).all() and torch.isfinite(b).all()):
         raise ValueError("native oracle requires finite hidden states")
     result={'maximum_hidden_absolute_error':float((a-b).abs().max()),
-            'oracle':'transformers==' + actual_version + '/Qwen2Model/eager',
+            'oracle':'transformers==' + actual_version + '/Qwen2Model/eager' +
+                     ('+two-linear-LoRA' if model.cfg.lora_rank else ''),
             'transformers_version': actual_version}
     result['passed']=torch.allclose(a,b,atol=PROTOCOL['hf_hidden_atol'],rtol=PROTOCOL['hf_hidden_rtol'])
     del oracle

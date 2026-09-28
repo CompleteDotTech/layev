@@ -1,6 +1,7 @@
 * text=auto
 *.py text eol=lf
 *.json text eol=lf
+docs/evidence/native/*.json -text
 docs/research/FEATURE_MATRIX.original.json -text
 *.jsonl text eol=lf
 *.md text eol=lf

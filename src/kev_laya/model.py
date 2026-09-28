@@ -119,6 +119,17 @@ class Attention(nn.Module):
             v = torch.cat((past[1].expand(b, -1, -1, -1), v), -2)
         keys = k.repeat_interleave(self.h // self.kh, dim=1)
         values = v.repeat_interleave(self.h // self.kh, dim=1)
+        # Short CUDA sequences must retain the pinned eager-oracle arithmetic.
+        # SDPA's fused reductions differ enough near zero to fail the unchanged
+        # 1e-4 hidden-state parity gate on actual pretrained Qwen weights.
+        if q.is_cuda and k.shape[-2] <= 256:
+            scores = torch.matmul(q, keys.transpose(-2, -1)) * (self.hd ** -0.5)
+            allowed = torch.ones((length, k.shape[-2]), device=q.device,
+                                 dtype=torch.bool).tril(diagonal=k.shape[-2] - length)
+            scores = scores.masked_fill(~allowed, torch.finfo(scores.dtype).min)
+            probabilities = F.softmax(scores, dim=-1, dtype=torch.float32).to(q.dtype)
+            h = torch.matmul(probabilities, values)
+            return self.o_proj(h.transpose(1, 2).reshape(b, length, -1)), (k, v)
         # A long CUDA request must not silently fall back to a dense quadratic math kernel.
         # Unsupported fused-kernel/hardware combinations fail explicitly and remain a deployment gate.
         from torch.nn.attention import SDPBackend, sdpa_kernel
