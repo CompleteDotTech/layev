@@ -260,7 +260,7 @@ class PointerHead(nn.Module):
         self.k = nn.Linear(hidden, pointer)
         self.scale = 1.0 / math.sqrt(pointer)
     def forward(self, decide: Tensor, options: Tensor) -> Tensor:
-        return (self.k(options) @ self.q(decide)).float() * self.scale
+        return (self.k(options) * self.q(decide)).sum(-1).float() * self.scale
 
 
 class DecisionEngine(nn.Module):
