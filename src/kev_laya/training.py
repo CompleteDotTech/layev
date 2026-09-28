@@ -208,6 +208,8 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
     start, initial_elapsed = perf_counter(), state["elapsed_seconds"]
     logs, kept, last_path = [], [], None
     budget_stop_reason = None
+    def quality_gpu_peak():
+        return int(torch.cuda.max_memory_allocated(device)) if device.type == "cuda" else 0
     final_step = min(settings.steps, stop_after) if stop_after is not None else settings.steps
     if final_step < state["step"]:
         writer.close()
@@ -226,10 +228,12 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
                         preview_datum = permute_choices(preview_datum, preview_random)
                     planned_tokens += preview_datum.encode(tokenizer, limits).logical_tokens
                 try:
-                    quality_budget.reserve_step(state["run_id"], useful_tokens=planned_tokens)
+                    quality_budget.reserve_step(state["run_id"], useful_tokens=planned_tokens,
+                                                peak_gpu_bytes=quality_gpu_peak())
                 except BudgetExceeded as exc:
                     if str(exc) not in {"step_budget_exceeded", "useful_token_budget_exceeded",
-                                        "run_step_budget_exceeded", "run_useful_token_budget_exceeded"}:
+                                        "run_step_budget_exceeded", "run_useful_token_budget_exceeded",
+                                        "wall_budget_exceeded", "gpu_memory_budget_exceeded"}:
                         raise
                     budget_stop_reason = str(exc)
                     break
@@ -247,6 +251,8 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
                     logits, usage = model(encoded)
                     loss, parts = objective(logits, datum.targets, [b.question.type for b in encoded.branches], loss_config)
                 (loss / settings.accumulation).backward()
+                if quality_budget is not None:
+                    quality_budget.check_resources(peak_gpu_bytes=quality_gpu_peak())
                 for key, value in parts.items():
                     averaged[key] = averaged.get(key, 0) + value / settings.accumulation
                 state["microbatches"] += 1
@@ -263,6 +269,8 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
             if any(p.grad is None or not torch.isfinite(p.grad).all() for p in trainable):
                 raise FloatingPointError("missing or nonfinite trainable parameter gradient")
             norm = torch.nn.utils.clip_grad_norm_(trainable, settings.gradient_clip, error_if_nonfinite=True)
+            if quality_budget is not None:
+                quality_budget.check_resources(peak_gpu_bytes=quality_gpu_peak())
             optimizer.step()
             scheduler.step()
             optimizer.zero_grad(set_to_none=True)
@@ -272,7 +280,8 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
             state["exposure_observed"] = dict(model.training_exposure["observed"])
             if quality_budget is not None:
                 quality_budget.commit_step(state["run_id"],
-                    useful_tokens=state["forward_tokens"] - step_start_tokens)
+                    useful_tokens=state["forward_tokens"] - step_start_tokens,
+                    peak_gpu_bytes=quality_gpu_peak())
             elapsed = initial_elapsed + perf_counter() - start
             state["elapsed_seconds"] = elapsed
             averaged.update({"gradient/norm": float(norm), "learning_rate": float(scheduler.get_last_lr()[0])})

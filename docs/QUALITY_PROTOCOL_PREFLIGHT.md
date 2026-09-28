@@ -29,9 +29,16 @@ mismatch. Use all three `--quality-protocol`, `--quality-data-review`, and
 `train` or `reward-train`. The configured seed and optimizer-step count must
 match the frozen protocol.
 
-The ledger does not yet enforce wall-time or GPU-memory ceilings. An interrupted
-step requires audited reconciliation before further use of that ledger. This
-source gate alone does not prove that a review is authentic or the data is
+The ledger starts the declared wall clock before model loading, persists that
+start across runs, and checks the deadline before each step and between
+microbatches. On CUDA the quality CLI caps this process's PyTorch allocator
+before loading weights and checks its measured peak around optimizer work.
+An overrun discovered inside a reserved step leaves that step pending for
+audited reconciliation. These are cooperative checks: an in-flight CUDA kernel
+can pass the wall deadline before returning, and the allocator cap does not
+cover all driver or external GPU allocations. A process-level hard wall
+deadline and complete GPU-process accounting remain outstanding. This source
+gate alone does not prove that a review is authentic or the data is
 representative.
 
 Selection uses development data only; calibration fits on calibration data only.
