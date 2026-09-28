@@ -303,7 +303,10 @@ def run(checkpoint: Path, output: Path, device='cuda', precision='fp32') -> dict
     if tokenizer.serialization != NATIVE_SERIALIZATION:
         raise ValueError('native v2 acceptance requires explicitly versioned lossless serialization, not legacy preprocessing')
     if model.training_steps<1:raise ValueError('a trained pointer head is required')
-    if model.calibration_provenance.get('status') != 'fitted-held-out':
+    calibration = model.calibration_provenance
+    if (calibration.get('status') != 'fitted-held-out'
+            or any(calibration.get('fits', {}).get(kind, {}).get('status') != 'fitted-on-calibration'
+                   for kind in ('choice', 'score', 'noul'))):
         raise ValueError('native acceptance requires the held-out calibrated artifact')
     if next(model.parameters()).device != device:
         raise ValueError('native model was not loaded on the selected CUDA measurement device')

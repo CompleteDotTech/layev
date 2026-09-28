@@ -131,7 +131,9 @@ def calibrate(model: DecisionEngine, data: list[Datum], tokenizer: Tokenizer, li
         model.temperatures[kind] = best_t
         fits[kind] = {"temperature": best_t, "count": len(selected), "status": "fitted-on-calibration",
                       "before_nll": initial, "after_nll": best_loss}
-    model.calibration_provenance = {"status": "fitted-held-out", "partition": split, "sha256": split_sha256,
+    status = ("fitted-held-out" if all(row["status"] == "fitted-on-calibration"
+                                   for row in fits.values()) else "partial-held-out")
+    model.calibration_provenance = {"status": status, "partition": split, "sha256": split_sha256,
                                     "fits": fits, "method": "per-type-temperature-nll-v1", "bounds": [0.2, 5.0]}
     return model.calibration_provenance
 
