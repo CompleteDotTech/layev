@@ -1,5 +1,21 @@
 # Release readiness — intentionally incomplete
 
+## Current delivery readback (September 27, 2026)
+
+Layev main is `5740f8246f4518651962989753484d352740f6c4`, after protected
+[PR #22](https://github.com/CompleteDotTech/layev/pull/22). Its five required
+PR checks and five [post-merge jobs](https://github.com/CompleteDotTech/layev/actions/runs/36360108509)
+passed. [Issue #8](https://github.com/CompleteDotTech/layev/issues/8) is closed
+with a preserved failing-check enforcement probe and the live
+[policy receipt](RELEASE_POLICY.md). Overwatch [PR #1](https://github.com/CompleteDotTech/Overwatch/pull/1)
+remains draft at signed head `aef193862499734af552860744db667b64afebd1`;
+its frontend passes and backend stops at the missing authorized private-index
+token before locked installation/tests. The 45-feature original and mapping below
+record source/test inventory with native, quality and Jev evidence limits.
+Native initiation from actual pinned weights has succeeded locally, but an
+independent hidden-state comparison failed the `1e-4` parity tolerance. Older
+revision and policy statements below are historical readbacks.
+
 The source-hardening change is **merged**, not a completed Jev replacement or
 an approved model deployment. Public name Layev and package/import/CLI names
 `kev-laya`/`kev_laya` remain unchanged. A source merge is not a package release,
@@ -119,13 +135,13 @@ For Overwatch, verify the actual service's checkout and populated report/UI too.
 
 ## Missing acceptance sources and quality
 
-The original companion `overwatch-model-research/FEATURE_MATRIX.json` and
-independent review/probe files exist in the primary workspace, although the
-Linux handoff could not retrieve them. They have not yet been reconciled into
-this repository. Prompt-derived acceptance files are not that matrix. No
-replacement set of 45 labels is invented here. The mapping, native
+The original companion matrix is now preserved byte-for-byte as
+[FEATURE_MATRIX.original.json](research/FEATURE_MATRIX.original.json), with its
+[45-feature Layev evidence mapping](research/layev-feature-mapping.json). The
+historical Linux handoff lacked the original; that access limitation is retained
+as history. Current source/test inventory is recorded separately from native
 validation, representative multi-seed quality, pinned Kev/Laya baselines and
-Jev-relative quality/cost/latency remain open.
+Jev-relative quality/cost/latency, which remain open.
 
 The historical stage-three CPU result was 235 passed/5 skipped. Its synthetic
 calibrated reward arm scored 83.33% on 270 questions, but its separate known

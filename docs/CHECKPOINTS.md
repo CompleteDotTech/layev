@@ -1,5 +1,17 @@
 # Stage-3 checkpoint additions
 
+## Current native artifact boundary (September 27, 2026)
+
+A local checkpoint initialized from verified pinned Qwen weights has zero
+training steps and is non-resumable. Its SHA-256 is
+`ead1228e11d0415716541208745df23a8a938dcbca76b24e9d91b53495a3705d`.
+It is outside Git and is not a trained or calibrated acceptance artifact. A
+preliminary real-weight CUDA forward ran, but independent hidden-state parity
+failed the `1e-4` tolerance; see the ongoing native issue #3. No trained
+checkpoint reload, serving or long-context exposure is established by this
+initialization. The historical format and CPU continuation details below remain
+applicable within their recorded scope.
+
 The checkpoint tensor format remains `kev-laya-checkpoint/1`; additive preprocessing, source provenance and immutable training-exposure records are versioned independently. Calibration remains inference-only and now binds a verifiable sibling/explicit-parent hash chain. Legacy missing exposure is unknown. New native tokenization uses explicit v2; recorded legacy v1 is never silently reinterpreted. Exact CPU continuation is supported only for the same current execution/preprocessing/data/optimization configuration; legacy optimizer saves lacking the new evidence require explicit new-run initialization. See [STAGE3_CORRECTNESS.md](STAGE3_CORRECTNESS.md).
 
 ## Historical checkpoint documentation
