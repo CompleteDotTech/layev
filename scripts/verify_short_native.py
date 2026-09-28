@@ -10,6 +10,7 @@ import time
 import torch
 
 from kev_laya import model as model_module
+from kev_laya import native_validation as native_validation_module
 from kev_laya.backbone_provenance import verify_source
 from kev_laya.checkpoint import load_checkpoint
 from kev_laya.encoding import Limits, encode_request, preprocessing_identity
@@ -53,6 +54,7 @@ def run(source: Path, checkpoint: Path, device_name: str) -> dict:
         "gate": "short-native-real-weight-v1",
         "passed": bool(parity["passed"] and finite and len(logits) == 1 and tuple(logits[0].shape) == (2,)),
         "model_source_sha256": hashlib.sha256(Path(model_module.__file__).read_bytes()).hexdigest(),
+        "oracle_source_sha256": hashlib.sha256(Path(native_validation_module.__file__).read_bytes()).hexdigest(),
         "runner_source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "source_manifest_sha256": source_receipt["source_manifest_sha256"],
         "checkpoint_sha256": point["checkpoint_sha256"],

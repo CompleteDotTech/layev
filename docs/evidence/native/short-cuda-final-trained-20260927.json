@@ -1,0 +1,75 @@
+{
+  "gate": "short-native-real-weight-v1",
+  "passed": true,
+  "model_source_sha256": "b2207f6c7ed04146b0d47874baaf0a84c6d31b8d2ce9e6391c98205bc67c3f4e",
+  "oracle_source_sha256": "6492d7f1df9f3db70077e439efcef1c52e2c51367445c5acb7318db48e777288",
+  "runner_source_sha256": "b3cb7fb1433046dcf0ceb85215a588774eb897f44e79d022c7db44b9568e19a1",
+  "source_manifest_sha256": "14012f86f81cc2760f588d31269d66579c1f59e3830cca2ba1d35574756c0bf3",
+  "checkpoint_sha256": "b6e0db32a65bbf240a5cdec8c938040054a45284e5d4cf35cd310160262b6efb",
+  "weight_sha256": "88c142557820ccad55bb59756bfcfcf891de9cc6202816bd346445188a0ed342",
+  "tokenizer_sha256": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+  "preprocessing": {
+    "tokenizer": "qwen-tokenizer-sha256:c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+    "serialization": "kev-laya-prefix-v2",
+    "literal_encoding": "literal-bpe-v4:002e76a7328e372b4ca78a015cc203a522994eb150be050f834a136572d4965e"
+  },
+  "device": "cuda:0",
+  "device_name": "NVIDIA GeForce RTX 3060",
+  "torch": "2.10.0+cu128",
+  "cuda_build": "12.8",
+  "transformers": "4.57.1",
+  "tokens": 62,
+  "hf_parity": {
+    "maximum_hidden_absolute_error": 0.00011444091796875,
+    "oracle": "transformers==4.57.1/Qwen2Model/eager+two-linear-LoRA",
+    "transformers_version": "4.57.1",
+    "passed": true
+  },
+  "hf_parity_seconds": 5.994917700001679,
+  "forward_seconds": 0.1023328999945079,
+  "peak_allocated_bytes": 4044276224,
+  "logit_shapes": [
+    [
+      2
+    ]
+  ],
+  "logits_finite": true,
+  "usage": {
+    "execution_version": "parallel-questions-v1",
+    "execution_mode": "batched",
+    "batch_policy": {
+      "version": "parallel-questions-v1",
+      "max_branches": 3,
+      "max_padded_tokens": 2048,
+      "max_cache_bytes": 67108864,
+      "sort_by_length": true
+    },
+    "logical_input_tokens": 62,
+    "forward_tokens": 62,
+    "compute_tokens": 62,
+    "padding_tokens": 0,
+    "prefix_cache_bytes": 294912,
+    "prefix_reuses": 0,
+    "prefix_passes": 1,
+    "branch_passes": 1,
+    "effective_batch_sizes": [
+      1
+    ],
+    "padded_branch_lengths": [
+      50
+    ],
+    "branch_indices": [
+      [
+        0
+      ]
+    ],
+    "max_padded_tokens_with_prefix": 62,
+    "estimated_peak_cache_bytes": 12484608
+  },
+  "training_steps": 2,
+  "calibration_status": "unfitted-after-weight-training",
+  "training_modes": "not_tested",
+  "serving": "not_tested",
+  "trained_context": "not_tested",
+  "representative_quality": "unmeasured"
+}
