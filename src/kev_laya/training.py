@@ -339,6 +339,8 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
         atomic_json(output / "training-metrics.json", {"records": logs, "state": state, "monitoring_export_failures": writer.failures})
     except OSError:
         writer.failures += 1  # committed checkpoint remains valid
-    return {"checkpoint": str(last_path if last_path is not None else resume), "state": state, "metrics": logs,
-            "quality_budget_stop_reason": budget_stop_reason,
-            "monitoring_export_failures": writer.failures, "snapshot": str(output / "telemetry.json")}
+    result = {"checkpoint": str(last_path if last_path is not None else resume), "state": state, "metrics": logs,
+              "monitoring_export_failures": writer.failures, "snapshot": str(output / "telemetry.json")}
+    if quality_budget is not None:
+        result["quality_budget_stop_reason"] = budget_stop_reason
+    return result
