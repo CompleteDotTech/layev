@@ -22,6 +22,70 @@ from .quality_protocol import preflight
 from .schema import strict_loads
 
 
+class _WindowsKillOnCloseJob:
+    """OS-owned child tree: closing the supervisor's handle stops its members."""
+
+    def __init__(self):
+        import ctypes
+
+        class BasicLimits(ctypes.Structure):
+            _fields_ = [("per_process_time", ctypes.c_longlong),
+                        ("per_job_time", ctypes.c_longlong),
+                        ("flags", ctypes.c_ulong),
+                        ("minimum_working_set", ctypes.c_size_t),
+                        ("maximum_working_set", ctypes.c_size_t),
+                        ("active_process_limit", ctypes.c_ulong),
+                        ("affinity", ctypes.c_size_t),
+                        ("priority_class", ctypes.c_ulong),
+                        ("scheduling_class", ctypes.c_ulong)]
+
+        class IoCounters(ctypes.Structure):
+            _fields_ = [(name, ctypes.c_ulonglong) for name in
+                        ("read_operations", "write_operations", "other_operations",
+                         "read_bytes", "write_bytes", "other_bytes")]
+
+        class ExtendedLimits(ctypes.Structure):
+            _fields_ = [("basic", BasicLimits), ("io", IoCounters),
+                        ("process_memory", ctypes.c_size_t), ("job_memory", ctypes.c_size_t),
+                        ("peak_process_memory", ctypes.c_size_t),
+                        ("peak_job_memory", ctypes.c_size_t)]
+
+        self.api = ctypes.WinDLL("kernel32", use_last_error=True)
+        self.api.CreateJobObjectW.argtypes = [ctypes.c_void_p, ctypes.c_wchar_p]
+        self.api.CreateJobObjectW.restype = ctypes.c_void_p
+        self.api.SetInformationJobObject.argtypes = [ctypes.c_void_p, ctypes.c_int,
+                                                     ctypes.c_void_p, ctypes.c_ulong]
+        self.api.SetInformationJobObject.restype = ctypes.c_int
+        self.api.AssignProcessToJobObject.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
+        self.api.AssignProcessToJobObject.restype = ctypes.c_int
+        self.api.CloseHandle.argtypes = [ctypes.c_void_p]
+        self.api.CloseHandle.restype = ctypes.c_int
+        self.handle = self.api.CreateJobObjectW(None, None)
+        if not self.handle:
+            raise ctypes.WinError(ctypes.get_last_error())
+        limits = ExtendedLimits()
+        limits.basic.flags = 0x2000  # JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+        if not self.api.SetInformationJobObject(self.handle, 9, ctypes.byref(limits),
+                                                ctypes.sizeof(limits)):
+            error = ctypes.get_last_error()
+            self.close()
+            raise ctypes.WinError(error)
+
+    def assign(self, child: subprocess.Popen) -> None:
+        import ctypes
+
+        if not self.api.AssignProcessToJobObject(self.handle, int(child._handle)):
+            raise ctypes.WinError(ctypes.get_last_error())
+
+    def close(self) -> None:
+        import ctypes
+
+        if self.handle:
+            handle, self.handle = self.handle, None
+            if not self.api.CloseHandle(handle):
+                raise ctypes.WinError(ctypes.get_last_error())
+
+
 @contextmanager
 def supervisor_lease(path: Path):
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -45,16 +109,26 @@ def supervise_child(command: list[str], remaining_seconds: float) -> tuple[str, 
     started = time.monotonic()
     options = {"start_new_session": True} if os.name != "nt" else {
         "creationflags": subprocess.CREATE_NEW_PROCESS_GROUP}
-    child = subprocess.Popen(command, stdin=subprocess.DEVNULL, **options)
+    job = _WindowsKillOnCloseJob() if os.name == "nt" else None
+    child = None
     try:
+        child = subprocess.Popen(command, stdin=subprocess.DEVNULL, **options)
+        if job is not None:
+            # Assignment is immediate after spawn. Failure aborts the run; the
+            # small spawn-to-assignment interval is still a known limitation.
+            job.assign(child)
         code = child.wait(timeout=remaining_seconds)
         return ("completed" if code == 0 else "child_failed"), code, time.monotonic() - started
     except subprocess.TimeoutExpired:
         _stop_child(child)
         return "deadline_killed", 124, time.monotonic() - started
     except BaseException:
-        _stop_child(child)
+        if child is not None and child.poll() is None:
+            _stop_child(child)
         raise
+    finally:
+        if job is not None:
+            job.close()
 
 
 def _stop_child(child: subprocess.Popen) -> None:
@@ -144,7 +218,7 @@ def main(argv: list[str] | None = None) -> int:
             "wall_limit_seconds": limits["max_wall_seconds"],
             "supervised_elapsed_seconds": elapsed,
             "pending_step_requires_reconciliation": ledger.get("pending") is not None,
-            "limitations": "Dedicated child deadline while supervisor lives; non-PyTorch GPU allocations remain outside allocator accounting."})
+            "limitations": "Windows job containment begins after child assignment; POSIX supervisor crashes may leave the child running; non-PyTorch GPU allocations remain outside allocator accounting."})
     return code
 
 

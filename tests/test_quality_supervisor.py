@@ -1,4 +1,5 @@
 import json
+import subprocess
 import sys
 import time
 
@@ -31,6 +32,36 @@ def test_supervisor_kills_owned_descendant_at_deadline(tmp_path):
     assert started.exists()
     time.sleep(2)
     assert not marker.exists()
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="Windows job-object crash containment")
+def test_supervisor_crash_closes_job_and_kills_training_descendant(tmp_path):
+    started = tmp_path / "descendant-pid.txt"
+    late = tmp_path / "descendant-late.txt"
+    grandchild = ("import os,pathlib,sys,time; pathlib.Path(sys.argv[1]).write_text(str(os.getpid())); "
+                  "time.sleep(2); pathlib.Path(sys.argv[2]).write_text('late')")
+    child = ("import subprocess,sys,time; "
+             "subprocess.Popen([sys.executable,'-c',sys.argv[1],sys.argv[2],sys.argv[3]]); "
+             "time.sleep(3)")
+    supervisor = ("import sys; from kev_laya.quality_supervisor import supervise_child; "
+                  "supervise_child([sys.executable,'-c',sys.argv[1],sys.argv[2],sys.argv[3],sys.argv[4]],5)")
+    owner = subprocess.Popen([sys.executable, "-c", supervisor, child, grandchild,
+                              str(started), str(late)])
+    try:
+        deadline = time.monotonic() + 5
+        while not started.exists() and owner.poll() is None and time.monotonic() < deadline:
+            time.sleep(0.02)
+        assert started.exists() and owner.poll() is None
+        time.sleep(0.2)  # allow the supervisor's immediate assignment to complete
+        assert owner.poll() is None
+        owner.terminate()  # kill only the supervisor; the OS must close its job handle
+        owner.wait(timeout=5)
+        time.sleep(2)
+        assert not late.exists()
+    finally:
+        if owner.poll() is None:
+            owner.kill()
+            owner.wait()
 
 
 def test_supervisor_refuses_competing_owner_and_exhausted_deadline(tmp_path):
