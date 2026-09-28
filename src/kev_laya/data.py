@@ -30,6 +30,15 @@ def parse_datum(obj: dict) -> Datum:
     meta = obj["meta"]
     if not all(isinstance(meta.get(k), str) and meta[k] for k in ("id", "group", "domain", "language")):
         raise ValueError("dataset requires id/group/domain/language provenance")
+    if "option_order" in meta and (not isinstance(meta["option_order"], str) or not meta["option_order"]):
+        raise ValueError("option_order must be a nonempty stratum")
+    if "variations" in meta:
+        allowed = {"colors", "levels", "wording", "question_ids", "domains", "languages", "context_lengths"}
+        values = meta["variations"]
+        if not isinstance(values, dict) or set(values) - allowed or any(
+            not isinstance(value, str) or not value for value in values.values()
+        ):
+            raise ValueError("variations must contain named nonempty strata")
     targets = []
     for key, question in request.questions.items():
         keys = [key for key, _ in question.options()]
