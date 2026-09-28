@@ -1,0 +1,26 @@
+{
+  "chain": [
+    {
+      "operation": "training",
+      "sha256": "f5bc3d7a645cbddc6f56e2cfeeecc7b035bd9667c21ab16585927de795ced27c"
+    }
+  ],
+  "evidence_class": "pretrained-backbone",
+  "identity": {
+    "backbone": "Qwen/Qwen2.5-0.5B",
+    "backbone_revision": "060db6499f32faf8b98477b0a26969ef7d8b9987",
+    "literal_encoding": "literal-bpe-v4:002e76a7328e372b4ca78a015cc203a522994eb150be050f834a136572d4965e",
+    "serialization": "kev-laya-prefix-v2",
+    "tokenizer": "qwen-tokenizer-sha256:c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539"
+  },
+  "native_32k_64k": false,
+  "observed": {
+    "aggregate_65536_examples": 0,
+    "branch_32768_examples": 0,
+    "examples": 2,
+    "maximum_aggregate_tokens": 144,
+    "maximum_branch_tokens": 69,
+    "optimizer_steps": 2
+  },
+  "status": "verified"
+}
