@@ -81,6 +81,34 @@ class LoRALinear(nn.Module):
         return self.base(x) + F.linear(F.linear(x, self.a), self.b) * self.scale
 
 
+def backbone_project(module: nn.Linear | LoRALinear, x: Tensor) -> Tensor:
+    """Keep native BF16 projection GEMMs independent of request row count.
+
+    CUDA may select a different BF16 GEMM algorithm when the same token is
+    projected as one cached branch, several branches, or part of a full row.
+    Each 1024-row tile uses the same matrix shape; the final tile is padded
+    before multiplication and trimmed afterwards. Apply the rule to the LoRA
+    path as well as its base, since both contribute to the same projection.
+    Other precision/device paths retain the pinned reference arithmetic.
+    """
+    if not (x.is_cuda and torch.is_autocast_enabled("cuda")
+            and torch.get_autocast_dtype("cuda") == torch.bfloat16):
+        return module(x)
+    rows = x.reshape(-1, x.shape[-1])
+    parts = []
+    for start in range(0, rows.shape[0], 1024):
+        tile = rows[start:start + 1024]
+        count = tile.shape[0]
+        if count < 1024:
+            tile = F.pad(tile, (0, 0, 0, 1024 - count))
+        if isinstance(module, LoRALinear):
+            projected = module.base(tile) + F.linear(F.linear(tile, module.a), module.b) * module.scale
+        else:
+            projected = F.linear(tile, module.weight, module.bias)
+        parts.append(projected[:count])
+    return torch.cat(parts, dim=0).reshape(*x.shape[:-1], parts[0].shape[-1])
+
+
 KV = tuple[Tensor, Tensor]
 Prefix = tuple[KV, ...]
 
@@ -106,9 +134,9 @@ class Attention(nn.Module):
 
     def forward(self, x: Tensor, offset: int, past: KV | None = None) -> tuple[Tensor, KV]:
         b, length, _ = x.shape
-        q = self.q_proj(x).view(b, length, self.h, self.hd).transpose(1, 2)
-        k = self.k_proj(x).view(b, length, self.kh, self.hd).transpose(1, 2)
-        v = self.v_proj(x).view(b, length, self.kh, self.hd).transpose(1, 2)
+        q = backbone_project(self.q_proj, x).view(b, length, self.h, self.hd).transpose(1, 2)
+        k = backbone_project(self.k_proj, x).view(b, length, self.kh, self.hd).transpose(1, 2)
+        v = backbone_project(self.v_proj, x).view(b, length, self.kh, self.hd).transpose(1, 2)
         positions = torch.arange(offset, offset + length, device=x.device)
         q, k = self.rotate(q, positions), self.rotate(k, positions)
         if past is not None:
@@ -138,7 +166,7 @@ class Attention(nn.Module):
                             attn_mask=causal_lower_right(length, k.shape[-2]), dropout_p=0.0)
                     parts.append(part)
             h = torch.cat(parts, dim=1)
-            return self.o_proj(h.transpose(1, 2).reshape(b, length, -1)), (k, v)
+            return backbone_project(self.o_proj, h.transpose(1, 2).reshape(b, length, -1)), (k, v)
         keys = k.repeat_interleave(self.h // self.kh, dim=1)
         values = v.repeat_interleave(self.h // self.kh, dim=1)
         # Short CUDA sequences must retain the pinned eager-oracle arithmetic.
@@ -151,7 +179,7 @@ class Attention(nn.Module):
             scores = scores.masked_fill(~allowed, torch.finfo(scores.dtype).min)
             probabilities = F.softmax(scores, dim=-1, dtype=torch.float32).to(q.dtype)
             h = torch.matmul(probabilities, values)
-            return self.o_proj(h.transpose(1, 2).reshape(b, length, -1)), (k, v)
+            return backbone_project(self.o_proj, h.transpose(1, 2).reshape(b, length, -1)), (k, v)
         # A long CUDA request must not silently fall back to a dense quadratic math kernel.
         # Unsupported fused-kernel/hardware combinations fail explicitly and remain a deployment gate.
         from torch.nn.attention import SDPBackend, sdpa_kernel
@@ -163,7 +191,7 @@ class Attention(nn.Module):
                 # Suffix queries are aligned at the RIGHT, not SDPA's default upper-left triangle.
                 h = F.scaled_dot_product_attention(q, keys, values,
                         attn_mask=causal_lower_right(length, k.shape[-2]), dropout_p=0.0)
-        return self.o_proj(h.transpose(1, 2).reshape(b, length, -1)), (k, v)
+        return backbone_project(self.o_proj, h.transpose(1, 2).reshape(b, length, -1)), (k, v)
 
 
 class MLP(nn.Module):
@@ -175,7 +203,9 @@ class MLP(nn.Module):
         self.down_proj = nn.Linear(width, d, bias=False)
     def forward(self, x: Tensor) -> Tensor:
         def project(rows: Tensor) -> Tensor:
-            return self.down_proj(F.silu(self.gate_proj(rows)) * self.up_proj(rows))
+            return backbone_project(self.down_proj,
+                                    F.silu(backbone_project(self.gate_proj, rows))
+                                    * backbone_project(self.up_proj, rows))
 
         if not (self.training and torch.is_grad_enabled() and x.is_cuda and x.shape[-2] > 1024):
             return project(x)
