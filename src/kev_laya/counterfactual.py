@@ -94,6 +94,7 @@ def regression_data():
                            "gold": {"color": color, "is_red": color == "red", "level": level},
                            "meta": {"id": f"known-regression/{case}/{color}/{level}/{order[0]}",
                                     "group": f"known-regression/{case}", "language": "en",
+                                    "option_order": "red-first" if order[0] == "red" else "blue-first",
                                     "domain": "observed-regression-not-held-out-quality"}}
                     rows.append(parse_datum(row))
     return rows

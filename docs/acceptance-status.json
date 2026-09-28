@@ -116,11 +116,11 @@
     {
       "workstream": "predictive_quality",
       "implemented": "partial",
-      "tested": "protocol, resource and seed-report source gates; known case 99999 failed 1/6 on a two-step native smoke checkpoint",
+      "tested": "protocol, resource and seed-report source gates; pinned calibrated actual-weight checkpoint 119a7cd06ea93a3e6c264316f12941557f46fead14098324d43c0f5122b5f239 failed observed case 99999 at 1/6 (Choice 1/2, Noul 0/2, Score 0/2); private diagnostic receipt SHA-256 b2bf3b9a53f7284756ddb03d2914881274673a38d6f6c68b5ab46e0dd5bf42eb",
       "native_validated": "two-step smoke checkpoint only",
       "quality_measured": "unmeasured on licensed representative data",
       "Jev_compared": "unknown",
-      "remaining_gate": "licensed representative multi-seed data, frozen final evaluation, Kev/Laya baselines"
+      "remaining_gate": "repair observed case 99999 across both orders; licensed representative multi-seed data, frozen final evaluation, Kev/Laya baselines"
     },
     {
       "workstream": "jev_comparison",
