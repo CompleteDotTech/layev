@@ -1,13 +1,15 @@
 """Uncertainty reports do not guess groups or certify independent natural data."""
 
 import copy
+import json
 import random
 
 import pytest
 import torch
 
 from kev_laya.encoding import ByteTokenizer, Limits
-from kev_laya.evaluation import calibrate, evaluate, grouped_bootstrap, summarize
+from kev_laya.evaluation import calibrate, evaluate, grouped_bootstrap, summarize, summarize_seed_variation
+from scripts.report_quality_seeds import main as seed_report_cli
 
 
 def rows():
@@ -73,6 +75,56 @@ def test_declared_variation_slices_keep_missing_values_unknown(tiny, suite):
     assert report["variation_by"]["colors"]["unknown"]["count"] == len(second.targets)
     assert report["variation_by"]["wording"]["short"]["count"] == len(first.targets)
     assert report["variation_by"]["levels"]["unknown"]["count"] == len(report["rows"])
+
+
+def test_seed_variation_requires_matched_frozen_rows_and_reports_spread():
+    def report(correct):
+        return {"split": "test", "rows": [
+            {"record_id": "r1", "question_id": "q", "group": "g1", "type": "choice",
+             "domain": "d", "language": "en", "option_order": "original", "option_count": 2,
+             "length_bucket": 512, "target": [1.0, 0.0], "variations": {"colors": "red"},
+             "correct": correct, "answer_probability": 0.8, "nll": 0.3,
+             "brier": 0.1, "ordinal_mae": None},
+            {"record_id": "r2", "question_id": "q", "group": "g2", "type": "choice",
+             "domain": "d", "language": "en", "option_order": "reversed", "option_count": 2,
+             "length_bucket": 512, "target": [0.0, 1.0], "variations": {"colors": "blue"},
+             "correct": 1.0, "answer_probability": 0.8, "nll": 0.3,
+             "brier": 0.1, "ordinal_mae": None}]}
+
+    reports = {11: report(0.0), 12: report(1.0), 13: report(1.0)}
+    result = summarize_seed_variation(reports)
+    assert result["seed_count"] == 3 and result["row_count_per_seed"] == 2
+    assert result["between_seed"]["accuracy"]["values"] == [0.5, 1.0, 1.0]
+    assert result["between_seed"]["accuracy"]["sample_sd"] > 0
+    assert result["by"]["colors"]["red"]["accuracy"]["values"] == [0.0, 1.0, 1.0]
+    assert result["between_seed"]["ordinal_mae"] is None
+
+    altered = copy.deepcopy(reports)
+    altered[13]["rows"][0]["target"] = [0.0, 1.0]
+    with pytest.raises(ValueError, match="not_same_frozen_rows_and_targets"):
+        summarize_seed_variation(altered)
+    with pytest.raises(ValueError, match="at_least_three"):
+        summarize_seed_variation({11: report(0.0), 12: report(1.0)})
+
+
+def test_seed_report_cli_reads_three_actual_evaluation_reports(tmp_path, tiny, suite):
+    data, _ = suite
+    paths = []
+    for seed in (11, 12, 13):
+        path = tmp_path / f"seed-{seed}.json"
+        report = evaluate(tiny, data["development"][:2], ByteTokenizer(), Limits(512, 8192),
+                          split="development")
+        path.write_text(json.dumps(report), encoding="utf-8")
+        paths.append((seed, path))
+    output = tmp_path / "summary.json"
+    args = [item for seed, path in paths for item in ("--run", f"{seed}={path}")]
+    assert seed_report_cli([*args, "--out", str(output)]) == 0
+    result = json.loads(output.read_text(encoding="utf-8"))
+    assert result["seed_count"] == 3
+    assert result["between_seed"]["accuracy"]["sample_sd"] == 0
+    assert len(result["input_sha256_by_seed"]) == 3
+    with pytest.raises(FileExistsError):
+        seed_report_cli([*args, "--out", str(output)])
 
 
 def test_calibration_without_type_does_not_retain_unreported_old_temperature(tiny, suite):

@@ -190,3 +190,81 @@ def grouped_bootstrap(rows: list[dict], *, samples: int = 1000, seed: int = 42,
     result["status"] = "measured"
     result["scope"] = "supplied source groups only; not across model seeds or deployments"
     return result
+
+
+def summarize_seed_variation(reports: dict[int, dict]) -> dict:
+    """Report observed variation across matched independent model seeds.
+
+    Source-group uncertainty remains separate. This is descriptive variation
+    across the supplied seeds, not a confidence interval for a model family.
+    """
+    if not isinstance(reports, dict) or len(reports) < 3 or any(
+        type(seed) is not int or seed < 0 for seed in reports
+    ):
+        raise ValueError("at_least_three_distinct_nonnegative_seeds_required")
+    fields = ("accuracy", "nll", "brier", "ece", "ordinal_mae")
+    slices = ("type", "domain", "language", "option_order", "option_count", "length_bucket")
+    variation_slices = ("colors", "levels", "wording", "question_ids", "domains",
+                        "languages", "context_lengths")
+    signatures = None
+    split = None
+    per_seed = {}
+    per_slice = {field: {} for field in (*slices, *variation_slices)}
+
+    def spread(values):
+        if all(value is None for value in values):
+            return None
+        if any(value is None for value in values):
+            raise ValueError("seed_metric_missing_in_some_runs")
+        if any(type(value) not in (float, int) or not math.isfinite(value) for value in values):
+            raise ValueError("nonfinite_seed_metric")
+        mean = sum(values) / len(values)
+        return {"mean": mean, "sample_sd": math.sqrt(sum((value - mean) ** 2 for value in values)
+                                                     / (len(values) - 1)),
+                "minimum": min(values), "maximum": max(values), "values": list(values)}
+
+    for seed, report in sorted(reports.items()):
+        if not isinstance(report, dict) or not isinstance(report.get("split"), str) or not report["split"]:
+            raise ValueError("seed_report_split_missing")
+        if split is None:
+            split = report["split"]
+        elif report["split"] != split:
+            raise ValueError("seed_report_split_mismatch")
+        rows = report.get("rows")
+        if not isinstance(rows, list) or not rows:
+            raise ValueError("seed_report_rows_missing")
+        identity = {}
+        for row in rows:
+            if not isinstance(row, dict):
+                raise ValueError("seed_report_row_invalid")
+            key = (row.get("record_id"), row.get("question_id"))
+            if any(not isinstance(part, str) or not part for part in key) or key in identity:
+                raise ValueError("seed_report_row_identity_invalid")
+            try:
+                identity[key] = (row["group"], row["type"], row["domain"], row["language"],
+                                 row["option_order"], row["option_count"], row["length_bucket"],
+                                 tuple(row["target"]), tuple(sorted(row.get("variations", {}).items())))
+            except (KeyError, TypeError, AttributeError):
+                raise ValueError("seed_report_row_metadata_invalid") from None
+        if signatures is None:
+            signatures = identity
+        elif identity != signatures:
+            raise ValueError("seed_reports_not_same_frozen_rows_and_targets")
+        per_seed[seed] = summarize(rows)
+        for field in per_slice:
+            grouped = defaultdict(list)
+            for row in rows:
+                value = row.get(field, "unknown") if field in slices else row.get("variations", {}).get(field, "unknown")
+                grouped[str(value)].append(row)
+            for name, group in grouped.items():
+                per_slice[field].setdefault(name, {})[seed] = summarize(group)
+
+    def metrics(summaries):
+        return {field: spread([summaries[seed][field] for seed in sorted(reports)]) for field in fields}
+
+    return {"method": "matched-model-seed-descriptive-v1", "split": split,
+            "seeds": sorted(reports), "seed_count": len(reports), "row_count_per_seed": len(signatures),
+            "per_seed": per_seed, "between_seed": metrics(per_seed),
+            "by": {field: {name: metrics(summaries) for name, summaries in sorted(groups.items())}
+                   for field, groups in per_slice.items()},
+            "scope": "observed variation across supplied model seeds only; source-group bootstrap separate"}
