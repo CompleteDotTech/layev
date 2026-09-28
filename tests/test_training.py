@@ -20,6 +20,7 @@ def test_interrupted_equals_uninterrupted(tmp_path,tiny,suite,reward):
     cfg=ObjectiveConfig(reinforce=reward)
     limits=Limits(512,8192)
     full=train(tiny,ByteTokenizer(),data['train'],manifest,tmp_path/'full',settings,cfg,limits)
+    assert 'quality_budget_stop_reason' not in full
     split=DecisionEngine(tiny.cfg);split.load_state_dict(initial)
     part=train(split,ByteTokenizer(),data['train'],manifest,tmp_path/'split',settings,cfg,limits,stop_after=3)
     # Load and construct afresh, disturb the global RNG, then restore from the saved boundary.

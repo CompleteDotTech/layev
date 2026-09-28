@@ -19,8 +19,20 @@ The protocol must declare at least three distinct integer seeds in the trainer's
 nonnegative range `0..2**64-1`, one pinned parent, matched supervised/reward
 optimizer-step and useful-token budgets, and a
 sufficient total step budget. Positive wall-time and peak-memory bounds must be
-specified. Paid use is zero for this local-only preflight. These are declarations,
-not a resource scheduler or enforcement by the existing trainer.
+specified. Paid use is zero for this local-only preflight. The opt-in quality
+training path binds this protocol to an exclusive durable ledger and reserves
+the exact encoded useful tokens before each optimizer step. It enforces
+aggregate and per-seed/arm step and useful-token ceilings, checkpoints each
+completed step, and refuses unreconciled in-flight steps or a run/checkpoint
+mismatch. Use all three `--quality-protocol`, `--quality-data-review`, and
+`--quality-budget-ledger` arguments with an explicit new `--run-id` for
+`train` or `reward-train`. The configured seed and optimizer-step count must
+match the frozen protocol.
+
+The ledger does not yet enforce wall-time or GPU-memory ceilings. An interrupted
+step requires audited reconciliation before further use of that ledger. This
+source gate alone does not prove that a review is authentic or the data is
+representative.
 
 Selection uses development data only; calibration fits on calibration data only.
 The planned untouched-test readout is once per selected arm/seed, with raw and
@@ -58,7 +70,7 @@ or semantic-data detector. Arbitrarily relabeling a fixture does not make it
 representative. The tests use artificial review declarations and synthetic data
 solely to test software boundaries; they are not a publishable quality benchmark.
 
-This command does not reserve budgets, authenticate a reviewer, verify baseline
+The read-only preflight command does not reserve budgets, authenticate a reviewer, verify baseline
 files, prevent future test-set reuse, train models, call Jev, or establish that a
 protocol predates training. Preserve an externally witnessed/signed protocol
 receipt before training, then bind all run, selection, calibration and evaluation
