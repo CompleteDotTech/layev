@@ -55,7 +55,7 @@ does not measure non-PyTorch GPU allocations or establish the full quality
 acceptance gate.
 
 Selection uses development data only; calibration fits on calibration data only.
-The planned untouched-test readout is once per selected arm/seed, with raw and
+The guarded untouched-test readout is once per selected arm/seed, with raw and
 calibrated results paired. Kev/Laya source revisions and artifact hashes, all six
 metric families, five slicing dimensions, eight independent variation dimensions,
 and group-level 95% uncertainty with at least 1,000 bootstrap replicates must be
@@ -71,8 +71,17 @@ multi-seed quality experiment and budget enforcement remain outstanding.
 
 The retained synthetic accuracy threshold stays **0.70**. The exact
 `color=red; level=1; case=99999` state and Choice/Noul/Score readouts must remain in
-the planned regression, with failures retained and reported. No regression result
+the observed regression, with failures retained and reported. No regression result
 is generated or changed by this preflight.
+
+To score that previously observed case on an existing pinned checkpoint, run
+`python scripts/report_quality_regression.py --checkpoint <checkpoint.pt>
+--expected-sha256 <checkpoint-sha256> --out <new-private-receipt.json>`.
+The report checks both option orders and all six Choice/Noul/Score decisions.
+Its `all_six_correct` field requires 6/6. It is a diagnostic on a known
+synthetic case, cannot select a checkpoint, and does not independently verify
+training exposure or representative quality. Keep the receipt private until
+its permitted fields and source/checkpoint hashes are reviewed.
 
 ## What a successful receipt does NOT establish
 

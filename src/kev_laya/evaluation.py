@@ -93,7 +93,9 @@ def evaluate(model: DecisionEngine, data: list[Datum], tokenizer: Tokenizer, lim
         variation_breakdowns[feature] = {name: summarize(values) for name, values in sorted(grouped.items())}
     return {"split": split,
             "quality_gate": ("untracked_diagnostic_no_representative_claim" if diagnostic else
-                             "claimed_paired_test" if split == "test" else "development_only"),
+                             "claimed_paired_test" if split == "test" else
+                             "observed_regression_not_heldout" if split == "observed-regression" else
+                             "development_only"),
             "evidence_class": "pretrained-backbone" if model.native_weights_loaded else "tiny-synthetic-fixture",
             "confidence_evaluated": "max probability, not public entropy concentration", "summary": summarize(rows),
             "by": breakdowns, "variation_by": variation_breakdowns,
