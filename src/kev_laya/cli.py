@@ -19,7 +19,7 @@ from .execution import BatchPolicy
 from .objectives import ObjectiveConfig
 from .schema import strict_loads
 from .training import TrainSettings, train
-from .quality_budget import StepTokenBudget
+from .quality_budget import StepTokenBudget, configure_cuda_allocator_limit
 from .quality_protocol import preflight
 
 
@@ -172,28 +172,6 @@ def main(argv=None) -> int:
                 raise ValueError("quality data review changed after preflight")
             if sha256_file(args.suite / "manifest.json") != quality_protocol["suite_manifest_sha256"]:
                 raise ValueError("quality suite changed after preflight")
-        torch.manual_seed(cfg.get("training", {}).get("seed", 42))
-        initial = args.resume or args.init
-        if initial:
-            model, tokenizer, point = load_checkpoint(initial, args.device)
-        else:
-            if "backbone" not in cfg:
-                raise ValueError("native training requires an initialized checkpoint")
-            model = DecisionEngine(BackboneConfig(**cfg["backbone"])).to(args.device)
-            tokenizer, point = ByteTokenizer(), {}
-        if "execution" in cfg:
-            model.batch_policy = BatchPolicy.from_dict(cfg["execution"])
-        loss_cfg = ObjectiveConfig(**cfg.get("objective", {}))
-        if args.command == "reward-train" and loss_cfg.reinforce <= 0:
-            raise ValueError("reward-train requires a positive reinforce coefficient")
-        scheduler_ref = None
-        if os.environ.get("KEV_LAYA_SCHEDULER_NAMESPACE"):
-            scheduler_ref = {"provider": "skypilot", "namespace": os.environ["KEV_LAYA_SCHEDULER_NAMESPACE"],
-                             "job_id": int(os.environ["KEV_LAYA_JOB_ID"])}
-        supplied_wandb = (args.wandb_entity, args.wandb_project, args.wandb_run_id)
-        if any(supplied_wandb) and not all(supplied_wandb):
-            raise ValueError("all W&B identity components are required")
-        wandb_ref = dict(zip(("entity", "project", "run_id"), supplied_wandb)) if all(supplied_wandb) else None
         if quality_protocol is None:
             budget_context = nullcontext(None)
         else:
@@ -203,8 +181,35 @@ def main(argv=None) -> int:
                 max_useful_tokens=len(quality_protocol["seeds"]) *
                     sum(value["useful_token_budget"] for value in arms.values()),
                 max_run_steps=arm_budget["optimizer_steps"],
-                max_run_useful_tokens=arm_budget["useful_token_budget"])
+                max_run_useful_tokens=arm_budget["useful_token_budget"],
+                max_wall_seconds=quality_protocol["budget"]["max_wall_seconds"],
+                max_peak_gpu_memory_bytes=quality_protocol["budget"]["max_peak_gpu_memory_bytes"])
         with budget_context as quality_budget:
+            if quality_protocol is not None:
+                configure_cuda_allocator_limit(
+                    args.device, quality_protocol["budget"]["max_peak_gpu_memory_bytes"])
+            torch.manual_seed(settings.seed)
+            initial = args.resume or args.init
+            if initial:
+                model, tokenizer, point = load_checkpoint(initial, args.device)
+            else:
+                if "backbone" not in cfg:
+                    raise ValueError("native training requires an initialized checkpoint")
+                model = DecisionEngine(BackboneConfig(**cfg["backbone"])).to(args.device)
+                tokenizer, point = ByteTokenizer(), {}
+            if "execution" in cfg:
+                model.batch_policy = BatchPolicy.from_dict(cfg["execution"])
+            loss_cfg = ObjectiveConfig(**cfg.get("objective", {}))
+            if args.command == "reward-train" and loss_cfg.reinforce <= 0:
+                raise ValueError("reward-train requires a positive reinforce coefficient")
+            scheduler_ref = None
+            if os.environ.get("KEV_LAYA_SCHEDULER_NAMESPACE"):
+                scheduler_ref = {"provider": "skypilot", "namespace": os.environ["KEV_LAYA_SCHEDULER_NAMESPACE"],
+                                 "job_id": int(os.environ["KEV_LAYA_JOB_ID"])}
+            supplied_wandb = (args.wandb_entity, args.wandb_project, args.wandb_run_id)
+            if any(supplied_wandb) and not all(supplied_wandb):
+                raise ValueError("all W&B identity components are required")
+            wandb_ref = dict(zip(("entity", "project", "run_id"), supplied_wandb)) if all(supplied_wandb) else None
             result = train(model, tokenizer, suite["train"], manifest, args.out, settings,
                            loss_cfg, Limits(**cfg.get("limits", {})), resume=args.resume, stop_after=args.stop_after,
                            experiment_id=args.experiment_id, run_id=args.run_id, scheduler_ref=scheduler_ref,
