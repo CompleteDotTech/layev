@@ -1,18 +1,21 @@
 # Environments and verification boundaries
 
-## Current readback (September 27, 2026)
+## Current readback (September 28, 2026)
 
-Main at `5740f8246f4518651962989753484d352740f6c4` has all five hosted
-checks passing after merge and [enforced main protection](RELEASE_POLICY.md).
+Main at `a6926f7b4585e840b36f1d9157c3af3907210ef5` has [enforced main
+protection](RELEASE_POLICY.md). All five PR-head checks passed for its merge;
+the exact-merge post-merge run `36384521208` was queued at this readback.
 The public source environment remains separate from an independently created
 local CUDA environment using Python 3.13.12, PyTorch 2.10.0+cu128,
 Transformers 4.57.1 and tokenizers 0.22.1. That environment verified actual
-pinned Qwen weight and tokenizer bytes and can see an RTX 3060. A preliminary
-real-weight hidden-state comparison failed the declared `1e-4` tolerance, so
-native parity, trained checkpoint behavior and representative quality remain
-open. The separate Overwatch private-index credential is not configured in
-the current local/hosted route. Historical environment statements below describe
-their earlier source-hardening scope.
+pinned Qwen weight and tokenizer bytes and can see an RTX 3060. The initial
+short hidden-state probe failed, then a corrected independent oracle passed
+the unchanged `1e-4` combined tolerance on the trained two-step checkpoint.
+Strict FP32/BF16 parallel numerics, long-context native training and
+representative quality remain open. The supported Overwatch `tscore` index URL
+is present, but its hosted `overwatch-ci` environment has no authorization
+token secret; its locked backend install and tests remain unrun. Historical
+environment statements below describe their earlier source-hardening scope.
 
 The supported model range remains **Python >=3.12,<3.14**. The separate Overwatch
 range remains **>=3.13.12,<3.14**. A Python 3.13.5 model run is not a supported
