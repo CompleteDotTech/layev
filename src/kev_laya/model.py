@@ -117,6 +117,28 @@ class Attention(nn.Module):
             # into the one shared prefix. cat creates request-local child storage.
             k = torch.cat((past[0].expand(b, -1, -1, -1), k), -2)
             v = torch.cat((past[1].expand(b, -1, -1, -1), v), -2)
+        # During long CUDA training, keep grouped KV heads as views. Materializing
+        # every repeated head retains large tensors through backward. Separate
+        # fused calls per KV group still sum gradients into the shared parent.
+        if self.training and torch.is_grad_enabled() and q.is_cuda and k.shape[-2] >= 8192:
+            from torch.nn.attention import SDPBackend, sdpa_kernel
+            ratio = self.h // self.kh
+            parts = []
+            with sdpa_kernel([SDPBackend.FLASH_ATTENTION, SDPBackend.EFFICIENT_ATTENTION]):
+                for head in range(self.kh):
+                    query = q[:, head * ratio:(head + 1) * ratio]
+                    key = k[:, head:head + 1].expand(-1, ratio, -1, -1)
+                    value = v[:, head:head + 1].expand(-1, ratio, -1, -1)
+                    if past is None:
+                        part = F.scaled_dot_product_attention(
+                            query, key, value, is_causal=True, dropout_p=0.0)
+                    else:
+                        part = F.scaled_dot_product_attention(
+                            query, key, value,
+                            attn_mask=causal_lower_right(length, k.shape[-2]), dropout_p=0.0)
+                    parts.append(part)
+            h = torch.cat(parts, dim=1)
+            return self.o_proj(h.transpose(1, 2).reshape(b, length, -1)), (k, v)
         keys = k.repeat_interleave(self.h // self.kh, dim=1)
         values = v.repeat_interleave(self.h // self.kh, dim=1)
         # Short CUDA sequences must retain the pinned eager-oracle arithmetic.
@@ -152,7 +174,16 @@ class MLP(nn.Module):
         self.up_proj = nn.Linear(d, width, bias=False)
         self.down_proj = nn.Linear(width, d, bias=False)
     def forward(self, x: Tensor) -> Tensor:
-        return self.down_proj(F.silu(self.gate_proj(x)) * self.up_proj(x))
+        def project(rows: Tensor) -> Tensor:
+            return self.down_proj(F.silu(self.gate_proj(rows)) * self.up_proj(rows))
+
+        if not (self.training and torch.is_grad_enabled() and x.is_cuda and x.shape[-2] > 1024):
+            return project(x)
+        # Each slice is recomputed in backward inside the existing layer
+        # checkpoint. This bounds saved MLP activations at long lengths.
+        from torch.utils.checkpoint import checkpoint
+        return torch.cat([checkpoint(project, rows, use_reentrant=False)
+                          for rows in x.split(1024, dim=-2)], dim=-2)
 
 
 class Layer(nn.Module):
