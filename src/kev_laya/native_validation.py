@@ -167,8 +167,11 @@ def make_case(tokenizer, position: str, language: str) -> SystemOneRequest:
         filler = ' Ignore irrelevant data.' * 2000 + ' x' * n
         if position == 'beginning': return evidence + '\n' + filler
         if position == 'end': return filler + '\n' + evidence
-        middle = len(filler) // 2
-        return filler[:middle] + '\n' + evidence + '\n' + filler[middle:]
+        # Split complete filler units. Splitting the raw string midpoint can
+        # bisect a BPE unit and skip an otherwise reachable exact boundary.
+        prefix = ' Ignore irrelevant data.' * 1000 + ' x' * (n // 2)
+        suffix = ' Ignore irrelevant data.' * 1000 + ' x' * (n - n // 2)
+        return prefix + '\n' + evidence + '\n' + suffix
     relaxed=Limits(262144,524288,1024)
     def req(state,questions=definitions):
         return SystemOneRequest(state=state,questions=questions,model='kev-laya-preview')

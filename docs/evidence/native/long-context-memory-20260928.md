@@ -26,8 +26,18 @@ The dedicated CUDA tests compare the new long grouped-attention path with
 materialized heads, including input and parameter gradients, and the chunked
 MLP with the full-row FP32 path at unchanged 1e-5 output and 2e-5 gradient
 tolerances. Both passed locally. The CPU project suite passed 819 tests with
-18 skips, including the two CUDA-only tests. Compilation and critical Ruff
+19 skips, including the two CUDA-only tests and reviewed-tokenizer test.
+Compilation and critical Ruff
 checks passed.
+
+The generated middle/Spanish diagnostic initially could not construct an
+exact boundary because splitting the raw filler midpoint bisected a filler
+unit. The case builder now splits complete units around the evidence. A
+separate test using the reviewed Qwen tokenizer bytes verifies all six
+beginning/middle/end and English/Spanish cases, both exact limits, 255 Choice
+options, 10 Score levels, and both structured overflow rejections. This fixes
+case construction only; a six-stratum trained-model inference replay is still
+separate evidence.
 
 Earlier private monkeypatch diagnostics completed two synthetic steps with
 durable resume, but their code is not represented by a Layev source commit.
