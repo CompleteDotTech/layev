@@ -52,7 +52,14 @@ scheduler, sampler and training state, then returned finite short BF16 Choice,
 Noul and Score logits. Its private receipt SHA-256 is
 `92aa525a0a3a55c1e9b8d9027cb41912f6c366bfca782379ebe72bff55864d99`.
 
-A fresh complete native validator, trained 32k/64k backward exposure and
-representative predictive quality remain separate acceptance gates. The
-historical observed `case=99999` quality regression is still 1/6 on the pinned
-calibrated checkpoint.
+A subsequent complete native BF16 validator on merged main
+`39758e61241923800b34b4d54398b38d787042db` passed numerical parity and
+structured overflow checks in all six English/Spanish beginning/middle/end
+65,536-token cases with zero logit/probability error. The independent short
+Transformers oracle and the checkpoint's recorded 32k/64k training exposure
+chain also verified. **The overall validator failed:** diagnostic marker
+accuracy was 0/18, below its unchanged 80% requirement. Private full report
+SHA-256 `0cba4a5181ecd55176a73fe32166952a7411913b12adbfecee4fb8a6c756df`.
+Trained 32k/64k backward resource evidence and representative predictive
+quality remain separate gates. The historical observed `case=99999` quality
+regression is still 1/6 on the pinned calibrated checkpoint.
