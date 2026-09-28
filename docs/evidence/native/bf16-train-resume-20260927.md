@@ -64,6 +64,38 @@ private local artifact directories outside Git. This is a limit of the tested
 RTX 3060, shape, optimizer, and cap; it is not a proof that full-weight
 training is impossible on other authorized hardware or settings.
 
-These small synthetic runs do not establish full-weight resume, broader
-gradient and branch-isolation parity, trained 32k/64k context, calibrated
-quality, or Jev comparison. Keep issue #3 open.
+## Full-weight CPU train/resume on the merged optimizer path
+
+The same rank-0 initial checkpoint was then trained on CPU with the unchanged
+merged AdamW implementation, two threads, the same 64-row synthetic suite,
+and the same FP32 two-step config (SHA-256
+`d83f715550c1c7b15fb37da368f4d8a427642fa4f5c56e2170f13ba6a1327c26`).
+The clean source provenance names signed commit
+`2f76a08d72143d1e6bd3e41a4cef16ed5665df52` and source-tree SHA-256
+`e81ab8b9cbb81340c1cf9530e7c29944881b2c666f0bbae5c2957b03d70ef50b`.
+Training stopped after step 1, saved checkpoint SHA-256
+`41933334b6bf2276b5d807d5115a0a4d9d5b5fd3b8f685ec4c4ca3d4979bc099`,
+then reloaded it with the same experiment/run identity and completed step 2.
+The final checkpoint SHA-256 is
+`f5bc3d7a645cbddc6f56e2cfeeecc7b035bd9667c21ab16585927de795ced27c`.
+The [exposure receipt](fullweight-cpu-exposure-20260927.json), SHA-256
+`ad6ee59d95afe05e4655ab436234874d67de37834713296fc1dc34ae8aa7109f`,
+verified both optimizer steps, the v4 tokenizer identity, and maximum branch
+69 / aggregate 144 tokens. The telemetry SHA-256 is
+`56e1cf73f4c5e4e71c22b07ef2c413d88d017dd5f1e4dc8468942811d6625dae`;
+it records 12.634 seconds optimizer elapsed across the two attempts,
+excluding startup and checkpoint I/O. Process RSS was unavailable.
+
+The CPU-trained rank-0 checkpoint was reloaded for a short CUDA inference
+comparison against the pinned independent Transformers eager backbone.
+The [raw probe](fullweight-cpu-trained-short-native-20260927.json), SHA-256
+`14342004f67b289ee671e9d2a34a2274dc96c4ffb8b1548b59f29ae71d20e890`,
+passed the unchanged combined tolerance on 62 tokens, maximum absolute
+hidden-state difference `0.0002117156982421875`; inference peak allocated
+GPU memory was 3,970,727,424 bytes. This establishes a full-weight CPU
+train/resume and short native inference path, while the full-weight CUDA
+train/resume profile remains unverified at the tested cap.
+
+These small synthetic runs do not establish broader gradient and
+branch-isolation parity, trained 32k/64k context, calibrated quality, or Jev
+comparison. Keep issue #3 open.
