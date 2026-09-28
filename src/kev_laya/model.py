@@ -259,8 +259,28 @@ class PointerHead(nn.Module):
         self.q = nn.Linear(hidden, pointer)
         self.k = nn.Linear(hidden, pointer)
         self.scale = 1.0 / math.sqrt(pointer)
+
+    def logits(self, decide: Tensor, options: Tensor, owner: Tensor | None = None) -> Tensor:
+        device_type = decide.device.type
+        bf16_autocast = (device_type in ("cpu", "cuda")
+                         and torch.is_autocast_enabled(device_type)
+                         and torch.get_autocast_dtype(device_type) == torch.bfloat16)
+        if device_type in ("cpu", "cuda") and (decide.dtype == torch.bfloat16 or bf16_autocast):
+            # BF16 GEMM changes rounding with batch shape even for identical
+            # hidden rows. Keep the small pointer projection and reduction
+            # stable across independent and parallel question execution.
+            with torch.autocast(device_type, enabled=False):
+                query = F.linear(decide.double(), self.q.weight.double(),
+                                 self.q.bias.double() if self.q.bias is not None else None)
+                keys = F.linear(options.double(), self.k.weight.double(),
+                                self.k.bias.double() if self.k.bias is not None else None)
+                return (keys * (query if owner is None else query[owner])).sum(-1).float() * self.scale
+        query = self.q(decide)
+        keys = self.k(options)
+        return (keys * (query if owner is None else query[owner])).sum(-1).float() * self.scale
+
     def forward(self, decide: Tensor, options: Tensor) -> Tensor:
-        return (self.k(options) * self.q(decide)).sum(-1).float() * self.scale
+        return self.logits(decide, options)
 
 
 class DecisionEngine(nn.Module):
@@ -408,9 +428,7 @@ class DecisionEngine(nn.Module):
                 decide_index = torch.tensor(batch.lengths, device=device) - 1
                 owner = torch.tensor(owners, device=device)
                 end = torch.tensor(ends, device=device)
-                queries = self.head.q(hidden[row_index, decide_index])
-                keys = self.head.k(hidden[owner, end])
-                scores = (keys * queries[owner]).sum(-1).float() * self.head.scale
+                scores = self.head.logits(hidden[row_index, decide_index], hidden[owner, end], owner)
                 pieces = scores.split([len(encoding.branches[i].option_ends) for i in batch.indices])
                 for i, score in zip(batch.indices, pieces, strict=True):
                     result[i] = score
