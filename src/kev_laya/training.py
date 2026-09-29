@@ -12,7 +12,7 @@ import torch
 from .checkpoint import load_checkpoint, restore_rng, save_checkpoint
 from .native_gradients import DERIVATIVE_VERSION
 from .data import Datum, Sampler, permute_choices
-from .encoding import Limits, preprocessing_identity
+from .encoding import Encoding, Limits, preprocessing_identity
 from .io import atomic_json
 from .model import DecisionEngine
 from .objectives import ObjectiveConfig, objective
@@ -35,6 +35,7 @@ class TrainSettings:
     choice_permutation: bool = False
     optimizer_backend: str = "default"
     resource_sample_seconds: float = 1.0
+    streamed_branch_vjp: bool = False
     def __post_init__(self):
         if min(self.steps, self.accumulation, self.save_every, self.keep_checkpoints) < 1:
             raise ValueError("invalid training counts")
@@ -46,6 +47,53 @@ class TrainSettings:
             raise ValueError("unsupported precision")
         if self.optimizer_backend not in {"default", "fused"}:
             raise ValueError("unsupported optimizer backend")
+        if type(self.streamed_branch_vjp) is not bool:
+            raise ValueError("streamed_branch_vjp must be a boolean")
+
+
+def _streamed_bf16_backward(model: DecisionEngine, encoded: Encoding, targets: list,
+                           kinds: list[str], loss_config: ObjectiveConfig,
+                           accumulation: int) -> tuple[dict, dict]:
+    """Bound exact-limit graphs while retaining one shared-prefix derivative."""
+    with torch.no_grad():
+        reference_logits, usage = model(encoded, _training_cache_plan=True)
+    placeholders = [value.detach().requires_grad_(True) for value in reference_logits]
+    loss, parts = objective(placeholders, targets, kinds, loss_config)
+    logit_gradients = torch.autograd.grad(loss / accumulation, placeholders)
+    with torch.autograd.graph.save_on_cpu(pin_memory=True):
+        _, prefix = model.backbone(encoded.state)
+    source_cache = [tensor for pair in prefix for tensor in pair]
+    proxy_flat = [tensor.detach().requires_grad_(True) for tensor in source_cache]
+    proxy_prefix = tuple((proxy_flat[2 * i], proxy_flat[2 * i + 1])
+                         for i in range(len(prefix)))
+    usage["prefix_cache_bytes"] = sum(t.numel() * t.element_size() for t in source_cache)
+    maximum_delta = 0.0
+    for group in usage["branch_indices"]:
+        indices = tuple(group)
+        with torch.autograd.graph.save_on_cpu(pin_memory=True):
+            pieces = model.forward_group(encoded, indices, proxy_prefix)
+        for index, piece in zip(indices, pieces, strict=True):
+            difference = float((piece.detach().float() - reference_logits[index].float()).abs().max())
+            maximum_delta = max(maximum_delta, difference)
+            if difference > 1e-5 * (1 + float(reference_logits[index].float().abs().max())):
+                raise ValueError(f"streamed branch logits differ for question {index}: {difference}")
+        scalar = sum((piece * logit_gradients[index]).sum()
+                     for index, piece in zip(indices, pieces, strict=True))
+        scalar.backward()
+        del scalar, pieces
+        torch.cuda.empty_cache()
+    if any(proxy.grad is None or not bool(torch.isfinite(proxy.grad).all())
+           for proxy in proxy_flat):
+        raise FloatingPointError("missing/nonfinite streamed prefix gradients")
+    torch.autograd.backward(
+        [tensor for tensor in source_cache if tensor.requires_grad],
+        [proxy.grad for tensor, proxy in zip(source_cache, proxy_flat, strict=True)
+         if tensor.requires_grad])
+    parts["numerics/recomputed_logits_max_abs"] = maximum_delta
+    # v1 execution counters intentionally describe one logical forward pass.
+    # Record the extra planned forward work without changing those counters.
+    parts["execution/streamed_recompute_compute_tokens"] = float(usage["compute_tokens"])
+    return parts, usage
 
 
 def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, output: Path,
@@ -65,6 +113,8 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
         recorded_settings.pop("choice_permutation")  # preserve the original v1 no-augmentation config hash
     if settings.optimizer_backend == "default":
         recorded_settings.pop("optimizer_backend")  # preserve existing optimizer config hashes
+    if not settings.streamed_branch_vjp:
+        recorded_settings.pop("streamed_branch_vjp")  # preserve prior training config hashes
     device = next(model.parameters()).device
     cfg = {"settings": recorded_settings, "objective": asdict(loss_config), "limits": asdict(limits),
            "backbone": model.config_dict(), "preprocessing": preprocessing_identity(tokenizer),
@@ -77,6 +127,8 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
         raise ValueError("declared branch budget exceeds actual backbone window")
     if settings.precision == "bf16" and device.type != "cuda":
         raise ValueError("bf16 training profile requires CUDA; no silent fallback")
+    if settings.streamed_branch_vjp and (settings.precision != "bf16" or device.type != "cuda"):
+        raise ValueError("streamed branch VJP requires CUDA BF16")
     if settings.optimizer_backend == "fused" and device.type != "cuda":
         raise ValueError("fused optimizer backend requires CUDA")
     optimizer = torch.optim.AdamW((p for p in model.parameters() if p.requires_grad), lr=settings.learning_rate,
@@ -262,10 +314,17 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
                 observe(model.training_exposure, encoded)
                 state["maximum_branch_tokens_seen"] = max(state.get("maximum_branch_tokens_seen", 0), len(encoded.state) + max(len(b.ids) for b in encoded.branches))
                 state["maximum_aggregate_tokens_seen"] = max(state.get("maximum_aggregate_tokens_seen", 0), encoded.logical_tokens)
-                with torch.autocast(device_type=device.type, dtype=torch.bfloat16, enabled=settings.precision == "bf16"):
-                    logits, usage = model(encoded)
-                    loss, parts = objective(logits, datum.targets, [b.question.type for b in encoded.branches], loss_config)
-                if (device.type == "cuda" and settings.precision == "bf16"
+                if settings.streamed_branch_vjp:
+                    with torch.autocast("cuda", dtype=torch.bfloat16):
+                        parts, usage = _streamed_bf16_backward(
+                            model, encoded, datum.targets,
+                            [branch.question.type for branch in encoded.branches],
+                            loss_config, settings.accumulation)
+                else:
+                    with torch.autocast(device_type=device.type, dtype=torch.bfloat16, enabled=settings.precision == "bf16"):
+                        logits, usage = model(encoded)
+                        loss, parts = objective(logits, datum.targets, [b.question.type for b in encoded.branches], loss_config)
+                if not settings.streamed_branch_vjp and (device.type == "cuda" and settings.precision == "bf16"
                         and len(logits) > 1):
                     # Different branch layouts otherwise round shared-prefix
                     # contributions at different points in BF16 backward.
@@ -278,7 +337,7 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
                         torch.autograd.backward(
                             logit, gradient,
                             retain_graph=branch_number + 1 < len(logits))
-                else:
+                elif not settings.streamed_branch_vjp:
                     (loss / settings.accumulation).backward()
                 if quality_budget is not None:
                     quality_budget.check_resources(peak_gpu_bytes=quality_gpu_peak())

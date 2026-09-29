@@ -430,8 +430,31 @@ class DecisionEngine(nn.Module):
         self.loaded_backbone_sha256 = digest
         self.native_weights_loaded = True
 
+    def forward_group(self, encoding: Encoding, indices: tuple[int, ...],
+                      prefix) -> tuple[Tensor, ...]:
+        """Run one planned, right-padded branch group against a shared prefix."""
+        lengths = [len(encoding.branches[i].ids) for i in indices]
+        width = max(lengths)
+        rows = [list(encoding.branches[i].ids) + [0] * (width - length)
+                for i, length in zip(indices, lengths, strict=True)]
+        device = self.backbone.embed_tokens.weight.device
+        tokens = torch.tensor(rows, dtype=torch.long, device=device)
+        hidden, _ = self.backbone(tokens, prefix, return_cache=False)
+        owners, ends = [], []
+        for row, i in enumerate(indices):
+            option_ends = encoding.branches[i].option_ends
+            owners.extend([row] * len(option_ends))
+            ends.extend(option_ends)
+        scores = self.head.logits(
+            hidden[torch.arange(len(indices), device=device),
+                   torch.tensor(lengths, device=device) - 1],
+            hidden[torch.tensor(owners, device=device), torch.tensor(ends, device=device)],
+            torch.tensor(owners, device=device))
+        return scores.split([len(encoding.branches[i].option_ends) for i in indices])
+
     def forward(self, encoding: Encoding, *, reference: bool = False,
-                serial_reference: bool = False, policy: BatchPolicy | None = None) -> tuple[list[Tensor], dict]:
+                serial_reference: bool = False, policy: BatchPolicy | None = None,
+                _training_cache_plan: bool = False) -> tuple[list[Tensor], dict]:
         """Parallel cached branches by default, in serving AND training.
 
         reference=True recomputes state+branch per row (independent correctness
@@ -446,7 +469,7 @@ class DecisionEngine(nn.Module):
         hd = self.cfg.hidden_size // self.cfg.num_attention_heads
         long_training = any(len(encoding.state) + len(branch.ids) >= 8192
                             for branch in encoding.branches)
-        cache_element_size = (8 if self.training and torch.is_grad_enabled()
+        cache_element_size = (8 if self.training and (torch.is_grad_enabled() or _training_cache_plan)
                               and (long_training or len(encoding.state) <= 256)
                               and self.backbone.embed_tokens.weight.is_cuda
                               and torch.is_autocast_enabled("cuda")
@@ -477,27 +500,8 @@ class DecisionEngine(nn.Module):
                 lengths.append(len(row))
                 indices.append([i])
         else:
-            device = self.backbone.embed_tokens.weight.device
             for batch in plan:
-                # Padding token 0 is an ordinary valid vocabulary index. Its value
-                # cannot reach real readouts: it occurs strictly in their future.
-                rows = [list(encoding.branches[i].ids) + [0] * (batch.padded_length - length)
-                        for i, length in zip(batch.indices, batch.lengths, strict=True)]
-                tokens = torch.tensor(rows, dtype=torch.long, device=device)
-                hidden, _ = self.backbone(tokens, prefix, return_cache=False)
-                # One vectorized head readout across ragged option sets. Only the
-                # final output split/order restoration is Python-side.
-                owners, ends = [], []
-                for row, i in enumerate(batch.indices):
-                    option_ends = encoding.branches[i].option_ends
-                    owners.extend([row] * len(option_ends))
-                    ends.extend(option_ends)
-                row_index = torch.arange(len(batch.indices), device=device)
-                decide_index = torch.tensor(batch.lengths, device=device) - 1
-                owner = torch.tensor(owners, device=device)
-                end = torch.tensor(ends, device=device)
-                scores = self.head.logits(hidden[row_index, decide_index], hidden[owner, end], owner)
-                pieces = scores.split([len(encoding.branches[i].option_ends) for i in batch.indices])
+                pieces = self.forward_group(encoding, batch.indices, prefix)
                 for i, score in zip(batch.indices, pieces, strict=True):
                     result[i] = score
                 sizes.append(len(batch.indices))

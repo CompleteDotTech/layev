@@ -455,6 +455,71 @@ def test_cuda_bf16_short_branch_vjp_parity():
                                        atol=2e-5,rtol=2e-5)
 
 
+@pytest.mark.skipif(not torch.cuda.is_available(),reason='CUDA hardware unavailable; streamed BF16 unverified')
+def test_cuda_bf16_streamed_branch_gradients_and_resume_identity(tmp_path,suite):
+    if not torch.cuda.is_bf16_supported():pytest.skip('GPU does not support BF16')
+    from kev_laya.training import _streamed_bf16_backward
+    ordinary=make_model(lora=2,checkpointing=True,policy=BatchPolicy(max_branches=2)).cuda().train()
+    streamed=copy.deepcopy(ordinary)
+    encoded=encode(request(3))
+    targets=[[1/len(branch.option_ends)]*len(branch.option_ends) for branch in encoded.branches]
+    kinds=[branch.question.type for branch in encoded.branches]
+    config=ObjectiveConfig(ordinal=.1,reinforce=.1)
+    torch.manual_seed(551)
+    with torch.autocast('cuda',dtype=torch.bfloat16):
+        logits,_=ordinary(encoded)
+        loss,_=objective(logits,targets,kinds,config)
+    gradients=torch.autograd.grad(loss,logits)
+    for index,(logit,gradient) in enumerate(zip(logits,gradients,strict=True)):
+        torch.autograd.backward(logit,gradient,retain_graph=index+1<len(logits))
+    torch.manual_seed(551)
+    with torch.autocast('cuda',dtype=torch.bfloat16):
+        parts,usage=_streamed_bf16_backward(streamed,encoded,targets,kinds,config,1)
+    assert parts['numerics/recomputed_logits_max_abs']<=1e-5
+    assert usage['prefix_passes']==1
+    assert max(usage['effective_batch_sizes'])==2
+    for (name,left),(other,right) in zip(ordinary.named_parameters(),streamed.named_parameters(),strict=True):
+        assert name==other
+        if left.requires_grad:
+            torch.testing.assert_close(left.grad,right.grad,atol=2e-5,rtol=2e-5)
+
+    data,manifest=suite
+    settings=TrainSettings(steps=1,precision='bf16',streamed_branch_vjp=True)
+    result=train(make_model(lora=2,checkpointing=True,policy=BatchPolicy(max_branches=2)).cuda(),
+                 ByteTokenizer(),data['train'],manifest,tmp_path/'streamed',settings,
+                 ObjectiveConfig(reinforce=.1),Limits(512,8192))
+    assert result['state']['step']==1
+    assert result['metrics'][0]['numerics/recomputed_logits_max_abs']<=1e-5
+    restored,tokenizer,_=load_checkpoint(Path(result['checkpoint']),'cuda:0')
+    with pytest.raises(ValueError,match='resume configuration or frozen data differs'):
+        train(restored,tokenizer,data['train'],manifest,tmp_path/'streamed',
+              TrainSettings(steps=1,precision='bf16'),ObjectiveConfig(reinforce=.1),
+              Limits(512,8192),resume=Path(result['checkpoint']))
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(),reason='CUDA hardware unavailable; streamed resume unverified')
+def test_cuda_bf16_streamed_resume_matches_uninterrupted_with_accumulation(tmp_path,suite):
+    if not torch.cuda.is_bf16_supported():pytest.skip('GPU does not support BF16')
+    data,manifest=suite
+    initial=make_model(lora=2,checkpointing=True,policy=BatchPolicy(max_branches=2)).cuda()
+    settings=TrainSettings(steps=2,accumulation=2,save_every=1,precision='bf16',
+                           streamed_branch_vjp=True)
+    config=ObjectiveConfig(reinforce=.1)
+    limits=Limits(512,8192)
+    full_model=copy.deepcopy(initial)
+    full=train(full_model,ByteTokenizer(),data['train'],manifest,tmp_path/'full-streamed',
+               settings,config,limits)
+    part=train(copy.deepcopy(initial),ByteTokenizer(),data['train'],manifest,
+               tmp_path/'split-streamed',settings,config,limits,stop_after=1)
+    resumed,tokenizer,_=load_checkpoint(Path(part['checkpoint']),'cuda:0')
+    end=train(resumed,tokenizer,data['train'],manifest,tmp_path/'split-streamed',
+              settings,config,limits,resume=Path(part['checkpoint']))
+    assert full['state']['step']==end['state']['step']==2
+    assert full['state']['forward_tokens']==end['state']['forward_tokens']
+    for name,value in full_model.state_dict().items():
+        torch.testing.assert_close(value,resumed.state_dict()[name],atol=0,rtol=0)
+
+
 @pytest.mark.skipif(not torch.cuda.is_available(),reason='CUDA hardware unavailable; BF16 resume unverified')
 def test_cuda_bf16_resume_rejects_derivative_version_change(tmp_path,suite,monkeypatch):
     if not torch.cuda.is_bf16_supported():pytest.skip('GPU does not support BF16')

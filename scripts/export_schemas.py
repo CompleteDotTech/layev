@@ -8,7 +8,7 @@ from kev_laya.model import BackboneConfig
 from kev_laya.execution import BatchPolicy, EXECUTION_VERSION
 from kev_laya.training import TrainSettings
 from kev_laya.objectives import ObjectiveConfig
-from kev_laya.telemetry_contract import PHASES,METRICS,MAX_HISTORY,MAX_ARTIFACTS
+from kev_laya.telemetry_contract import PHASES,METRICS,V2_METRICS,MAX_HISTORY,MAX_ARTIFACTS
 
 root=Path(__file__).resolve().parents[1]/'schemas';root.mkdir(exist_ok=True)
 def write(name,obj):
@@ -70,6 +70,9 @@ v1 = obj(copy.deepcopy(properties))
 write('telemetry-v1.schema.json', v1)
 v2_props = copy.deepcopy(properties)
 v2_props['schema_version'] = {'const': 2}
+v2_metric = {'type':'object','additionalProperties':False,'properties':{m:{'type':'number'} for m in sorted(V2_METRICS)}}
+v2_props['metrics'] = v2_metric
+v2_props['history']['items']['properties']['metrics'] = v2_metric
 v2_props['framework_version'] = {'type':'string','pattern':r'^[A-Za-z0-9][A-Za-z0-9_.+:/-]{0,159}$'}
 v2_props['provenance']['properties']['config_sha256'] = nullable(sha)
 v2_props['provenance']['properties']['data_sha256'] = nullable(sha)

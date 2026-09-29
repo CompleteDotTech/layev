@@ -1,0 +1,56 @@
+{
+  "schema_version": "layev-native-mechanics/1",
+  "status": "verified_generated_data_training_mechanics",
+  "source_commit": "bc6b10a14255f2bcd5cf4df2d518e78f65fb62e6",
+  "source_tree_sha256": "72a7214c301c2fd702dda6ac63c66287ccb1d95ee6a02904e7bdeb9a82681019",
+  "hardware": "NVIDIA GeForce RTX 3060 12 GiB, Windows CUDA BF16",
+  "gpu_process_memory_fraction": 0.7,
+  "backbone": "Qwen/Qwen2.5-0.5B",
+  "backbone_revision": "060db6499f32faf8b98477b0a26969ef7d8b9987",
+  "parent_checkpoint_sha256": "99f797ffd0521adbee964d130d73eb381c9b6bd3b7896ce61b5007886d19ccf9",
+  "generated_train_sha256": "ab960fced2b22004f227528e0869b371c7d9070d1b74782166d93b65a4eae140",
+  "generated_suite_manifest_sha256": "0c6e05e7d4485dbcbdcb5a9b9d467564ede76f973b3cab4e58ee1d25ad8a0042",
+  "selected_row": {
+    "id": "long-case-05-sales-es-end",
+    "state_tokens": 27674,
+    "questions": 19,
+    "maximum_branch_tokens": 32768,
+    "logical_tokens": 65536
+  },
+  "batch_policy": {
+    "max_branches": 2,
+    "max_padded_tokens": 65536,
+    "max_cache_bytes": 17179869184,
+    "version": "parallel-questions-v1"
+  },
+  "run_id": "native-exact-limit-streamed-bc6b10a",
+  "experiment_id": "native-exact-limit-streamed-v1",
+  "training_steps_completed": 1,
+  "exposure_verified": true,
+  "observed_exact_limit_optimizer_examples": 1,
+  "recomputed_logits_max_abs": 0.0,
+  "streamed_recompute_compute_tokens": 66624,
+  "elapsed_seconds": 2836.3328492,
+  "peak_gpu_allocated_bytes": 7254551040,
+  "peak_gpu_reserved_bytes": 9011462144,
+  "checkpoint_sha256": "ad921524f8aadd67ba1c117caada476bd3b3f5364d55ebd8c398f0bf5af7f27e",
+  "checkpoint_size_bytes": 1983563799,
+  "checkpoint_reload": "passed_on_cuda",
+  "verify_exposure": "verified_native_32k_64k",
+  "telemetry_export_failures": 5,
+  "telemetry_note": "Training and checkpoint succeeded; new metric names exceeded the then-current strict v2 telemetry contract. The contract and generated schema are repaired in this PR. The original failed export count is retained.",
+  "private_receipts_sha256": {
+    "run_script": "1b4257e4c58d91273c62abe86e986e536986968ae74a236594e251fe261feb75",
+    "preflight": "78f71b1ead90c1dd50d537139806d6b8d6bfe5cc3c61224b41130a2fbcb99912",
+    "config": "8d268d133fb757006723009f3b069c8a129b3e625ae63545412c9347363e5131",
+    "checkpoint_manifest": "69a58f57f9a33fd0beae306833545ad2418a7032920b7736f305146c1bef4d34",
+    "execution": "c0371f3957e884771de5fc933ade432f31bcddfae43d2bbfaed439c42d28f334",
+    "training_metrics": "157d7c992081378c0dd9b59ea99e1c281645d7f85813693415f8ba037fc9dbd3",
+    "log": "005226b66dc88f35f2b02a564f0f457128918250e45e05db8f9fe7a8105ef09b"
+  },
+  "limitations": [
+    "Generated data do not establish representative predictive quality.",
+    "This one-step result is not a separately calibrated checkpoint chain.",
+    "Full FP32/BF16 native parity and medium-length BF16 acceptance remain open."
+  ]
+}
