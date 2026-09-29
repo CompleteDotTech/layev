@@ -13,7 +13,7 @@ from torch import Tensor
 from torch.nn import functional as F
 
 
-DERIVATIVE_VERSION = "cuda-bf16-canonical-v2"
+DERIVATIVE_VERSION = "cuda-bf16-canonical-v3"
 ATTENTION_QUERY_TILE = 64
 
 
@@ -105,6 +105,55 @@ class CanonicalShortAttention(torch.autograd.Function):
             dk[..., :valid, :] += ds[..., None] * qi[..., None, :]
             dv[..., :valid, :] += pi[..., None] * gi[..., None, :]
         return dq.to(query.dtype), dk, dv, None
+
+
+class CanonicalMediumAttention(torch.autograd.Function):
+    """Tiled eager-arithmetic BF16 attention with a shape-stable double VJP."""
+
+    @staticmethod
+    def forward(ctx, query: Tensor, key: Tensor, value: Tensor, offset: int):
+        length, total = query.shape[-2], key.shape[-2]
+        rounded_key, rounded_value = key.to(query.dtype), value.to(query.dtype)
+        scale = query.shape[-1] ** -0.5
+        pieces = []
+        for start in range(0, length, ATTENTION_QUERY_TILE):
+            stop = min(start + ATTENTION_QUERY_TILE, length)
+            key_stop = offset + stop
+            scores = (query[..., start:stop, :].double()
+                      @ rounded_key[..., :key_stop, :].double().transpose(-2, -1)).to(query.dtype) * scale
+            allowed = (torch.arange(key_stop, device=query.device)[None, :]
+                       <= offset + torch.arange(start, stop, device=query.device)[:, None])
+            scores = scores.masked_fill(~allowed, torch.finfo(scores.dtype).min)
+            probabilities = F.softmax(scores, dim=-1, dtype=torch.float32).to(query.dtype)
+            pieces.append((probabilities.double() @ rounded_value[..., :key_stop, :].double()).to(query.dtype))
+        ctx.save_for_backward(query, rounded_key, rounded_value)
+        ctx.offset = offset
+        ctx.key_dtype, ctx.value_dtype = key.dtype, value.dtype
+        return torch.cat(pieces, dim=-2)
+
+    @staticmethod
+    def backward(ctx, upstream: Tensor):
+        query, key, value = ctx.saved_tensors
+        q, k, v, g = (item.double() for item in (query, key, value, upstream))
+        length = q.shape[-2]
+        scale = query.shape[-1] ** -0.5
+        dq, dk, dv = torch.empty_like(q), torch.zeros_like(k), torch.zeros_like(v)
+        for start in range(0, length, ATTENTION_QUERY_TILE):
+            stop = min(start + ATTENTION_QUERY_TILE, length)
+            key_stop = ctx.offset + stop
+            qc, gc = q[..., start:stop, :], g[..., start:stop, :]
+            kc, vc = k[..., :key_stop, :], v[..., :key_stop, :]
+            scores = (qc @ kc.transpose(-2, -1)).to(query.dtype) * scale
+            allowed = (torch.arange(key_stop, device=query.device)[None, :]
+                       <= ctx.offset + torch.arange(start, stop, device=query.device)[:, None])
+            probabilities = F.softmax(scores.masked_fill(~allowed, torch.finfo(query.dtype).min),
+                                      dim=-1, dtype=torch.float32).to(query.dtype).double()
+            alpha = gc @ vc.transpose(-2, -1)
+            ds = probabilities * (alpha - (probabilities * alpha).sum(-1, keepdim=True)) * scale
+            dq[..., start:stop, :] = ds @ kc
+            dk[..., :key_stop, :] += ds.transpose(-2, -1) @ qc
+            dv[..., :key_stop, :] += probabilities.transpose(-2, -1) @ gc
+        return dq.to(query.dtype), dk.to(ctx.key_dtype), dv.to(ctx.value_dtype), None
 
 
 class CanonicalLoRAProjection(torch.autograd.Function):

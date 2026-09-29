@@ -16,7 +16,8 @@ from fastapi.testclient import TestClient
 from kev_laya.checkpoint import load_checkpoint, save_checkpoint
 from kev_laya.encoding import ByteTokenizer, Limits, encode_request
 from kev_laya.execution import BatchBudgetExceeded, BatchPolicy, plan_batches
-from kev_laya.model import BackboneConfig, DecisionEngine, PointerHead
+from kev_laya.model import BackboneConfig, DecisionEngine, PointerHead, RMSNorm
+from kev_laya.native_gradients import CanonicalMediumAttention
 from kev_laya.objectives import ObjectiveConfig, objective
 from kev_laya.schema import SystemOneRequest
 from kev_laya.service import InferenceRuntime, ServeSettings, create_app
@@ -453,6 +454,69 @@ def test_cuda_bf16_short_branch_vjp_parity():
         for name in outputs[left][1]:
             torch.testing.assert_close(outputs[left][1][name],outputs[right][1][name],
                                        atol=2e-5,rtol=2e-5)
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(),reason='CUDA hardware unavailable; medium BF16 parity unverified')
+def test_cuda_bf16_mixed_short_medium_branch_vjp_parity():
+    if not torch.cuda.is_bf16_supported():pytest.skip('GPU does not support BF16')
+    model=make_model(lora=2,checkpointing=True,policy=BatchPolicy(max_branches=2)).cuda().train()
+    encoded=encode(request(4))
+    totals=[len(encoded.state)+len(branch.ids) for branch in encoded.branches]
+    assert max(totals)>256 and min(totals)<=256
+    targets=[[1/len(branch.option_ends)]*len(branch.option_ends) for branch in encoded.branches]
+    kinds=[branch.question.type for branch in encoded.branches]
+    outputs={}
+    for mode,kwargs in (('batch',{}),('serial',{'serial_reference':True}),
+                        ('full',{'reference':True})):
+        model.zero_grad(set_to_none=True)
+        with torch.autocast('cuda',dtype=torch.bfloat16):
+            logits,_=model(encoded,**kwargs)
+            loss,_=objective(logits,targets,kinds,ObjectiveConfig(ordinal=.1))
+        gradients=torch.autograd.grad(loss,logits)
+        for index,(logit,gradient) in enumerate(zip(logits,gradients,strict=True)):
+            torch.autograd.backward(logit,gradient,retain_graph=index+1<len(logits))
+        outputs[mode]=([value.detach().float().cpu() for value in logits],
+                       {name:parameter.grad.detach().float().cpu()
+                        for name,parameter in model.named_parameters() if parameter.requires_grad})
+    for left,right in (('batch','serial'),('serial','full'),('batch','full')):
+        for actual,expected in zip(outputs[left][0],outputs[right][0],strict=True):
+            torch.testing.assert_close(actual,expected,atol=1e-5,rtol=1e-5)
+        for name in outputs[left][1]:
+            torch.testing.assert_close(outputs[left][1][name],outputs[right][1][name],
+                                       atol=2e-5,rtol=2e-5)
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(),reason='CUDA hardware unavailable; BF16 RMSNorm unverified')
+def test_cuda_bf16_prefix_norm_independent_of_longer_row():
+    if not torch.cuda.is_bf16_supported():pytest.skip('GPU does not support BF16')
+    torch.manual_seed(20260929)
+    full=torch.randn(1,583,896,device='cuda')*8
+    prefix=full[:,:13].clone()
+    norm=RMSNorm(896,1e-6).cuda()
+    with torch.autocast('cuda',dtype=torch.bfloat16):
+        whole=norm(full)
+        separate=norm(prefix)
+    torch.testing.assert_close(whole[:,:13],separate,atol=0,rtol=0)
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(),reason='CUDA hardware unavailable; medium BF16 VJP unverified')
+def test_cuda_bf16_medium_vjp_preserves_double_cache_contributions():
+    if not torch.cuda.is_bf16_supported():pytest.skip('GPU does not support BF16')
+    torch.manual_seed(91)
+    query=torch.randn(1,1,257,8,device='cuda',dtype=torch.bfloat16)
+    key=torch.randn(1,1,257,8,device='cuda',dtype=torch.float64)
+    value=torch.randn(1,1,257,8,device='cuda',dtype=torch.float64,requires_grad=True)
+    output=CanonicalMediumAttention.apply(query,key,value,0)
+    upstream=torch.zeros_like(output)
+    upstream[...,-1,0]=0.1171875
+    value_gradient=torch.autograd.grad(output,value,upstream)[0]
+    scores=(query[...,-1:,:].double() @ key.to(torch.bfloat16).double().transpose(-2,-1))
+    probabilities=torch.softmax((scores.to(torch.bfloat16)*(8**-0.5)),
+                                dim=-1,dtype=torch.float32).to(torch.bfloat16)
+    expected=probabilities.double()*0.1171875
+    assert value_gradient.dtype==torch.float64
+    assert float((expected-expected.to(torch.bfloat16)).abs().max())>1e-6
+    torch.testing.assert_close(value_gradient[...,0],expected.squeeze(-2),atol=0,rtol=0)
 
 
 @pytest.mark.skipif(not torch.cuda.is_available(),reason='CUDA hardware unavailable; streamed BF16 unverified')
