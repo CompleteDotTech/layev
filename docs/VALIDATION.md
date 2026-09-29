@@ -89,7 +89,17 @@ current main completed 120 short and two exact-limit BF16 training steps,
 separate calibration and another six-case BF16 validator. Numerical and
 overflow checks again passed 6/6, but the overall diagnostic still failed at
 2/18 against the unchanged 80% minimum. Its generated development score was
-50/72 and does not establish representative quality. A fresh actual-weight
+50/72 and does not establish representative quality. Two later, separately
+frozen generated extensions on clean main preserved exact-limit training and
+separate calibration. The 24-step long extension's BF16 validator again passed
+6/6 numerical and overflow checks but failed at 2/18 marker decisions. A
+further 160-step, 255-option short curriculum followed by two exact-limit
+long steps reached 6/18 on the same fixed six-case validator, still below 80%.
+Its separate generated development split scored 52/72; development splits
+across these runs differ and are not paired. The fixed validator had already
+been observed during design, so none of these readouts is untouched quality.
+The [native evidence readout](FP32_PROJECTION_PARITY.md) records the artifact
+and report hashes. A fresh actual-weight
 short mixed FP32 forward/backward comparison passed one generated request; its
 BF16 counterpart failed logits and gradients.
 Long full-weight backward, general native precision/shape/gradient acceptance,
