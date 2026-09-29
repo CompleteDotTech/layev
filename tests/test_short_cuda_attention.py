@@ -57,3 +57,24 @@ def test_longer_cuda_sequence_keeps_sdpa(monkeypatch):
     output, _ = attention(torch.randn(1, 257, cfg.hidden_size, device="cuda"), 0)
     assert output.shape == (1, 257, cfg.hidden_size)
     assert calls == [(257, 257)]
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA device unavailable")
+def test_short_bf16_training_preserves_eager_forward_and_double_parent_cache():
+    if not torch.cuda.is_bf16_supported():
+        pytest.skip("GPU does not support BF16")
+    torch.manual_seed(1807)
+    cfg = BackboneConfig(hidden_size=64, num_attention_heads=4, num_key_value_heads=2,
+                         intermediate_size=128, max_position_embeddings=512)
+    attention = Attention(cfg).cuda()
+    prefix = torch.randn(1, 11, cfg.hidden_size, device="cuda")
+    suffix = torch.randn(1, 7, cfg.hidden_size, device="cuda")
+    with torch.autocast("cuda", dtype=torch.bfloat16):
+        attention.eval()
+        _, eval_cache = attention(prefix, 0)
+        expected, _ = attention(suffix, 11, eval_cache)
+        attention.train()
+        _, train_cache = attention(prefix, 0)
+        actual, child_cache = attention(suffix, 11, train_cache)
+    assert all(t.dtype == torch.float64 for t in (*train_cache, *child_cache))
+    torch.testing.assert_close(actual, expected, atol=0, rtol=0)

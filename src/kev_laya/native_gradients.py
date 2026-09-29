@@ -13,7 +13,7 @@ from torch import Tensor
 from torch.nn import functional as F
 
 
-DERIVATIVE_VERSION = "cuda-bf16-canonical-v1"
+DERIVATIVE_VERSION = "cuda-bf16-canonical-v2"
 ATTENTION_QUERY_TILE = 64
 
 
@@ -68,6 +68,43 @@ class CanonicalLongSDPA(torch.autograd.Function):
         dq, dk, dv = causal_vjp(query, key, value, upstream,
                                split_at=ctx.split_at)
         return dq.to(query.dtype), dk.to(key.dtype), dv.to(value.dtype), None, None, None
+
+
+class CanonicalShortAttention(torch.autograd.Function):
+    """Preserve short eager BF16 forward while accumulating its VJP in double."""
+
+    @staticmethod
+    def forward(ctx, query: Tensor, key: Tensor, value: Tensor, offset: int):
+        rounded_key, rounded_value = key.to(query.dtype), value.to(query.dtype)
+        length, total = query.shape[-2], rounded_key.shape[-2]
+        scale = query.shape[-1] ** -0.5
+        scores = (query.double() @ rounded_key.transpose(-2, -1).double()).to(query.dtype) * scale
+        allowed = torch.ones((length, total), device=query.device, dtype=torch.bool).tril(
+            diagonal=total - length)
+        scores = scores.masked_fill(~allowed, torch.finfo(scores.dtype).min)
+        probabilities = F.softmax(scores, dim=-1, dtype=torch.float32).to(query.dtype)
+        output = (probabilities.double() @ rounded_value.double()).to(query.dtype)
+        ctx.save_for_backward(query, rounded_key, rounded_value, probabilities)
+        ctx.offset = offset
+        return output
+
+    @staticmethod
+    def backward(ctx, upstream: Tensor):
+        query, key, value, probabilities = ctx.saved_tensors
+        q, k, v, p, g = (item.double() for item in
+                         (query, key, value, probabilities, upstream))
+        scale = query.shape[-1] ** -0.5
+        dq, dk, dv = torch.zeros_like(q), torch.zeros_like(k), torch.zeros_like(v)
+        for index in range(q.shape[-2]):
+            valid = ctx.offset + index + 1
+            qi, gi = q[..., index, :], g[..., index, :]
+            pi, ki, vi = p[..., index, :valid], k[..., :valid, :], v[..., :valid, :]
+            dp = (gi[..., None, :] * vi).sum(-1)
+            ds = pi * (dp - (pi * dp).sum(-1, keepdim=True)) * scale
+            dq[..., index, :] = (ds[..., None] * ki).sum(-2)
+            dk[..., :valid, :] += ds[..., None] * qi[..., None, :]
+            dv[..., :valid, :] += pi[..., None] * gi[..., None, :]
+        return dq.to(query.dtype), dk, dv, None
 
 
 class CanonicalLoRAProjection(torch.autograd.Function):
