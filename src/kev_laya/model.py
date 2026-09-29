@@ -176,12 +176,18 @@ class Attention(nn.Module):
         # SDPA's fused reductions differ enough near zero to fail the unchanged
         # 1e-4 hidden-state parity gate on actual pretrained Qwen weights.
         if q.is_cuda and k.shape[-2] <= 256:
-            scores = torch.matmul(q, keys.transpose(-2, -1)) * (self.hd ** -0.5)
+            # BF16 CUDA matmul can change its reduction order when one suffix is
+            # computed alone or beside another. Use the same small exact product
+            # in both shapes, then retain the original BF16 rounding boundary.
+            bf16 = q.dtype == keys.dtype == values.dtype == torch.bfloat16
+            scores = (torch.matmul(q.double(), keys.transpose(-2, -1).double()).to(q.dtype)
+                      if bf16 else torch.matmul(q, keys.transpose(-2, -1))) * (self.hd ** -0.5)
             allowed = torch.ones((length, k.shape[-2]), device=q.device,
                                  dtype=torch.bool).tril(diagonal=k.shape[-2] - length)
             scores = scores.masked_fill(~allowed, torch.finfo(scores.dtype).min)
             probabilities = F.softmax(scores, dim=-1, dtype=torch.float32).to(q.dtype)
-            h = torch.matmul(probabilities, values)
+            h = (torch.matmul(probabilities.double(), values.double()).to(q.dtype)
+                 if bf16 else torch.matmul(probabilities, values))
             return backbone_project(self.o_proj, h.transpose(1, 2).reshape(b, length, -1)), (k, v)
         # A long CUDA request must not silently fall back to a dense quadratic math kernel.
         # Unsupported fused-kernel/hardware combinations fail explicitly and remain a deployment gate.
