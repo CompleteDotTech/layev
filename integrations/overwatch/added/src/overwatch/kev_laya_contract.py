@@ -21,6 +21,7 @@ PHASES = {"prepare", "train", "calibrate", "evaluate", "serve", "completed", "fa
 METRICS = {"loss/total", "loss/ce", "loss/policy_gradient", "loss/ordinal", "reward/proper",
            "validation/nll", "validation/brier", "validation/ece", "validation/accuracy", "validation/ordinal_mae",
            "gradient/norm", "resource/rss_bytes", "resource/gpu_peak_bytes", "learning_rate"}
+V2_METRICS = METRICS | {"numerics/recomputed_logits_max_abs", "execution/streamed_recompute_compute_tokens"}
 COUNTERS = {"optimizer_steps", "microbatches", "examples", "forward_tokens"}
 IDENT = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,159}$")
 HEX = re.compile(r"^[a-f0-9]{64}$")
@@ -75,8 +76,8 @@ def uri(value):
     require(not any(ord(c) < 32 for c in value), "control character in URI")
 
 
-def metrics(obj):
-    fields(obj, METRICS, required=set())
+def metrics(obj, version=1):
+    fields(obj, V2_METRICS if version == 2 else METRICS, required=set())
     for name, value in obj.items():
         number(value, name, minimum=-1e30 if name.startswith(("reward/", "loss/policy", "loss/total")) else 0)
 
@@ -123,7 +124,7 @@ def validate_snapshot(data: dict, *, now: datetime | None = None) -> dict:
             require(progress[key] <= value, "counter exceeds declared total")
     for key in ("epoch", "elapsed_seconds", "eta_seconds", "tokens_per_second"):
         number(progress[key], key, nullable=True)
-    metrics(data["metrics"])
+    metrics(data["metrics"], version)
     require(isinstance(data["history"], list) and len(data["history"]) <= MAX_HISTORY, "history bound exceeded")
     previous_step = -1
     for row in data["history"]:
@@ -132,7 +133,7 @@ def validate_snapshot(data: dict, *, now: datetime | None = None) -> dict:
         require(row["step"] >= previous_step, "history order invalid")
         previous_step = row["step"]
         require(row["phase"] in PHASES, "invalid history phase")
-        metrics(row["metrics"])
+        metrics(row["metrics"], version)
     provenance = data["provenance"]
     pfields = {"model", "backbone", "backbone_revision", "tokenizer", "config_sha256", "data_sha256", "split_hashes",
                "seed", "repository", "commit", "precision", "hardware", "context_limits", "evidence_class"}

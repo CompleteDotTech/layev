@@ -144,6 +144,11 @@
           "default": 1.0,
           "title": "Resource Sample Seconds",
           "type": "number"
+        },
+        "streamed_branch_vjp": {
+          "default": false,
+          "title": "Streamed Branch Vjp",
+          "type": "boolean"
         }
       },
       "title": "TrainSettings",

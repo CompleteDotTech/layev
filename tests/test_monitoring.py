@@ -43,6 +43,23 @@ def test_no_credential_artifact_uri(snapshot):
                             'size_bytes':1,'parent_sha256':None,'resumable':False}]
     with pytest.raises(ValueError):validate_snapshot(snapshot)
 
+
+def test_streamed_training_metrics_are_v2_only(snapshot):
+    additions={'numerics/recomputed_logits_max_abs':0.0,
+               'execution/streamed_recompute_compute_tokens':66624.0}
+    snapshot['metrics']=additions
+    with pytest.raises(TelemetryError):
+        validate_snapshot(snapshot)
+    snapshot['schema_version']=2
+    snapshot['framework_version']='0.1.0+stage3'
+    snapshot['extensions']={'serialization':{'tokenizer':'bytes','serialization':'fixture','literal_encoding':'fixture'},
+                            'source':{'source_tree_sha256':None,'archive_sha256':None,'git_dirty':None,
+                                      'git_status':'unavailable','package_version':'fixture'},
+                            'attempt_lineage':[],'lineage_durable':None,'execution':None,'resources':None,
+                            'calibration':None}
+    snapshot['history']=[{'step':0,'phase':'train','metrics':additions}]
+    validate_snapshot(snapshot)
+
 def test_writer_bounded_atomic_and_failure_isolation(tmp_path,monkeypatch,snapshot):
     path=tmp_path/'snapshot.json';writer=TelemetryWriter(path,snapshot)
     for i in range(135):

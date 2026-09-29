@@ -932,6 +932,9 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
+            "execution/streamed_recompute_compute_tokens": {
+              "type": "number"
+            },
             "gradient/norm": {
               "type": "number"
             },
@@ -948,6 +951,9 @@
               "type": "number"
             },
             "loss/total": {
+              "type": "number"
+            },
+            "numerics/recomputed_logits_max_abs": {
               "type": "number"
             },
             "resource/gpu_peak_bytes": {
@@ -1002,6 +1008,9 @@
                 "type": "object",
                 "additionalProperties": false,
                 "properties": {
+                  "execution/streamed_recompute_compute_tokens": {
+                    "type": "number"
+                  },
                   "gradient/norm": {
                     "type": "number"
                   },
@@ -1018,6 +1027,9 @@
                     "type": "number"
                   },
                   "loss/total": {
+                    "type": "number"
+                  },
+                  "numerics/recomputed_logits_max_abs": {
                     "type": "number"
                   },
                   "resource/gpu_peak_bytes": {
