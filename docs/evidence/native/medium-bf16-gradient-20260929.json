@@ -1,0 +1,65 @@
+{
+  "schema_version": "layev-native-numerics/1",
+  "status": "passed_generated_actual_weight_medium_probes",
+  "source_commit": "fb1eb9d1f90840b821d71bbbc75f9bd5e7219783",
+  "source_sha256": {
+    "model": "d313ffd51957b0de94003e0babd1a3dcc7bca04ccd9ebe79d3371868c051053c",
+    "native_gradients": "42f371575bbed91c5f7e167d8e68e0831ebab01631852463f7ee029604e1f966"
+  },
+  "parent_checkpoint_sha256": "99f797ffd0521adbee964d130d73eb381c9b6bd3b7896ce61b5007886d19ccf9",
+  "backbone": "Qwen/Qwen2.5-0.5B",
+  "backbone_revision": "060db6499f32faf8b98477b0a26969ef7d8b9987",
+  "device": "NVIDIA GeForce RTX 3060",
+  "torch_version": "2.10.0+cu128",
+  "precision": "bf16",
+  "gpu_process_memory_fraction": 0.7,
+  "frozen_tolerances": {
+    "logits_atol_rtol": 0.00001,
+    "gradients_atol_rtol": 0.00002
+  },
+  "generated_cases": [
+    {
+      "state_tokens": 13,
+      "branch_totals": [97, 583, 113, 977],
+      "logical_tokens": 1731,
+      "batch_plan": [[0, 2], [1, 3]],
+      "request_sha256": "d5384aa329d269148027c4de0305721bb40215c80996fd7c20539354541ffb14",
+      "batch_serial_logits_max_abs": 0.0,
+      "serial_full_logits_max_abs": 0.0,
+      "all_100_gradients_pass_each_comparison": true,
+      "worst_gradient_tolerance_ratio": 0.007794266566634178,
+      "peak_gpu_allocated_bytes": 2429115904,
+      "elapsed_seconds": 24.350660800002515,
+      "private_receipt_sha256": "ff10a3a5b8321d3b62a023e9011358aba798eb2e38e656196d17df8c1d1a6613",
+      "private_log_sha256": "3fd36c9bd701431136f9c435205da094a0e924ab302758efae689810bd4e8ebd"
+    },
+    {
+      "state_tokens": 613,
+      "branch_totals": [697, 1183, 713, 1577],
+      "logical_tokens": 2331,
+      "batch_plan": [[0, 2], [1, 3]],
+      "request_sha256": "5d31acf912d7aae7aa3539ed39b16dd292278142aa0602f1774a8ab905c0236a",
+      "batch_serial_logits_max_abs": 0.0,
+      "serial_full_logits_max_abs": 0.0,
+      "all_100_gradients_pass_each_comparison": true,
+      "worst_gradient_tolerance_ratio": 0.009823933243751526,
+      "peak_gpu_allocated_bytes": 2544132608,
+      "elapsed_seconds": 42.200034300010884,
+      "private_receipt_sha256": "1960db26cca2155fe4052480dd8961758d51e26c7c69afce83c5ea6ef2fc1ce7",
+      "private_log_sha256": "6d4c52bfe81db665de0c203f47202172cb08beb1d3c561c9b1c7a90fb47a85be"
+    }
+  ],
+  "private_runner_sha256": "43cbfda59b4e60b35be769ab80adc79b6836db023934b139fbf4312e9b05cb91",
+  "additional_checks": {
+    "pinned_62_token_fp32_transformers_hidden_oracle": "passed",
+    "upper_medium_8191_token_single_kv_group_forward_backward": "passed_with_finite_gradients",
+    "upper_medium_kernel_peak_allocated_bytes": 472698368,
+    "focused_native_cuda_tests": "5 passed",
+    "cpu_suite": "858 passed, 31 skipped"
+  },
+  "limitations": [
+    "Generated cases test numerical mechanics; they do not establish representative quality.",
+    "Actual-weight probes reached 1,577 tokens; the 8,191-token check was a kernel resource probe, not a full-model parity run.",
+    "Long fused BF16, complete FP32/BF16 native matrix, calibrated serving and quality acceptance remain open."
+  ]
+}
