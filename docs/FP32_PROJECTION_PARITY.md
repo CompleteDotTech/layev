@@ -112,3 +112,29 @@ BF16 LoRA with activation checkpointing. It does not establish long full-weight
 backward, calibrated long-run serving, representative quality, or Jev-relative
 evidence. The frozen diagnostic marker failure and observed `case=99999`
 quality regression remain open; neither numerical matrix passed overall.
+
+## Current-source short mixed backward diagnostic, 2026-09-29
+
+On clean merged source `66b17b354c4ce53fbb143bfb1f7326474640269e`,
+the exact long-trained checkpoint above was reloaded for one generated
+201-logical-token Choice/Score/Noul request. CUDA FP32 batched, serial cached
+and independent full-row paths passed unchanged 1e-5 logit/probability and
+2e-5 gradient tolerances across all 100 trainable gradients. Batched/full-row
+maximum logit error was `4.291534423828125e-06`; worst gradient tolerance
+ratio was `0.57034`. Private FP32 receipt SHA-256 is
+`e19f27d644907fb59b365b2317ee3827cc7838c615f8d946f024f751f4e28af6`.
+
+The otherwise identical BF16 short trial **failed**: batched/full-row maximum
+logit error was `0.6494655609130859`, and the worst gradient tolerance ratio
+was `12165.25`. Private BF16 receipt SHA-256 is
+`2af3abd91eafa37b0e8e086eac617562aef742403028362386a30d94384a72ed`.
+The short forward difference persisted in inference mode and with the earlier
+calibrated checkpoint. A layer probe first observed a paired-versus-serial
+backbone difference at layer 7; private receipt SHA-256
+`a0af21e541bd2b285e1c000e076c4905087a433576cc5118b0b9a420d878481c`.
+A source-free double-accumulation short-attention intervention made forward
+logits equal but left gradients failing (worst ratio `2574.53`); private receipt
+SHA-256 `59580b4b8f487eb676ba326921392cc8c5159794680e1f785609d68b978c62d3`.
+No production arithmetic or tolerance was changed. These are single short
+diagnostics; the earlier full-context BF16 numerical pass covers a different
+shape and does not prove BF16 backward parity.
