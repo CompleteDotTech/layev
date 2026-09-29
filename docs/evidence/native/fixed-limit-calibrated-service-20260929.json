@@ -1,0 +1,91 @@
+{
+  "schema_version": "native-context-service-evidence-v1",
+  "status": "partial_context_acceptance",
+  "source_base_commit": "9504b6ee37a778e4e8567bc4a0f642ea660a59f3",
+  "runner": "scripts/probe_native_context_service.py",
+  "scope": "Generated local authenticated service diagnostics on a calibrated pretrained checkpoint; no representative quality or Jev comparison claim.",
+  "identity": {
+    "backbone": "Qwen/Qwen2.5-0.5B",
+    "backbone_revision": "060db6499f32faf8b98477b0a26969ef7d8b9987",
+    "tokenizer_sha256": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+    "training_checkpoint_sha256": "8472f22b8f02b14f27ccded353c2f378d71579a927324a25d9e5c818d4aaad90",
+    "calibrated_checkpoint_sha256": "a731903c8e91adc6206ecf60325b6ebbf4cdedd1349f0ab831c85069cf37df3d",
+    "verified_exposure_receipt_sha256": "6d7c1358b8c9d8d493f1883624c0bef7cec942d48afd14eaa6218e5f4b0849fb",
+    "observed_optimizer_steps": 2,
+    "observed_branch_32768_examples": 2,
+    "observed_aggregate_65536_examples": 2
+  },
+  "environment": {
+    "device": "NVIDIA GeForce RTX 3060",
+    "torch": "2.10.0+cu128",
+    "gpu_process_memory_fraction": 0.7
+  },
+  "fixed_limit_service": {
+    "private_receipt_sha256": "008e6f21b48a108acaeeb0b38a2e138608ae84240100385e02848871d8080f69",
+    "position": "beginning",
+    "language": "en",
+    "state_tokens": 27259,
+    "questions": 19,
+    "cases": [
+      {
+        "name": "exact",
+        "max_branch_tokens": 32768,
+        "aggregate_tokens": 65536,
+        "serialized_bytes": 161058,
+        "http_status": 200,
+        "answers": 19,
+        "reported_input_tokens": 65536,
+        "reported_forward_tokens": 65536,
+        "calibration_status": "fitted-held-out",
+        "elapsed_seconds": 67.4210898,
+        "peak_gpu_allocated_bytes": 4666471936,
+        "peak_gpu_reserved_bytes": 5739905024
+      },
+      {
+        "name": "aggregate_plus_one",
+        "max_branch_tokens": 32768,
+        "aggregate_tokens": 65537,
+        "serialized_bytes": 161059,
+        "http_status": 422,
+        "rejection_limit": "aggregate_input",
+        "elapsed_seconds": 0.1323966
+      },
+      {
+        "name": "branch_plus_one",
+        "max_branch_tokens": 32769,
+        "aggregate_tokens": 65537,
+        "serialized_bytes": 161059,
+        "http_status": 422,
+        "rejection_limit": "state_plus_branch",
+        "elapsed_seconds": 0.0498554
+      }
+    ]
+  },
+  "related_edge_shape_service": {
+    "private_receipt_sha256": "080f23617c529f49bce6b87ee7cf94fc9c60c0713bd922546c3580b19c4cda1f",
+    "choice_options": 255,
+    "score_levels": 10,
+    "noul_options": 2,
+    "logical_tokens": 5492,
+    "serialized_bytes": 11219,
+    "elapsed_seconds": 2.2627882,
+    "peak_gpu_allocated_bytes": 2403747328
+  },
+  "six_stratum_native_validator": {
+    "private_report_sha256": "9b3f05edb105c2a09f80d0acf6cb28178ae64dd3329ba93415b505fcc240bc60",
+    "positions": ["beginning", "middle", "end"],
+    "languages": ["en", "es"],
+    "numerical_cases_passed": 6,
+    "overflow_cases_passed": 6,
+    "marker_decisions_correct": 6,
+    "marker_decisions_total": 18,
+    "marker_accuracy": 0.3333333333333333,
+    "required_marker_accuracy": 0.8,
+    "overall_passed": false
+  },
+  "limitations": [
+    "The exact and edge-shape service probes use generated requests and do not establish representative decision quality.",
+    "The six-stratum diagnostic remains below its frozen decision threshold.",
+    "Full FP32/BF16 native mode parity and Jev-relative quality remain open."
+  ]
+}
