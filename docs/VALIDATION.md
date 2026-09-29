@@ -100,8 +100,16 @@ across these runs differ and are not paired. The fixed validator had already
 been observed during design, so none of these readouts is untouched quality.
 The [native evidence readout](FP32_PROJECTION_PARITY.md) records the artifact
 and report hashes. A fresh actual-weight
-short mixed FP32 forward/backward comparison passed one generated request; its
-BF16 counterpart failed logits and gradients.
+short mixed FP32 forward/backward comparison passed one generated request. A
+subsequent focused short CUDA BF16 attention change on signed source `9406026`
+made batched, serial cached and full-row logits/probabilities match exactly on
+two generated actual-weight mixed requests (3 and 4 questions). The same
+source still **fails** BF16 gradient parity across all 100 trainable tensors.
+The unchanged six-stratum BF16 long validator on the calibrated v6 artifact
+passed 6/6 numerical and overflow checks with zero maximum cached/full error
+and the pinned short FP32 Transformers oracle, while still failing its overall
+marker gate at 6/18. Its source-bound private report SHA-256 is
+`3bba0d6d9f75c2c42ec03976438d8bd7e88e912faaa6e93ecb580ccc9e55c62e`.
 Long full-weight backward, general native precision/shape/gradient acceptance,
 calibrated representative long-context behavior and quality remain unproved.
 CPU fixtures and configuration constants cannot fill these gaps.

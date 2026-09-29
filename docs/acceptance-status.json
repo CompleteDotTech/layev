@@ -2,6 +2,18 @@
   "schema_version": 1,
   "kind": "workstream-evidence-ledger-not-original-feature-matrix",
   "base_revision": "b4cb9df97be61729ebd68b8e0f5ee9bb2d193c73",
+  "short_bf16_forward_evidence_2026_09_29": {
+    "signed_source_commit": "9406026e7af36876b949058665e17a4d6cc6c036",
+    "scope": "short CUDA BF16 attention forward only; candidate source branch, not an issue closure",
+    "actual_weight_three_question_receipt_sha256": "a0908718816f390309ed9e41c2ca692f57da58c3858f973d25a836231780af55",
+    "actual_weight_four_question_receipt_sha256": "5a169af1c6744de2b13a78ebcd9969c31d957966760e09ead440b5a0069d1c06",
+    "short_forward": "batched, serial cached and independent full-row logits/probabilities exactly equal in both generated actual-weight requests",
+    "short_bf16_gradients": "failed on all 100-tensor comparisons; three-question cached/full worst tolerance ratio 1928.78",
+    "long_six_stratum_report_sha256": "3bba0d6d9f75c2c42ec03976438d8bd7e88e912faaa6e93ecb580ccc9e55c62e",
+    "long_native": "BF16 numerical 6/6 and overflow 6/6 passed; diagnostic markers 6/18 below unchanged 80% gate; overall failed",
+    "issue_3": "open",
+    "issue_4": "open"
+  },
   "current_readback_2026_09_29": {
     "layev_main": "c7c6d26d80534035c67618e1f245af5f2fdbab9a",
     "primary_main_clean_and_synced_before_documentation_branch": true,

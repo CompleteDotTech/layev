@@ -243,3 +243,35 @@ The fixed validator had been observed before both new curricula were designed.
 These are diagnostics, not an untouched quality test or representative decision
 evidence. The 80% marker gate, BF16 short backward parity, broader native
 precision/shape matrix, representative quality and Jev comparison remain open.
+
+## Short CUDA BF16 forward stabilization on signed source `9406026`
+
+The short eager-attention path now computes BF16 CUDA matrix products in double
+before casting each result back to BF16. FP32 and long fused-attention paths
+retain their previous arithmetic. The change addresses a source-backed
+batched/serial drift first observed in the Noul branch at layer 7 on a pinned
+actual-weight mixed request. On the same trained checkpoint, 3-question and
+reordered 4-question short BF16 requests had exactly equal batched, serial
+cached and independent full-row logits/probabilities at the unchanged `1e-5`
+criterion. Private receipts have SHA-256
+`a0908718816f390309ed9e41c2ca692f57da58c3858f973d25a836231780af55`
+and `5a169af1c6744de2b13a78ebcd9969c31d957966760e09ead440b5a0069d1c06`.
+The FP32 short forward/gradient control passed all 100 trainable tensors;
+receipt SHA-256 is
+`a243ddb92615253890af52f99a6e33817b586a9a6c6add62ab9816566cf4d722`.
+
+The calibrated v6 artifact's unchanged six-stratum BF16 native validator on
+this source again passed numerical and overflow checks in all six exact
+65,536-token cases, with zero maximum cached/full logit and probability error.
+Its pinned FP32 Transformers hidden-state oracle passed. Diagnostic markers
+remained 6/18 against the frozen 80% threshold, so the overall report failed.
+Private report SHA-256:
+`3bba0d6d9f75c2c42ec03976438d8bd7e88e912faaa6e93ecb580ccc9e55c62e`.
+
+The production BF16 path still fails short cached/full gradient parity: the
+3-question source-bound probe's worst gradient was layer 0 V LoRA B at
+absolute error `0.25` and tolerance ratio `1928.78`. A separate source-free
+custom-gradient diagnostic passed two short requests only when it ran one
+backward per branch; it has not established long-context feasibility or
+production correctness. No BF16 gradient, representative-quality or overall
+context acceptance follows from this forward repair.
