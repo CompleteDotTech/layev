@@ -421,3 +421,23 @@ def test_cuda_fixture_bf16_training(tmp_path,suite):
     result=train(model,ByteTokenizer(),data['train'],manifest,tmp_path/'bf16',TrainSettings(steps=2,precision='bf16'),
                  ObjectiveConfig(reinforce=.1),Limits(512,8192))
     assert result['state']['execution_counters']['max_batch_size']==2
+    from kev_laya.native_gradients import DERIVATIVE_VERSION
+    assert result['state']['derivative_version']==DERIVATIVE_VERSION
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(),reason='CUDA hardware unavailable; BF16 resume unverified')
+def test_cuda_bf16_resume_rejects_derivative_version_change(tmp_path,suite,monkeypatch):
+    if not torch.cuda.is_bf16_supported():pytest.skip('GPU does not support BF16')
+    model=make_model(lora=2,checkpointing=True,policy=BatchPolicy(max_branches=2)).cuda()
+    data,manifest=suite
+    settings=TrainSettings(steps=2,precision='bf16')
+    root=tmp_path/'bf16-version'
+    first=train(model,ByteTokenizer(),data['train'],manifest,root,settings,
+                ObjectiveConfig(reinforce=.1),Limits(512,8192),stop_after=1)
+    restored,tokenizer,_=load_checkpoint(Path(first['checkpoint']),'cuda:0')
+    import kev_laya.training as training_module
+    monkeypatch.setattr(training_module,'DERIVATIVE_VERSION','unreviewed-derivative')
+    with pytest.raises(ValueError,match='resume configuration or frozen data differs'):
+        train(restored,tokenizer,data['train'],manifest,root,settings,
+              ObjectiveConfig(reinforce=.1),Limits(512,8192),
+              resume=Path(first['checkpoint']))

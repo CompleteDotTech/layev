@@ -14,6 +14,16 @@
     "issue_3": "open",
     "issue_4": "open"
   },
+  "long_bf16_backward_candidate_2026_09_29": {
+    "scope": "actual-weight 10520-state-token two-question native training parity on RTX 3060; does not establish the full issue 3 matrix",
+    "receipt": "docs/evidence/native/long-bf16-gradient-10k-20260929.json",
+    "batched_serial": "logits and all 100 trainable gradients exact",
+    "serial_full_and_batched_full": "logits exact; all 100 trainable gradients within unchanged 2e-5 tolerance",
+    "maximum_peak_allocated_bytes": 4618537472,
+    "fp32": "separate 10k gradient comparisons still fail; source change is BF16-scoped",
+    "remaining": "short BF16 gradient rerun, exact-limit whole-model training/resume, FP32 long gradients and full applicable native matrix",
+    "issue_3": "open"
+  },
   "current_readback_2026_09_29": {
     "layev_main": "c7c6d26d80534035c67618e1f245af5f2fdbab9a",
     "primary_main_clean_and_synced_before_documentation_branch": true,
