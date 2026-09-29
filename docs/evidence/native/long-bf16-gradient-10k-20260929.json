@@ -1,0 +1,211 @@
+{
+  "branch_tokens": [
+    10576,
+    10572
+  ],
+  "checkpoint_sha256": "99f797ffd0521adbee964d130d73eb381c9b6bd3b7896ce61b5007886d19ccf9",
+  "comparisons": {
+    "batched_full": {
+      "failed_gradient_count": 0,
+      "gradient_count": 100,
+      "logits": {
+        "max_absolute": 0.0,
+        "max_tolerance_ratio": 0.0,
+        "passed": true
+      },
+      "passed": true,
+      "probabilities": {
+        "max_absolute": 0.0,
+        "max_tolerance_ratio": 0.0,
+        "passed": true
+      },
+      "worst_gradient": {
+        "max_absolute": 7.62939453125E-06,
+        "max_tolerance_ratio": 0.017417576164007187,
+        "passed": true
+      },
+      "worst_gradient_name": "backbone.layers.0.self_attn.v_proj.b"
+    },
+    "batched_serial": {
+      "failed_gradient_count": 0,
+      "gradient_count": 100,
+      "logits": {
+        "max_absolute": 0.0,
+        "max_tolerance_ratio": 0.0,
+        "passed": true
+      },
+      "passed": true,
+      "probabilities": {
+        "max_absolute": 0.0,
+        "max_tolerance_ratio": 0.0,
+        "passed": true
+      },
+      "worst_gradient": {
+        "max_absolute": 0.0,
+        "max_tolerance_ratio": 0.0,
+        "passed": true
+      },
+      "worst_gradient_name": "backbone.layers.0.self_attn.q_proj.a"
+    },
+    "serial_full": {
+      "failed_gradient_count": 0,
+      "gradient_count": 100,
+      "logits": {
+        "max_absolute": 0.0,
+        "max_tolerance_ratio": 0.0,
+        "passed": true
+      },
+      "passed": true,
+      "probabilities": {
+        "max_absolute": 0.0,
+        "max_tolerance_ratio": 0.0,
+        "passed": true
+      },
+      "worst_gradient": {
+        "max_absolute": 7.62939453125E-06,
+        "max_tolerance_ratio": 0.017417576164007187,
+        "passed": true
+      },
+      "worst_gradient_name": "backbone.layers.0.self_attn.v_proj.b"
+    }
+  },
+  "device": "NVIDIA GeForce RTX 3060",
+  "evidence_class": "edited-production-actual-weight-native-long-gradient-parity",
+  "logical_tokens": 10628,
+  "passed": true,
+  "precision": "bf16",
+  "runs": {
+    "batched": {
+      "elapsed_seconds": 258.91394880000735,
+      "loss": 6.016216278076172,
+      "peak_allocated_bytes": 4568056832,
+      "usage": {
+        "batch_policy": {
+          "max_branches": 2,
+          "max_cache_bytes": 17179869184,
+          "max_padded_tokens": 65536,
+          "sort_by_length": true,
+          "version": "parallel-questions-v1"
+        },
+        "branch_indices": [
+          [
+            1,
+            0
+          ]
+        ],
+        "branch_passes": 1,
+        "compute_tokens": 10632,
+        "effective_batch_sizes": [
+          2
+        ],
+        "estimated_peak_cache_bytes": 5195563008,
+        "execution_mode": "batched",
+        "execution_version": "parallel-questions-v1",
+        "forward_tokens": 10628,
+        "logical_input_tokens": 10628,
+        "max_padded_tokens_with_prefix": 21152,
+        "padded_branch_lengths": [
+          56
+        ],
+        "padding_tokens": 4,
+        "prefix_cache_bytes": 517079040,
+        "prefix_passes": 1,
+        "prefix_reuses": 1
+      }
+    },
+    "full": {
+      "elapsed_seconds": 256.1624771000061,
+      "loss": 6.016216278076172,
+      "peak_allocated_bytes": 4618537472,
+      "usage": {
+        "batch_policy": {
+          "max_branches": 2,
+          "max_cache_bytes": 17179869184,
+          "max_padded_tokens": 65536,
+          "sort_by_length": true,
+          "version": "parallel-questions-v1"
+        },
+        "branch_indices": [
+          [
+            0
+          ],
+          [
+            1
+          ]
+        ],
+        "branch_passes": 2,
+        "compute_tokens": 21148,
+        "effective_batch_sizes": [
+          1,
+          1
+        ],
+        "estimated_peak_cache_bytes": 2339241984,
+        "execution_mode": "full_row_reference",
+        "execution_version": "parallel-questions-v1",
+        "forward_tokens": 21148,
+        "logical_input_tokens": 10628,
+        "max_padded_tokens_with_prefix": 10576,
+        "padded_branch_lengths": [
+          10576,
+          10572
+        ],
+        "padding_tokens": 0,
+        "prefix_cache_bytes": 0,
+        "prefix_passes": 0,
+        "prefix_reuses": 0
+      }
+    },
+    "serial": {
+      "elapsed_seconds": 258.0717448000214,
+      "loss": 6.016216278076172,
+      "peak_allocated_bytes": 4499238912,
+      "usage": {
+        "batch_policy": {
+          "max_branches": 2,
+          "max_cache_bytes": 17179869184,
+          "max_padded_tokens": 65536,
+          "sort_by_length": true,
+          "version": "parallel-questions-v1"
+        },
+        "branch_indices": [
+          [
+            0
+          ],
+          [
+            1
+          ]
+        ],
+        "branch_passes": 2,
+        "compute_tokens": 10628,
+        "effective_batch_sizes": [
+          1,
+          1
+        ],
+        "estimated_peak_cache_bytes": 2856321024,
+        "execution_mode": "serial_cached_reference",
+        "execution_version": "parallel-questions-v1",
+        "forward_tokens": 10628,
+        "logical_input_tokens": 10628,
+        "max_padded_tokens_with_prefix": 10576,
+        "padded_branch_lengths": [
+          56,
+          52
+        ],
+        "padding_tokens": 0,
+        "prefix_cache_bytes": 517079040,
+        "prefix_passes": 1,
+        "prefix_reuses": 1
+      }
+    }
+  },
+  "source_diff_sha256": "9a9d214129185581abd450184beecbc9b5a7ea01ccbaed2cc8ba938d73582c2d",
+  "source_revision": "5fedf05c4a3cae8cf87872aa3735743fe4dbb5b3",
+  "state_tokens": 10520,
+  "torch_version": "2.10.0+cu128",
+  "private_receipt_sha256": "1072b6f95766f8f2de9d0b1d96228c5ec530a06409213200235dcd3266f16913",
+  "source_files_sha256": {
+    "model.py": "c1c27bdaa55dd6c40b00c8fdb01daaf313564510432d5da9e584ff98a5360620",
+    "training.py": "aae2bd6de005f7f252007a457872865f8654631ec22300d7934425e8bdb502d4",
+    "native_gradients.py": "948d667fae8bfc41ca12ce2926e509efcefc5719a4d2721e34c87ae82dbb5703"
+  }
+}

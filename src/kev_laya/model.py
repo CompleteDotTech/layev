@@ -15,6 +15,7 @@ from torch.nn import functional as F
 from torch.nn.attention.bias import causal_lower_right
 from .encoding import Encoding
 from .execution import BatchPolicy, plan_batches, EXECUTION_VERSION
+from .native_gradients import CanonicalLoRAProjection, CanonicalLongSDPA
 
 
 @dataclass(frozen=True)
@@ -96,6 +97,10 @@ def backbone_project(module: nn.Linear | LoRALinear, x: Tensor) -> Tensor:
     fp32 = x.dtype == torch.float32 and not torch.is_autocast_enabled("cuda")
     if not (x.is_cuda and (bf16 or fp32)):
         return module(x)
+    if bf16 and isinstance(module, LoRALinear) and torch.is_grad_enabled():
+        return CanonicalLoRAProjection.apply(
+            x, module.base.weight, module.base.bias, module.a, module.b,
+            module.scale)
     tile_rows = 1024 if bf16 else 64
     rows = x.reshape(-1, x.shape[-1])
     parts = []
@@ -142,17 +147,25 @@ class Attention(nn.Module):
         v = backbone_project(self.v_proj, x).view(b, length, self.kh, self.hd).transpose(1, 2)
         positions = torch.arange(offset, offset + length, device=x.device)
         q, k = self.rotate(q, positions), self.rotate(k, positions)
+        if (self.training and torch.is_grad_enabled() and q.is_cuda
+                and offset + length >= 8192 and q.dtype == torch.bfloat16):
+            k, v = k.double(), v.double()
         if past is not None:
             # Functional concatenation: never mutate a parent prefix; autograd remains connected.
             # expand is a read-only view, not detach/copy; backward sums branch gradients
             # into the one shared prefix. cat creates request-local child storage.
-            k = torch.cat((past[0].expand(b, -1, -1, -1), k), -2)
-            v = torch.cat((past[1].expand(b, -1, -1, -1), v), -2)
+            k = torch.cat((past[0].to(k.dtype).expand(b, -1, -1, -1), k), -2)
+            v = torch.cat((past[1].to(v.dtype).expand(b, -1, -1, -1), v), -2)
         # During long CUDA training, keep grouped KV heads as views. Materializing
         # every repeated head retains large tensors through backward. Separate
         # fused calls per KV group still sum gradients into the shared parent.
         if self.training and torch.is_grad_enabled() and q.is_cuda and k.shape[-2] >= 8192:
             from torch.nn.attention import SDPBackend, sdpa_kernel
+            canonical_bf16 = q.dtype == torch.bfloat16
+            # The native forward still receives BF16. Double cache storage lets
+            # separate branch VJPs sum into one parent before parameter rounding.
+            if canonical_bf16:
+                k, v = k.double(), v.double()
             ratio = self.h // self.kh
             parts = []
             with sdpa_kernel([SDPBackend.FLASH_ATTENTION, SDPBackend.EFFICIENT_ATTENTION]):
@@ -160,13 +173,14 @@ class Attention(nn.Module):
                     query = q[:, head * ratio:(head + 1) * ratio]
                     key = k[:, head:head + 1].expand(-1, ratio, -1, -1)
                     value = v[:, head:head + 1].expand(-1, ratio, -1, -1)
-                    if past is None:
-                        part = F.scaled_dot_product_attention(
-                            query, key, value, is_causal=True, dropout_p=0.0)
+                    mask = None if past is None else causal_lower_right(length, k.shape[-2])
+                    if canonical_bf16:
+                        part = CanonicalLongSDPA.apply(
+                            query, key, value, mask, past is None, offset)
                     else:
                         part = F.scaled_dot_product_attention(
-                            query, key, value,
-                            attn_mask=causal_lower_right(length, k.shape[-2]), dropout_p=0.0)
+                            query, key, value, attn_mask=mask,
+                            is_causal=past is None, dropout_p=0.0)
                     parts.append(part)
             h = torch.cat(parts, dim=1)
             return backbone_project(self.o_proj, h.transpose(1, 2).reshape(b, length, -1)), (k, v)
@@ -423,7 +437,15 @@ class DecisionEngine(nn.Module):
         selected = policy or self.batch_policy
         element_size = max(p.element_size() for p in self.parameters())
         hd = self.cfg.hidden_size // self.cfg.num_attention_heads
-        kv_rate = 2 * self.cfg.num_hidden_layers * self.cfg.num_key_value_heads * hd * element_size
+        long_training = any(len(encoding.state) + len(branch.ids) >= 8192
+                            for branch in encoding.branches)
+        cache_element_size = (8 if self.training and torch.is_grad_enabled()
+                              and long_training
+                              and self.backbone.embed_tokens.weight.is_cuda
+                              and torch.is_autocast_enabled("cuda")
+                              and torch.get_autocast_dtype("cuda") == torch.bfloat16
+                              else element_size)
+        kv_rate = 2 * self.cfg.num_hidden_layers * self.cfg.num_key_value_heads * hd * cache_element_size
         gqa_rate = 2 * self.cfg.num_hidden_layers * self.cfg.hidden_size * element_size
         plan = plan_batches(encoding, selected, kv_bytes_per_token=kv_rate, gqa_bytes_per_token=gqa_rate)
         state_length = len(encoding.state)

@@ -10,6 +10,7 @@ import random
 import uuid
 import torch
 from .checkpoint import load_checkpoint, restore_rng, save_checkpoint
+from .native_gradients import DERIVATIVE_VERSION
 from .data import Datum, Sampler, permute_choices
 from .encoding import Limits, preprocessing_identity
 from .io import atomic_json
@@ -64,14 +65,16 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
         recorded_settings.pop("choice_permutation")  # preserve the original v1 no-augmentation config hash
     if settings.optimizer_backend == "default":
         recorded_settings.pop("optimizer_backend")  # preserve existing optimizer config hashes
+    device = next(model.parameters()).device
     cfg = {"settings": recorded_settings, "objective": asdict(loss_config), "limits": asdict(limits),
            "backbone": model.config_dict(), "preprocessing": preprocessing_identity(tokenizer),
            "execution": model.batch_policy.to_dict()}
+    if device.type == "cuda" and settings.precision == "bf16":
+        cfg["derivative_version"] = DERIVATIVE_VERSION
     data_hash = hashlib.sha256(canonical(manifest).encode()).hexdigest()
     config_hash = hashlib.sha256(canonical(cfg).encode()).hexdigest()
     if limits.branch > model.cfg.max_position_embeddings:
         raise ValueError("declared branch budget exceeds actual backbone window")
-    device = next(model.parameters()).device
     if settings.precision == "bf16" and device.type != "cuda":
         raise ValueError("bf16 training profile requires CUDA; no silent fallback")
     if settings.optimizer_backend == "fused" and device.type != "cuda":
@@ -83,6 +86,7 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
     sampler = Sampler(len(data), settings.seed)
     state = {"step": 0, "microbatches": 0, "examples": 0, "forward_tokens": 0, "accumulation_position": 0,
              "data_sha256": data_hash, "config_sha256": config_hash, "elapsed_seconds": 0.0,
+             "derivative_version": cfg.get("derivative_version"),
              "maximum_branch_tokens_seen": 0, "maximum_aggregate_tokens_seen": 0,
              "wandb_identity": wandb_ref, "scheduler_identity": scheduler_ref,
              "experiment_id": experiment_id or "local-experiment", "run_id": run_id or uuid.uuid4().hex,
