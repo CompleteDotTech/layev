@@ -138,3 +138,46 @@ SHA-256 `59580b4b8f487eb676ba326921392cc8c5159794680e1f785609d68b978c62d3`.
 No production arithmetic or tolerance was changed. These are single short
 diagnostics; the earlier full-context BF16 numerical pass covers a different
 shape and does not prove BF16 backward parity.
+
+## Generated marker curriculum on current main, 2026-09-29
+
+On clean main `dfaed82c69c4848f579297e020c25e9eab5fc39b`, a frozen
+generated short curriculum with group-disjoint train, development, calibration
+and test partitions ran 120 resumable BF16 LoRA optimizer steps and 166,610
+useful forward tokens. Its terminal checkpoint SHA-256 was
+`8c44d74dc0b3dd05ea2c004033999b23965996798df5123e605511f2b6619890`;
+the frozen suite manifest SHA-256 was
+`40e9d6b5bd43c962c26f3ef1544ea332f6048f6a7a84d7f2c2a0143d44b45963`.
+The separate long curriculum then completed two parent-linked BF16 LoRA and
+activation-checkpointed optimizer steps on two distinct generated examples at
+exactly 32,768 maximum branch and 65,536 aggregate tokens. Its final resumable
+checkpoint SHA-256 was
+`f939a66c1f722f256665441d79c016c3acd1b7d35ce968443ef039c6b45f8035`;
+the long suite manifest SHA-256 was
+`984ee9c10ecd39df94bb0b8e261ec8ed311b6ecc117148fea15f10d6989a184b`.
+The earlier 20-question long design exhausted the frozen 70% RTX 3060
+PyTorch allocation cap before step one. A separately frozen 19-question
+resource revision completed the two steps, totaling 131,072 useful forward
+tokens with finite loss and gradient and no monitoring export failure.
+
+A separate generated calibration partition produced checkpoint SHA-256
+`7a53dffc893bb12aa4db4ffbabd82e01f5cc15aa70bbafad40da58aabfe80dd0`.
+The exposure verifier passed its parent chain and exact-limit observations.
+The unchanged BF16 native validator then completed all six English/Spanish
+beginning/middle/end cases on this checkpoint. Every case had 32,768 maximum
+branch and 65,536 aggregate tokens, passed the unchanged numerical comparison
+with zero maximum logit and probability difference, and passed structured
+over-limit rejection. The short pinned Transformers oracle also passed.
+Optimized latency ranged from 14.32 to 14.75 seconds; the independent full-row
+reference took 82.94 to 86.48 seconds. The private report SHA-256 is
+`0fba22628bd1c114d5ea39b19fbd7f50f273782a9d9ad4e0e7306aa044a9f73b`.
+
+**The overall BF16 report failed:** only 2 of 18 diagnostic marker decisions
+were correct (11.1% against the frozen 80% minimum). The generated development
+split scored 50/72 (69.4%); its receipt SHA-256 is
+`a9c6e0953e5bf633cce9e24ffeee9c68678c8d3bd514934126109dd8749d29be`.
+The fixed validator had been observed during development, so it is not an
+untouched quality test. These generated results do not establish reviewed
+representative quality or Jev parity. FP32 full-context validation on this
+new checkpoint is unmeasured, and the separate short real-weight BF16 gradient
+parity failure remains. Issue #4 stays open.

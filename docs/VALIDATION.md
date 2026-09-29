@@ -84,8 +84,14 @@ training, and source-backed BF16 LoRA/activation-checkpointed training at exact
 resource measurements and the recovery history. Both six-stratum full-context
 FP32 and BF16 validators passed numerical and structured-overflow checks but
 **failed overall** on their frozen diagnostic marker threshold (1/18 and 0/18
-correct). A fresh actual-weight short mixed FP32 forward/backward comparison
-passed one generated request; its BF16 counterpart failed logits and gradients.
+correct) on the earlier checkpoint. A later generated marker curriculum on
+current main completed 120 short and two exact-limit BF16 training steps,
+separate calibration and another six-case BF16 validator. Numerical and
+overflow checks again passed 6/6, but the overall diagnostic still failed at
+2/18 against the unchanged 80% minimum. Its generated development score was
+50/72 and does not establish representative quality. A fresh actual-weight
+short mixed FP32 forward/backward comparison passed one generated request; its
+BF16 counterpart failed logits and gradients.
 Long full-weight backward, general native precision/shape/gradient acceptance,
 calibrated representative long-context behavior and quality remain unproved.
 CPU fixtures and configuration constants cannot fill these gaps.
