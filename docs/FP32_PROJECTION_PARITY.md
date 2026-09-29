@@ -87,6 +87,28 @@ The separate complete BF16 validator on the previous main source passed 6/6
 numerical and overflow cases but **failed overall** with 0/18 diagnostic marker
 decisions correct; private report SHA-256
 `0cba4a5181ecd55176a73fe32166952a7411913b12adbfecee4fb8a6c756df`.
-Trained long-context backward, the marker failure and the observed
-`case=99999` quality regression remain open. Neither numerical matrix is
-representative quality or Jev-relative evidence.
+On current merged source `f2589b9978e24cdcd4170a152d713370e8b08870`,
+a separate generated BF16 LoRA and activation-checkpointed CUDA run completed
+two optimizer steps with a durable stop/resume lineage. Both examples reached
+exactly 32,768 maximum branch and 65,536 aggregate tokens, for 131,072 useful
+forward tokens. The final resumable checkpoint SHA-256 is
+`99f797ffd0521adbee964d130d73eb381c9b6bd3b7896ce61b5007886d19ccf9`,
+parent step-one checkpoint SHA-256
+`98fef20b90429707e5ce58237e8fd6b7b0927c8c4d222b303cec6844feab4822`,
+and telemetry SHA-256
+`98f84b03b0a9d53711d09d5039d49f80e921b8db04cb759e1c2d36fbcbc87f9e`.
+Exposure verification confirmed both exact-limit examples and both optimizer
+steps. Final loss and gradient norm were finite; peak PyTorch CUDA allocation
+was 8,647,482,368 bytes under the 70% RTX 3060 cap. Monitoring export
+failures were zero.
+
+A separate SHA-verified CUDA reload of that checkpoint produced finite short
+Choice, Score and Noul outputs with shapes `[2]`, `[10]`, `[2]` and 237 logical
+tokens. Its private receipt SHA-256 is
+`429fc084b9546190b660278662b68c899a88a9610110b956db002daf9d0bb0f9`.
+The checkpoint reports `unfitted-after-weight-training`. This run establishes
+current-source generated long-context backward and checkpoint mechanics for
+BF16 LoRA with activation checkpointing. It does not establish long full-weight
+backward, calibrated long-run serving, representative quality, or Jev-relative
+evidence. The frozen diagnostic marker failure and observed `case=99999`
+quality regression remain open; neither numerical matrix passed overall.
