@@ -76,11 +76,19 @@ to Git to repair documentation links.
 
 ## Still-open native, quality and integration gates
 
-Pinned Qwen tokenizer/reference execution, native LoRA/full-weight/
-activation-checkpointed training, CUDA FP32/BF16, GPU latency/memory and trained,
-calibrated 32,768-branch/65,536-aggregate execution are unverified. CPU fixtures
-cannot satisfy them. [Stage-three correctness](STAGE3_CORRECTNESS.md) retains the
-native commands and thresholds; no larger config constant is treated as evidence.
+The pinned Qwen weight and tokenizer bytes, pretrained initialization/reload,
+short independent Transformers oracle, CUDA FP32/BF16 LoRA and short full-weight
+training, and source-backed BF16 LoRA/activation-checkpointed training at exact
+32,768-branch/65,536-aggregate limits have now been exercised on the local RTX
+3060. See the [native evidence readout](FP32_PROJECTION_PARITY.md) for hashes,
+resource measurements and the recovery history. Both six-stratum full-context
+FP32 and BF16 validators passed numerical and structured-overflow checks but
+**failed overall** on their frozen diagnostic marker threshold (1/18 and 0/18
+correct). A fresh actual-weight short mixed FP32 forward/backward comparison
+passed one generated request; its BF16 counterpart failed logits and gradients.
+Long full-weight backward, general native precision/shape/gradient acceptance,
+calibrated representative long-context behavior and quality remain unproved.
+CPU fixtures and configuration constants cannot fill these gaps.
 
 Representative licensed, group-disjoint datasets and a protocol fixed before
 training are still required for the supervised/reward/calibration multi-seed
@@ -100,6 +108,8 @@ The [Overwatch guide](../integrations/overwatch/README.md) retains its primary-
 checkout-only workflow and separate Python/private-index environment. The
 hardened installer was applied to the primary Windows checkout after a passing
 preflight; its frontend passed eight Vitest tests and the production build.
-The full backend suite remains blocked by private-index authentication, and no
-populated UI screenshot or browser-error record is claimed here.
+The full backend suite remains blocked by private-index authentication. The
+Overwatch repository is archived by user choice, so its draft integration PR
+and issues are held. No populated UI screenshot or browser-error record is
+claimed here.
 The local provider/adapter exercise is not the full collector/report/UI pipeline.
