@@ -181,3 +181,65 @@ untouched quality test. These generated results do not establish reviewed
 representative quality or Jev parity. FP32 full-context validation on this
 new checkpoint is unmeasured, and the separate short real-weight BF16 gradient
 parity failure remains. Issue #4 stays open.
+
+## Further generated exact-limit diagnostics on current main
+
+On clean main `c7c6d26d80534035c67618e1f245af5f2fdbab9a`, a new
+24-case generated long curriculum varied language, evidence position and
+route/urgency/escalation labels, excluding the fixed validator's exact
+`(billing, 7, true)` combination from training. Its manifest SHA-256 was
+`7c515c4678e8b372e7c499a0a8249ebcc66b24066101ce1682c52eefd90370db`.
+The first v4 attempt exhausted the unchanged 70% RTX 3060 PyTorch allocator
+cap during its second backward pass before a checkpoint; failed telemetry
+SHA-256 was `dc4ff6555012d731bb91e266239650088c94f4427812038a7ad616990b262f86`.
+The separately frozen v5 run kept the same suite, config, parent and cap and
+cleared unused CUDA cache after gradient cleanup. It completed 24 exact
+32,768-branch/65,536-aggregate optimization examples and 1,572,864 useful
+forward tokens. Its resumable checkpoint SHA-256 was
+`799959df7fe48a54b82c5e7fd87fe706760645517327001a8baeb7050a2eaa36`;
+all saved parent hashes matched their manifests. Peak PyTorch allocation was
+8,601,058,304 bytes, and monitoring export failures were zero. This does not
+prove that cache cleanup caused the v4/v5 feasibility difference.
+
+The v5 separately calibrated artifact SHA-256 was
+`c1b415beb5c5d498103fe1d7595fd4eb2b9ed60768235c5c665f91a9003ea60d`.
+Exposure verification passed its calibration-to-training chain. The unchanged
+six-stratum BF16 native validator passed numerical and overflow checks in all
+six cases with zero maximum logit/probability error, but **failed overall**:
+2/18 marker decisions were correct against the unchanged 80% diagnostic
+minimum. Report SHA-256 was
+`83e53328d1d123b12f8a7fbae1013fff3a304a15a661bf7113ee56f9118649ca`.
+On its generated development split, accuracy was 48/72 (66.7%); receipt
+SHA-256 was `849c93a95bf4c577d80d19b55d7b97522465fb96786a8eccf343443399a5bddd`.
+
+A further, separately frozen generated v2 short curriculum included 160
+group-distinct train cases with 255 route options each, varied distractor
+descriptions and option order, plus separate development/calibration/test
+splits. Its suite manifest SHA-256 was
+`2a10bfdd8368e61da0cdeadf180e0ec6b3e127a1afc1ade9acccb0daf4825c2f`.
+From the v5 terminal parent it completed 160 short steps and 961,078 useful
+forward tokens; intermediate checkpoint SHA-256 was
+`12b172f41124a71438a574e3bd529b8e41bbad77d1b464682182267a45901413`.
+That intermediate run observed only 6,087 maximum branch and 6,269 aggregate
+tokens. A separately frozen v6 continuation then optimized two distinct exact
+32,768-branch/65,536-aggregate examples. The final training checkpoint
+SHA-256 was `8472f22b8f02b14f27ccded353c2f378d71579a927324a25d9e5c818d4aaad90`;
+its parent manifests and native exposure verified. Its calibrated artifact
+SHA-256 was `a731903c8e91adc6206ecf60325b6ebbf4cdedd1349f0ab831c85069cf37df3d`.
+
+On that v6 artifact, the unchanged BF16 native validator again passed 6/6
+numerical comparisons and 6/6 structured overflow checks with zero maximum
+logit/probability error, but **failed overall** at 6/18 marker decisions
+(33.3% against 80%). Route became correct in both languages at beginning and
+middle, while both end routes failed; urgency was correct only at the end,
+and escalation predicted false in all six cases. Report SHA-256 was
+`9b3f05edb105c2a09f80d0acf6cb28178ae64dd3329ba93415b505fcc240bc60`.
+The separate v2 generated development split scored 52/72 (72.2%), with
+Choice 11/24, Score 24/24 and Noul 17/24; receipt SHA-256 was
+`fb69e4f47a7207505aa25994af62930279e417b56898ceddcfb7e64bdb204a19`.
+Its split differs from v5's, so the development percentages are not paired.
+
+The fixed validator had been observed before both new curricula were designed.
+These are diagnostics, not an untouched quality test or representative decision
+evidence. The 80% marker gate, BF16 short backward parity, broader native
+precision/shape matrix, representative quality and Jev comparison remain open.
