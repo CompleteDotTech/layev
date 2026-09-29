@@ -265,7 +265,21 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
                 with torch.autocast(device_type=device.type, dtype=torch.bfloat16, enabled=settings.precision == "bf16"):
                     logits, usage = model(encoded)
                     loss, parts = objective(logits, datum.targets, [b.question.type for b in encoded.branches], loss_config)
-                (loss / settings.accumulation).backward()
+                if (device.type == "cuda" and settings.precision == "bf16"
+                        and len(logits) > 1):
+                    # Different branch layouts otherwise round shared-prefix
+                    # contributions at different points in BF16 backward.
+                    # Differentiate the joint objective once (including its
+                    # sampled reward term), then accumulate one branch VJP at
+                    # a time into the same trainable parameters.
+                    gradients = torch.autograd.grad(loss / settings.accumulation, logits)
+                    for branch_number, (logit, gradient) in enumerate(
+                            zip(logits, gradients, strict=True)):
+                        torch.autograd.backward(
+                            logit, gradient,
+                            retain_graph=branch_number + 1 < len(logits))
+                else:
+                    (loss / settings.accumulation).backward()
                 if quality_budget is not None:
                     quality_budget.check_resources(peak_gpu_bytes=quality_gpu_peak())
                 for key, value in parts.items():

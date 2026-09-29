@@ -1,0 +1,24 @@
+{
+  "evidence_class": "pinned-actual-weight-short-bf16-training-gradient",
+  "source_parent": "1f0ca16da9dba09c93582119b4efa8e4820435c2",
+  "source_file_sha256": {
+    "src/kev_laya/model.py": "a3923f8c3b9d769739f31b41e060bfd4a2d2fe700cd7b0bc5410aa9ecbb8c864",
+    "src/kev_laya/native_gradients.py": "b990d20d4f0a2851880cc03ec321317ad15f6c5c37bb53831096b2590faf294c",
+    "src/kev_laya/training.py": "2afdbad685b4c88951c7e170cf1df2959e8f8b7e8e61fb52137847952943cda5"
+  },
+  "checkpoint_sha256": "99f797ffd0521adbee964d130d73eb381c9b6bd3b7896ce61b5007886d19ccf9",
+  "private_receipt_sha256": "aabb1f33cae2c44d8b2aeb3caab4263b345469d34f961223133ffc2bade946fa",
+  "precision": "bf16",
+  "device": "NVIDIA GeForce RTX 3060",
+  "torch_version": "2.10.0+cu128",
+  "logical_tokens": 287,
+  "questions": 4,
+  "gradient_tensors": 100,
+  "tolerances": {"logits_and_probabilities": 0.00001, "gradients": 0.00002},
+  "comparisons": {
+    "batched_serial": {"logits_max_abs": 0, "probabilities_max_abs": 0, "gradients_passed": 100},
+    "serial_full": {"logits_max_abs": 0, "probabilities_max_abs": 0, "gradients_passed": 100, "worst_gradient_max_abs": 0.000003814697265625, "worst_tolerance_ratio": 0.01166364923119545},
+    "batched_full": {"logits_max_abs": 0, "probabilities_max_abs": 0, "gradients_passed": 100, "worst_gradient_max_abs": 0.000003814697265625, "worst_tolerance_ratio": 0.01166364923119545}
+  },
+  "scope": "One generated mixed short request on a pinned trained checkpoint. Joint objective evaluated once and applied through per-branch logit VJPs. This does not validate medium/long contexts, optimizer/resume on actual weights, calibrated serving, or representative quality."
+}

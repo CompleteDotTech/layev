@@ -425,6 +425,36 @@ def test_cuda_fixture_bf16_training(tmp_path,suite):
     assert result['state']['derivative_version']==DERIVATIVE_VERSION
 
 
+@pytest.mark.skipif(not torch.cuda.is_available(),reason='CUDA hardware unavailable; BF16 parity unverified')
+def test_cuda_bf16_short_branch_vjp_parity():
+    if not torch.cuda.is_bf16_supported():pytest.skip('GPU does not support BF16')
+    model=make_model(lora=2,checkpointing=True,policy=BatchPolicy(max_branches=2)).cuda().train()
+    encoded=encode(request(3))
+    assert max(len(encoded.state)+len(branch.ids) for branch in encoded.branches)<=256
+    targets=[[1/len(branch.option_ends)]*len(branch.option_ends) for branch in encoded.branches]
+    kinds=[branch.question.type for branch in encoded.branches]
+    outputs={}
+    for mode,kwargs in (('batch',{}),('serial',{'serial_reference':True}),
+                        ('full',{'reference':True})):
+        model.zero_grad(set_to_none=True)
+        with torch.autocast('cuda',dtype=torch.bfloat16):
+            logits,_=model(encoded,**kwargs)
+            loss,_=objective(logits,targets,kinds,ObjectiveConfig(ordinal=.1))
+        logit_gradients=torch.autograd.grad(loss,logits)
+        for i,(logit,gradient) in enumerate(zip(logits,logit_gradients,strict=True)):
+            torch.autograd.backward(logit,gradient,retain_graph=i+1<len(logits))
+        outputs[mode]=([value.detach().float().cpu() for value in logits],
+                       {name:parameter.grad.detach().float().cpu()
+                        for name,parameter in model.named_parameters() if parameter.requires_grad})
+    for left,right in (('batch','serial'),('serial','full'),('batch','full')):
+        for actual,expected in zip(outputs[left][0],outputs[right][0],strict=True):
+            torch.testing.assert_close(actual,expected,atol=1e-5,rtol=1e-5)
+        assert outputs[left][1].keys()==outputs[right][1].keys()
+        for name in outputs[left][1]:
+            torch.testing.assert_close(outputs[left][1][name],outputs[right][1][name],
+                                       atol=2e-5,rtol=2e-5)
+
+
 @pytest.mark.skipif(not torch.cuda.is_available(),reason='CUDA hardware unavailable; BF16 resume unverified')
 def test_cuda_bf16_resume_rejects_derivative_version_change(tmp_path,suite,monkeypatch):
     if not torch.cuda.is_bf16_supported():pytest.skip('GPU does not support BF16')

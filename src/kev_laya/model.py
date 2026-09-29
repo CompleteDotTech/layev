@@ -15,7 +15,7 @@ from torch.nn import functional as F
 from torch.nn.attention.bias import causal_lower_right
 from .encoding import Encoding
 from .execution import BatchPolicy, plan_batches, EXECUTION_VERSION
-from .native_gradients import CanonicalLoRAProjection, CanonicalLongSDPA
+from .native_gradients import CanonicalLoRAProjection, CanonicalLongSDPA, CanonicalShortAttention
 
 
 @dataclass(frozen=True)
@@ -147,6 +147,10 @@ class Attention(nn.Module):
         v = backbone_project(self.v_proj, x).view(b, length, self.kh, self.hd).transpose(1, 2)
         positions = torch.arange(offset, offset + length, device=x.device)
         q, k = self.rotate(q, positions), self.rotate(k, positions)
+        short_bf16_training = (self.training and torch.is_grad_enabled() and q.is_cuda
+                               and q.dtype == torch.bfloat16 and offset + length <= 256)
+        if short_bf16_training:
+            k, v = k.double(), v.double()
         if (self.training and torch.is_grad_enabled() and q.is_cuda
                 and offset + length >= 8192 and q.dtype == torch.bfloat16):
             k, v = k.double(), v.double()
@@ -190,6 +194,9 @@ class Attention(nn.Module):
         # SDPA's fused reductions differ enough near zero to fail the unchanged
         # 1e-4 hidden-state parity gate on actual pretrained Qwen weights.
         if q.is_cuda and k.shape[-2] <= 256:
+            if short_bf16_training:
+                h = CanonicalShortAttention.apply(q, keys, values, offset)
+                return backbone_project(self.o_proj, h.transpose(1, 2).reshape(b, length, -1)), (k, v)
             # BF16 CUDA matmul can change its reduction order when one suffix is
             # computed alone or beside another. Use the same small exact product
             # in both shapes, then retain the original BF16 rounding boundary.
@@ -440,7 +447,7 @@ class DecisionEngine(nn.Module):
         long_training = any(len(encoding.state) + len(branch.ids) >= 8192
                             for branch in encoding.branches)
         cache_element_size = (8 if self.training and torch.is_grad_enabled()
-                              and long_training
+                              and (long_training or len(encoding.state) <= 256)
                               and self.backbone.embed_tokens.weight.is_cuda
                               and torch.is_autocast_enabled("cuda")
                               and torch.get_autocast_dtype("cuda") == torch.bfloat16
