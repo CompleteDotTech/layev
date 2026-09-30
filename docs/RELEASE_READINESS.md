@@ -1,5 +1,23 @@
 # Release readiness — intentionally incomplete
 
+## Verified numerical/source delivery (September 29, 2026)
+
+[PR #56](https://github.com/Jev-Engineering/layev/pull/56) merged at
+`4f31cc76e38ef9848950e1667875571f8e190903`, from verified SSH-signed source
+`4ffd9f1f1263d225e4f130f174cf6070c635d235`. All five required
+[PR checks](https://github.com/Jev-Engineering/layev/actions/runs/36656915788)
+and all five [post-merge checks](https://github.com/Jev-Engineering/layev/actions/runs/36657405767)
+passed. The primary checkout synchronized cleanly with main. The CUDA graph
+ownership regression passed again on the merged checkout (one pass, 80 deselected).
+
+This completes delivery of the canonical FP32 numerical and BF16 graph lifetime
+repairs, public reproducers, and scoped receipts. Historical numerical and rank-8
+receipts retain their precommit source identities; the graph repair records its
+later training source separately. Complete rank-0 resume and exact-limit FP32
+training still fail on the measured configuration. Issues #3/#4 remain open;
+representative quality, Jev benefit and remote publication remain unverified.
+Overwatch remains archived by user instruction.
+
 ## Full-weight mechanics and graph lifetime supplement (September 29, 2026)
 
 The [graph lifetime repair and measured rank-0 limits](evidence/native/graph-lifetime-fullweight-limits-20260929.md)
@@ -14,7 +32,7 @@ The [canonical FP32 repair](evidence/native/short-fp32-canonical-v10-20260929.md
 passes the short independent HF adapter oracle, four generated cached/batched/full
 cases, 8191/8192 state-prefix boundaries, and a 10520-token state numerical gate.
 This is candidate source evidence; the exact-limit FP32 training resource probe exhausted the fixed allocator cap
-during forward, leaving backward unverified. Delivery readback remains pending. Issues #3/#4 remain open; representative quality and Jev benefit
+during forward, leaving backward unverified. Delivery is recorded above; these receipts retain their original source identities. Issues #3/#4 remain open; representative quality and Jev benefit
 are unknown. Overwatch remains archived by user instruction. Older readbacks
 below are historical and do not override these scoped receipts.
 
