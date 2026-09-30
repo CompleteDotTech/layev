@@ -607,7 +607,11 @@
         "https://github.com/CompleteDotTech/layev/issues/3",
         "https://github.com/CompleteDotTech/layev/issues/5"
       ],
-      "limitations": "Source/test presence is not a passing current test or trained runtime result."
+      "limitations": "Source/test presence is not a passing current test or trained runtime result. Explicit CPU-state backend synthetic rank0 and LoRA rank4/activation-checkpointing FP32/BF16 trainer matrices each passed8/8 process phases, zero skips, with exact resume state comparisons on signedb5d8299. This does not establish actual pretrained fullweight optimizer feasibility, native derivative parity, context or representative quality; actualweight/oracle16GiB gate remains pending.",
+      "code_test_evidence": [
+        "docs/evidence/optimizer/tiny-cuda-offload-v4-20260930.json",
+        "docs/evidence/optimizer/tiny-cuda-offload-lora-checkpoint-v2-20260930.json"
+      ]
     },
     {
       "id": "calibration",

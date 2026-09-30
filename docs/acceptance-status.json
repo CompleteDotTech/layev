@@ -1,4 +1,21 @@
 {
+  "explicit_CPU_state_optimizer_partial_delivery_2026_09_30": {
+    "signed_source_commit": "b5d8299b768564c09c541e3dfc04b3d28eef2fd6",
+    "scope": "partial synthetic tiny-fixture optimizer/trainer delivery; no native/fullweight/context/quality acceptance",
+    "rank0_receipt": "docs/evidence/optimizer/tiny-cuda-offload-v4-20260930.json",
+    "lora_checkpoint_receipt": "docs/evidence/optimizer/tiny-cuda-offload-lora-checkpoint-v2-20260930.json",
+    "rank0_precision_phases_passed": 8,
+    "lora_precision_phases_passed": 8,
+    "phase_skips": 0,
+    "integrated_primitive_passed": 8,
+    "primitive_skips": 0,
+    "lora_primitive_scope": "reused from rank0 v4; not rerun",
+    "lora_trainable_parameters": 12,
+    "lora_unchanged_frozen_states": 26,
+    "remaining_gate": "actual pretrained fullweight step/save/exit/resume/reload and captured-gradient stock optimizer oracle pending; separate16GiB available-host gate",
+    "issue_3": "open",
+    "issue_4": "open"
+  },
   "context_development_diagnostic_2026_09_30": {
     "scope": "Observed synthetic short/medium development diagnostic; not acceptance, representative quality or Jev comparison",
     "receipt": "docs/evidence/context/development-factorial96-20260930.json",

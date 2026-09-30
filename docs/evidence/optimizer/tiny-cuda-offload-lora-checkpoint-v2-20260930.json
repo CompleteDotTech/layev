@@ -1,0 +1,643 @@
+{
+  "schema_version": 1,
+  "evidence_class": "tiny-synthetic-fixture LoRA rank4 activation-checkpointing CUDA production-trainer qualification",
+  "status": "complete",
+  "passed_within_scope": true,
+  "runtime_source_head": "b5d8299b768564c09c541e3dfc04b3d28eef2fd6",
+  "source_hashes": {
+    "src/kev_laya/__init__.py": "fccca0741142d06495613c3a03f56aee4ac89b7b409c1f86587c43f717f28a35",
+    "src/kev_laya/__main__.py": "79ee6f134c5c5193377cf9b189cbdcc3e2095e49ba9cec310114441c15a917c4",
+    "src/kev_laya/backbone_provenance.py": "06c6205d2d5a6b8681f5753393ebb39ff9041d9f98f5f74887b8096e79c3160c",
+    "src/kev_laya/checkpoint.py": "f7cd8cb15e130756751c53d6cb55ec2b7c3ef0c608da764d10b000552f1aab95",
+    "src/kev_laya/cli.py": "208502e86bdaf565d59bf9b72f6181d183027f0c60c4a43dcb6316b30234eccd",
+    "src/kev_laya/client.py": "ca2f5c798ebf76fbea61026242a626919b6a83f37e14368f3497c857596ebcac",
+    "src/kev_laya/counterfactual.py": "107c5ab7268ef657b6ac112696398752d40e25121cf4e1cb36aaeb7bbd84dcc5",
+    "src/kev_laya/cpu_state_adamw.py": "1a0ae5003728aa7acade8a92c33f9293134b1afe7bd5487890c9a4e47eca9105",
+    "src/kev_laya/data.py": "f954fa8cdeb3164ba56a4d2c77541df6aaa2b860a2f0f979d182213e04268b06",
+    "src/kev_laya/encoding.py": "3c945bd0390d3b0949a337ac651434942379e0d76d5d2fdff6fdb722b10f35e1",
+    "src/kev_laya/evaluation.py": "4b30d41328bb275b571492a1dcdcc16106d0ffa36863fc79d1bf0aac7ed3b402",
+    "src/kev_laya/execution.py": "41d7eaa6b3bf33c6e59c30fd2b36c7e086b29116179109a75dcbdc7d24d1756a",
+    "src/kev_laya/exposure.py": "3894954f8b84bf1008d6c928f35248b86c6d796a9acb0715f3e90d3974083500",
+    "src/kev_laya/io.py": "89c547a6399680dfa8d47511e3e5414875c61e97d87a6270efc871aa581850fe",
+    "src/kev_laya/jev_comparison.py": "4c256c3c8b5b3ae7aa3f6f7c72f8ad1eb1ee94800473255416b82a4448bd5753",
+    "src/kev_laya/lineage.py": "44e37b3838e4f2973aa74ed4e7ea4a18268cf46ce9dd6ce821dda2d3cc25bd1c",
+    "src/kev_laya/model.py": "794c9a648d5f40cb461a9631204a5146d2791eea663eeae4abccdad8cf926898",
+    "src/kev_laya/native_gradients.py": "5c8f5b8876e04642d093b9878d3020b4e40438345540966cc1204cc81a820c4f",
+    "src/kev_laya/native_validation.py": "9a55e053b8beee9aa12948faf317d1c6c2f59a2b4ffe4a3ae5a31e641fd2afa7",
+    "src/kev_laya/objectives.py": "d4f6089cfb3e9d6fe0e7bdaa75eb4e68d3571a78f278a193263756b2de3b5884",
+    "src/kev_laya/provenance.py": "5c0ef25846aab9d8b142eceda9c729f46308dd67e3881ffca2eb2d85064ede80",
+    "src/kev_laya/publishing.py": "bdaae8210b06b5e9e352c7a7e5cb0615aa3473fcf1c9c660d7b1187abda8b407",
+    "src/kev_laya/quality_budget.py": "4c57d637b4a31c829fef42df709076f96834b9f1f71033fefd23966772eab763",
+    "src/kev_laya/quality_protocol.py": "ad7aca42b57b58113f1831585dc42ab834a34c7a95e26b9aaa0d99af7c7f5f50",
+    "src/kev_laya/quality_readout.py": "8e0c862d7182c039a8ea1da6797be1a45fd4a2b02a42a21c9680ee502cf2d11b",
+    "src/kev_laya/quality_supervisor.py": "ef8b0be98cc03ade6673088a354aed634a10dcf7828b13243d845d33f8e2e917",
+    "src/kev_laya/registration.py": "63d6006c42eaea9f60e3b335d512328ba0cb1677e481d268fc6426c11cfa000e",
+    "src/kev_laya/schema.py": "105e02bb9d22bc3d90fb48ccbb3687b8e402ae0e6179a0570bf9a8391a92c644",
+    "src/kev_laya/service.py": "02ecec7f3729b318a2601cc14e8bf2165a2c0687151f10aedac648cab4561f5d",
+    "src/kev_laya/stages.py": "cba03c48edb2d5b2cf53042d5eebcac8b042bc81fb510757f66c0431ed8fb4c0",
+    "src/kev_laya/telemetry.py": "4b108a1dee06ce00b222ce77a4b18758a9c46167934dbe5097e902263ebd61f1",
+    "src/kev_laya/telemetry_contract.py": "9019ffa5e3d2e42b2b1e27248e8801413ff540007efb9c1448dc29b0e8b3646e",
+    "src/kev_laya/training.py": "e04f1ab3874f94699d8cb6e9695195d448decd56da86972f553388afe8052473"
+  },
+  "all33_source_hashes_unchanged_at_each_phase_start_end": true,
+  "supervisor_terminal_sha256": "323d6cf8c4dd6718f0bf0a061c0fb0d13767dc669c3d61139ce9d0474291b3c9",
+  "frozen_inputs_sha256": "97d6ce7150c4c22d8b6056a6af23e3c911e336e59e5498111bdf2d8633b0966a",
+  "runner_sha256": "59e3d7c1c6dd753a1af9fd2127cc9fa9daacca00c10bd65d9095acf1ac5988d0",
+  "pins_sha256": "f4eac4d80d4a886c6734aec0c16fe48635320522d8e612ccfa4ad05d89bff3fb",
+  "primitive_test_hashes": {
+    "tests/test_cpu_state_adamw.py": "04e30b65d5b169f34001d0b2ec7a43136d61de460dc5efb0fda914ffa3a54646",
+    "tests/conftest.py": "9edead45d7071253e2f5d4c7f9ec2ac3291d453dd540588b34ed35f1bf530589"
+  },
+  "fixture": {
+    "initializer_sha256": "df44414e200f37683591c64c0154ecbbda410b23a3165089e06f0b09f19a9ede",
+    "data_sha256": "d68a8d3a1f1c127372fe25d99708240141a341b21abe62dc332237a66cef60ae",
+    "evidence_class": "tiny-synthetic-fixture",
+    "seed": 19,
+    "init_seed": 47
+  },
+  "fixture_receipt_sha256": "33c119cfcd661f0710aaa52820358f75f62c1277e9881facabbdc017b40df472",
+  "initializer_manifest": {
+    "file": "init.pt",
+    "format": "kev-laya-checkpoint/1",
+    "parent_sha256": null,
+    "resumable": false,
+    "sha256": "df44414e200f37683591c64c0154ecbbda410b23a3165089e06f0b09f19a9ede",
+    "size_bytes": 140398,
+    "training_steps": 0
+  },
+  "primitive_reused_not_rerun": {
+    "supervisor_sha256": "213a91d9e8153d9cfb388053efd8ac637e867f51459ca771ca61f6ec583fd19d",
+    "primitive_sha256": "3f3f403a0931be67e82f67723f0bec3ed8fd49bf5502ca1dc8d7fac23f9a9a37"
+  },
+  "primitive_passed_in_prior_run": 8,
+  "primitive_skipped_in_prior_run": 0,
+  "precision_phase_successes": 8,
+  "precision_phase_required": 8,
+  "precision_phase_skips": 0,
+  "phases": [
+    {
+      "status": "complete",
+      "phase": "init",
+      "head_start": "b5d8299b768564c09c541e3dfc04b3d28eef2fd6",
+      "head_end": "b5d8299b768564c09c541e3dfc04b3d28eef2fd6",
+      "receipt_file": "cpu-init.json",
+      "receipt_sha256": "8fa7afe45330a7cb5be17d5b4025188b91a8a060a3dc044a0862fa965f9b84cf",
+      "supervisor_elapsed_seconds": 14.759992099978263,
+      "worker_exitcode": 0,
+      "timeout": false,
+      "source_start_end_match": true
+    },
+    {
+      "status": "complete",
+      "phase": "full",
+      "precision": "fp32",
+      "checkpoint_sha256": "32ad69fc50432444adde75ebfc2a9aaa5b93368d57e3bbdd823d7174a587cbc7",
+      "step": 2,
+      "live_cpu_moment_parameter_counts": [
+        12,
+        12
+      ],
+      "live_cpu_optimizer_state_bytes": [
+        15664,
+        15664
+      ],
+      "CPU_optimizer_state_ceiling_bytes": 16777216,
+      "effective_settings_start": {
+        "float32_matmul_precision": "highest",
+        "matmul_allow_tf32": false,
+        "cudnn_allow_tf32": false,
+        "deterministic_algorithms": true,
+        "allocator_fraction": 0.7
+      },
+      "effective_settings_end": {
+        "float32_matmul_precision": "highest",
+        "matmul_allow_tf32": false,
+        "cudnn_allow_tf32": false,
+        "deterministic_algorithms": true,
+        "allocator_fraction": 0.7
+      },
+      "start_resources": {
+        "available_host_bytes": 4127641600,
+        "scope": "tiny fixture only; actual-weight12/16GiB floors unchanged",
+        "GPU_free_bytes": 11799625728,
+        "GPU_total_bytes": 12884377600
+      },
+      "end_GPU_free_total_bytes": [
+        11615076352,
+        12884377600
+      ],
+      "peak_allocated_bytes": 86953472,
+      "peak_reserved_bytes": 96468992,
+      "head_start": "b5d8299b768564c09c541e3dfc04b3d28eef2fd6",
+      "head_end": "b5d8299b768564c09c541e3dfc04b3d28eef2fd6",
+      "native_fullweight_claim": false,
+      "checkpoint": "fp32-full/checkpoint-000002.pt",
+      "receipt_file": "fp32-full.json",
+      "receipt_sha256": "ecbc6bcad41fd47b0d327c6d1d6ad094cb5c02cc4348a51affef0b52f6aa2eec",
+      "supervisor_elapsed_seconds": 7.786693300004117,
+      "worker_exitcode": 0,
+      "timeout": false,
+      "source_start_end_match": true
+    },
+    {
+      "status": "complete",
+      "phase": "split",
+      "precision": "fp32",
+      "checkpoint_sha256": "76bc9006d5954b5e5a3b4ab044739e9d04599b9fbc73f3080813c97af600828e",
+      "step": 1,
+      "live_cpu_moment_parameter_counts": [
+        12
+      ],
+      "live_cpu_optimizer_state_bytes": [
+        15664
+      ],
+      "CPU_optimizer_state_ceiling_bytes": 16777216,
+      "effective_settings_start": {
+        "float32_matmul_precision": "highest",
+        "matmul_allow_tf32": false,
+        "cudnn_allow_tf32": false,
+        "deterministic_algorithms": true,
+        "allocator_fraction": 0.7
+      },
+      "effective_settings_end": {
+        "float32_matmul_precision": "highest",
+        "matmul_allow_tf32": false,
+        "cudnn_allow_tf32": false,
+        "deterministic_algorithms": true,
+        "allocator_fraction": 0.7
+      },
+      "start_resources": {
+        "available_host_bytes": 4993875968,
+        "scope": "tiny fixture only; actual-weight12/16GiB floors unchanged",
+        "GPU_free_bytes": 11799625728,
+        "GPU_total_bytes": 12884377600
+      },
+      "end_GPU_free_total_bytes": [
+        11615076352,
+        12884377600
+      ],
+      "peak_allocated_bytes": 86950912,
+      "peak_reserved_bytes": 96468992,
+      "head_start": "b5d8299b768564c09c541e3dfc04b3d28eef2fd6",
+      "head_end": "b5d8299b768564c09c541e3dfc04b3d28eef2fd6",
+      "native_fullweight_claim": false,
+      "checkpoint": "fp32-split/checkpoint-000001.pt",
+      "receipt_file": "fp32-split.json",
+      "receipt_sha256": "676ab69e4caee00c9d95528bf5cd57de661e98e44a26781daea40d1fcd0c0c02",
+      "supervisor_elapsed_seconds": 4.579358100017998,
+      "worker_exitcode": 0,
+      "timeout": false,
+      "source_start_end_match": true
+    },
+    {
+      "status": "complete",
+      "phase": "resume",
+      "precision": "fp32",
+      "checkpoint_sha256": "8cf25bd55d26271b3e7d61665c6b50a998f65076199e6b9f5503da0f5725b744",
+      "step": 2,
+      "live_cpu_moment_parameter_counts": [
+        12
+      ],
+      "live_cpu_optimizer_state_bytes": [
+        15664
+      ],
+      "CPU_optimizer_state_ceiling_bytes": 16777216,
+      "effective_settings_start": {
+        "float32_matmul_precision": "highest",
+        "matmul_allow_tf32": false,
+        "cudnn_allow_tf32": false,
+        "deterministic_algorithms": true,
+        "allocator_fraction": 0.7
+      },
+      "effective_settings_end": {
+        "float32_matmul_precision": "highest",
+        "matmul_allow_tf32": false,
+        "cudnn_allow_tf32": false,
+        "deterministic_algorithms": true,
+        "allocator_fraction": 0.7
+      },
+      "start_resources": {
+        "available_host_bytes": 4318109696,
+        "scope": "tiny fixture only; actual-weight12/16GiB floors unchanged",
+        "GPU_free_bytes": 11799625728,
+        "GPU_total_bytes": 12884377600
+      },
+      "end_GPU_free_total_bytes": [
+        11615076352,
+        12884377600
+      ],
+      "peak_allocated_bytes": 86952960,
+      "peak_reserved_bytes": 96468992,
+      "head_start": "b5d8299b768564c09c541e3dfc04b3d28eef2fd6",
+      "head_end": "b5d8299b768564c09c541e3dfc04b3d28eef2fd6",
+      "native_fullweight_claim": false,
+      "checkpoint": "fp32-split/checkpoint-000002.pt",
+      "receipt_file": "fp32-resume.json",
+      "receipt_sha256": "c159e296403dbc20b531335254cd18ab499d65e48dd7e81ddf2be0ad70e41bd5",
+      "supervisor_elapsed_seconds": 5.189867899985984,
+      "worker_exitcode": 0,
+      "timeout": false,
+      "source_start_end_match": true
+    },
+    {
+      "status": "complete",
+      "phase": "compare",
+      "precision": "fp32",
+      "scope": "tiny LoRA rank4 activation checkpointing",
+      "exact_comparison_elements": {
+        "model": 29024,
+        "optimizer": 3916,
+        "scheduler": 0,
+        "sampler": 0,
+        "rng": 5072,
+        "training_exposure": 0,
+        "config": 0,
+        "execution": 0,
+        "preprocessing": 0
+      },
+      "optimizer_parameter_count": 12,
+      "trainable_parameter_names": [
+        "backbone.layers.0.self_attn.q_proj.a",
+        "backbone.layers.0.self_attn.q_proj.b",
+        "backbone.layers.0.self_attn.v_proj.a",
+        "backbone.layers.0.self_attn.v_proj.b",
+        "backbone.layers.1.self_attn.q_proj.a",
+        "backbone.layers.1.self_attn.q_proj.b",
+        "backbone.layers.1.self_attn.v_proj.a",
+        "backbone.layers.1.self_attn.v_proj.b",
+        "head.q.weight",
+        "head.q.bias",
+        "head.k.weight",
+        "head.k.bias"
+      ],
+      "frozen_backbone_parameter_count": 26,
+      "frozen_model_state_count": 26,
+      "model_state_count": 38,
+      "full_manifest": {
+        "file": "checkpoint-000002.pt",
+        "format": "kev-laya-checkpoint/1",
+        "parent_sha256": "76bd701c907209cea8affe262b033649843213a566ab77b1671ba19ab965e14c",
+        "resumable": true,
+        "sha256": "32ad69fc50432444adde75ebfc2a9aaa5b93368d57e3bbdd823d7174a587cbc7",
+        "size_bytes": 177919,
+        "training_steps": 2
+      },
+      "split_manifest": {
+        "file": "checkpoint-000002.pt",
+        "format": "kev-laya-checkpoint/1",
+        "parent_sha256": "76bc9006d5954b5e5a3b4ab044739e9d04599b9fbc73f3080813c97af600828e",
+        "resumable": true,
+        "sha256": "8cf25bd55d26271b3e7d61665c6b50a998f65076199e6b9f5503da0f5725b744",
+        "size_bytes": 178751,
+        "training_steps": 2
+      },
+      "split_step1_manifest": {
+        "file": "checkpoint-000001.pt",
+        "format": "kev-laya-checkpoint/1",
+        "parent_sha256": "df44414e200f37683591c64c0154ecbbda410b23a3165089e06f0b09f19a9ede",
+        "resumable": true,
+        "sha256": "76bc9006d5954b5e5a3b4ab044739e9d04599b9fbc73f3080813c97af600828e",
+        "size_bytes": 177919,
+        "training_steps": 1
+      },
+      "head_start": "b5d8299b768564c09c541e3dfc04b3d28eef2fd6",
+      "head_end": "b5d8299b768564c09c541e3dfc04b3d28eef2fd6",
+      "native_fullweight_claim": false,
+      "receipt_file": "fp32-compare.json",
+      "receipt_sha256": "64978b49b17cd9ab9401f58d3a2905676b9b793c71434d1fa23af7a0aeb657fb",
+      "supervisor_elapsed_seconds": 3.598090500017861,
+      "worker_exitcode": 0,
+      "timeout": false,
+      "source_start_end_match": true
+    },
+    {
+      "status": "complete",
+      "phase": "full",
+      "precision": "bf16",
+      "checkpoint_sha256": "3150e703a172b17c53fa86cf30836f4c4878c85ce8003bea29008eba00f94248",
+      "step": 2,
+      "live_cpu_moment_parameter_counts": [
+        12,
+        12
+      ],
+      "live_cpu_optimizer_state_bytes": [
+        15664,
+        15664
+      ],
+      "CPU_optimizer_state_ceiling_bytes": 16777216,
+      "effective_settings_start": {
+        "float32_matmul_precision": "highest",
+        "matmul_allow_tf32": false,
+        "cudnn_allow_tf32": false,
+        "deterministic_algorithms": true,
+        "allocator_fraction": 0.7
+      },
+      "effective_settings_end": {
+        "float32_matmul_precision": "highest",
+        "matmul_allow_tf32": false,
+        "cudnn_allow_tf32": false,
+        "deterministic_algorithms": true,
+        "allocator_fraction": 0.7
+      },
+      "start_resources": {
+        "available_host_bytes": 4425535488,
+        "scope": "tiny fixture only; actual-weight12/16GiB floors unchanged",
+        "GPU_free_bytes": 11799625728,
+        "GPU_total_bytes": 12884377600
+      },
+      "end_GPU_free_total_bytes": [
+        11610882048,
+        12884377600
+      ],
+      "peak_allocated_bytes": 74546176,
+      "peak_reserved_bytes": 94371840,
+      "head_start": "b5d8299b768564c09c541e3dfc04b3d28eef2fd6",
+      "head_end": "b5d8299b768564c09c541e3dfc04b3d28eef2fd6",
+      "native_fullweight_claim": false,
+      "checkpoint": "bf16-full/checkpoint-000002.pt",
+      "receipt_file": "bf16-full.json",
+      "receipt_sha256": "fe01d05239f9a4a567a5816c429528a2df959b9006958b8595e15a8b048f93bc",
+      "supervisor_elapsed_seconds": 6.878780400002142,
+      "worker_exitcode": 0,
+      "timeout": false,
+      "source_start_end_match": true
+    },
+    {
+      "status": "complete",
+      "phase": "split",
+      "precision": "bf16",
+      "checkpoint_sha256": "9bcdc9e2750a682c1fe9d82e34313661b32a69eb6aab09d84ed65798482388b4",
+      "step": 1,
+      "live_cpu_moment_parameter_counts": [
+        12
+      ],
+      "live_cpu_optimizer_state_bytes": [
+        15664
+      ],
+      "CPU_optimizer_state_ceiling_bytes": 16777216,
+      "effective_settings_start": {
+        "float32_matmul_precision": "highest",
+        "matmul_allow_tf32": false,
+        "cudnn_allow_tf32": false,
+        "deterministic_algorithms": true,
+        "allocator_fraction": 0.7
+      },
+      "effective_settings_end": {
+        "float32_matmul_precision": "highest",
+        "matmul_allow_tf32": false,
+        "cudnn_allow_tf32": false,
+        "deterministic_algorithms": true,
+        "allocator_fraction": 0.7
+      },
+      "start_resources": {
+        "available_host_bytes": 4537671680,
+        "scope": "tiny fixture only; actual-weight12/16GiB floors unchanged",
+        "GPU_free_bytes": 11799625728,
+        "GPU_total_bytes": 12884377600
+      },
+      "end_GPU_free_total_bytes": [
+        11610882048,
+        12884377600
+      ],
+      "peak_allocated_bytes": 74518528,
+      "peak_reserved_bytes": 94371840,
+      "head_start": "b5d8299b768564c09c541e3dfc04b3d28eef2fd6",
+      "head_end": "b5d8299b768564c09c541e3dfc04b3d28eef2fd6",
+      "native_fullweight_claim": false,
+      "checkpoint": "bf16-split/checkpoint-000001.pt",
+      "receipt_file": "bf16-split.json",
+      "receipt_sha256": "5fed23684702ac7e52a3df9a1b838ab4d145ebbc74572fce431891c829b59b73",
+      "supervisor_elapsed_seconds": 5.160096300009172,
+      "worker_exitcode": 0,
+      "timeout": false,
+      "source_start_end_match": true
+    },
+    {
+      "status": "complete",
+      "phase": "resume",
+      "precision": "bf16",
+      "checkpoint_sha256": "baf0b053d5994fca6c54495d8b2feb5fac1b28930b219f314968ae8b19309729",
+      "step": 2,
+      "live_cpu_moment_parameter_counts": [
+        12
+      ],
+      "live_cpu_optimizer_state_bytes": [
+        15664
+      ],
+      "CPU_optimizer_state_ceiling_bytes": 16777216,
+      "effective_settings_start": {
+        "float32_matmul_precision": "highest",
+        "matmul_allow_tf32": false,
+        "cudnn_allow_tf32": false,
+        "deterministic_algorithms": true,
+        "allocator_fraction": 0.7
+      },
+      "effective_settings_end": {
+        "float32_matmul_precision": "highest",
+        "matmul_allow_tf32": false,
+        "cudnn_allow_tf32": false,
+        "deterministic_algorithms": true,
+        "allocator_fraction": 0.7
+      },
+      "start_resources": {
+        "available_host_bytes": 4634771456,
+        "scope": "tiny fixture only; actual-weight12/16GiB floors unchanged",
+        "GPU_free_bytes": 11799625728,
+        "GPU_total_bytes": 12884377600
+      },
+      "end_GPU_free_total_bytes": [
+        11610882048,
+        12884377600
+      ],
+      "peak_allocated_bytes": 74545664,
+      "peak_reserved_bytes": 94371840,
+      "head_start": "b5d8299b768564c09c541e3dfc04b3d28eef2fd6",
+      "head_end": "b5d8299b768564c09c541e3dfc04b3d28eef2fd6",
+      "native_fullweight_claim": false,
+      "checkpoint": "bf16-split/checkpoint-000002.pt",
+      "receipt_file": "bf16-resume.json",
+      "receipt_sha256": "c028ffb83bc887ff8436f8f70690df20818e5faeee80a3eed5b4a48d31b49e99",
+      "supervisor_elapsed_seconds": 5.178113699977985,
+      "worker_exitcode": 0,
+      "timeout": false,
+      "source_start_end_match": true
+    },
+    {
+      "status": "complete",
+      "phase": "compare",
+      "precision": "bf16",
+      "scope": "tiny LoRA rank4 activation checkpointing",
+      "exact_comparison_elements": {
+        "model": 29024,
+        "optimizer": 3916,
+        "scheduler": 0,
+        "sampler": 0,
+        "rng": 5072,
+        "training_exposure": 0,
+        "config": 0,
+        "execution": 0,
+        "preprocessing": 0
+      },
+      "optimizer_parameter_count": 12,
+      "trainable_parameter_names": [
+        "backbone.layers.0.self_attn.q_proj.a",
+        "backbone.layers.0.self_attn.q_proj.b",
+        "backbone.layers.0.self_attn.v_proj.a",
+        "backbone.layers.0.self_attn.v_proj.b",
+        "backbone.layers.1.self_attn.q_proj.a",
+        "backbone.layers.1.self_attn.q_proj.b",
+        "backbone.layers.1.self_attn.v_proj.a",
+        "backbone.layers.1.self_attn.v_proj.b",
+        "head.q.weight",
+        "head.q.bias",
+        "head.k.weight",
+        "head.k.bias"
+      ],
+      "frozen_backbone_parameter_count": 26,
+      "frozen_model_state_count": 26,
+      "model_state_count": 38,
+      "full_manifest": {
+        "file": "checkpoint-000002.pt",
+        "format": "kev-laya-checkpoint/1",
+        "parent_sha256": "2bc8b6b21e76bc00c84ae8c3c31a759b70e4e2f14351997912c0fb4f29d22370",
+        "resumable": true,
+        "sha256": "3150e703a172b17c53fa86cf30836f4c4878c85ce8003bea29008eba00f94248",
+        "size_bytes": 177919,
+        "training_steps": 2
+      },
+      "split_manifest": {
+        "file": "checkpoint-000002.pt",
+        "format": "kev-laya-checkpoint/1",
+        "parent_sha256": "9bcdc9e2750a682c1fe9d82e34313661b32a69eb6aab09d84ed65798482388b4",
+        "resumable": true,
+        "sha256": "baf0b053d5994fca6c54495d8b2feb5fac1b28930b219f314968ae8b19309729",
+        "size_bytes": 178751,
+        "training_steps": 2
+      },
+      "split_step1_manifest": {
+        "file": "checkpoint-000001.pt",
+        "format": "kev-laya-checkpoint/1",
+        "parent_sha256": "df44414e200f37683591c64c0154ecbbda410b23a3165089e06f0b09f19a9ede",
+        "resumable": true,
+        "sha256": "9bcdc9e2750a682c1fe9d82e34313661b32a69eb6aab09d84ed65798482388b4",
+        "size_bytes": 177919,
+        "training_steps": 1
+      },
+      "head_start": "b5d8299b768564c09c541e3dfc04b3d28eef2fd6",
+      "head_end": "b5d8299b768564c09c541e3dfc04b3d28eef2fd6",
+      "native_fullweight_claim": false,
+      "receipt_file": "bf16-compare.json",
+      "receipt_sha256": "65a9dee14a5b2d5788509361cc69f8571338df07deafce98226212f7ee6c9c1d",
+      "supervisor_elapsed_seconds": 3.2711413000070024,
+      "worker_exitcode": 0,
+      "timeout": false,
+      "source_start_end_match": true
+    }
+  ],
+  "checkpoint_chains": {
+    "fp32-full": [
+      {
+        "file": "checkpoint-000001.pt",
+        "format": "kev-laya-checkpoint/1",
+        "parent_sha256": "df44414e200f37683591c64c0154ecbbda410b23a3165089e06f0b09f19a9ede",
+        "resumable": true,
+        "sha256": "76bd701c907209cea8affe262b033649843213a566ab77b1671ba19ab965e14c",
+        "size_bytes": 177919,
+        "training_steps": 1,
+        "manifest_sha256": "84199d566d644d5f51229d1da79289cca4545b645a3170bef02f53a50797a1c2"
+      },
+      {
+        "file": "checkpoint-000002.pt",
+        "format": "kev-laya-checkpoint/1",
+        "parent_sha256": "76bd701c907209cea8affe262b033649843213a566ab77b1671ba19ab965e14c",
+        "resumable": true,
+        "sha256": "32ad69fc50432444adde75ebfc2a9aaa5b93368d57e3bbdd823d7174a587cbc7",
+        "size_bytes": 177919,
+        "training_steps": 2,
+        "manifest_sha256": "f69dc4d1d0046b77664d9e346159733744eeae0a9973b410d736c80cde7eb236"
+      }
+    ],
+    "fp32-split": [
+      {
+        "file": "checkpoint-000001.pt",
+        "format": "kev-laya-checkpoint/1",
+        "parent_sha256": "df44414e200f37683591c64c0154ecbbda410b23a3165089e06f0b09f19a9ede",
+        "resumable": true,
+        "sha256": "76bc9006d5954b5e5a3b4ab044739e9d04599b9fbc73f3080813c97af600828e",
+        "size_bytes": 177919,
+        "training_steps": 1,
+        "manifest_sha256": "11b7049933531c5fc1bf98e5621a8da5c86000cc8fb05686b71d380cd24382ca"
+      },
+      {
+        "file": "checkpoint-000002.pt",
+        "format": "kev-laya-checkpoint/1",
+        "parent_sha256": "76bc9006d5954b5e5a3b4ab044739e9d04599b9fbc73f3080813c97af600828e",
+        "resumable": true,
+        "sha256": "8cf25bd55d26271b3e7d61665c6b50a998f65076199e6b9f5503da0f5725b744",
+        "size_bytes": 178751,
+        "training_steps": 2,
+        "manifest_sha256": "78ad28e4109cce9f35a4d18aa31f07e198675bc7ae1828abc3c013b43ef4d7ab"
+      }
+    ],
+    "bf16-full": [
+      {
+        "file": "checkpoint-000001.pt",
+        "format": "kev-laya-checkpoint/1",
+        "parent_sha256": "df44414e200f37683591c64c0154ecbbda410b23a3165089e06f0b09f19a9ede",
+        "resumable": true,
+        "sha256": "2bc8b6b21e76bc00c84ae8c3c31a759b70e4e2f14351997912c0fb4f29d22370",
+        "size_bytes": 177919,
+        "training_steps": 1,
+        "manifest_sha256": "2b70ab26e13bf148000e7eaf0c912c382ee30ff30ac29a0543ee363b8d3750eb"
+      },
+      {
+        "file": "checkpoint-000002.pt",
+        "format": "kev-laya-checkpoint/1",
+        "parent_sha256": "2bc8b6b21e76bc00c84ae8c3c31a759b70e4e2f14351997912c0fb4f29d22370",
+        "resumable": true,
+        "sha256": "3150e703a172b17c53fa86cf30836f4c4878c85ce8003bea29008eba00f94248",
+        "size_bytes": 177919,
+        "training_steps": 2,
+        "manifest_sha256": "d32af05e3053edddd0257fe2c907066eea51dddcd9eeac1eaa1ffffe27995122"
+      }
+    ],
+    "bf16-split": [
+      {
+        "file": "checkpoint-000001.pt",
+        "format": "kev-laya-checkpoint/1",
+        "parent_sha256": "df44414e200f37683591c64c0154ecbbda410b23a3165089e06f0b09f19a9ede",
+        "resumable": true,
+        "sha256": "9bcdc9e2750a682c1fe9d82e34313661b32a69eb6aab09d84ed65798482388b4",
+        "size_bytes": 177919,
+        "training_steps": 1,
+        "manifest_sha256": "33f878f4383f799f5d881e6597d977fd04cdbe932cf89f1c80d08191b38515ff"
+      },
+      {
+        "file": "checkpoint-000002.pt",
+        "format": "kev-laya-checkpoint/1",
+        "parent_sha256": "9bcdc9e2750a682c1fe9d82e34313661b32a69eb6aab09d84ed65798482388b4",
+        "resumable": true,
+        "sha256": "baf0b053d5994fca6c54495d8b2feb5fac1b28930b219f314968ae8b19309729",
+        "size_bytes": 178751,
+        "training_steps": 2,
+        "manifest_sha256": "dff72f3e1620f925aee25b48f8654882ae008680e8737c07cedde88f392384c0"
+      }
+    ]
+  },
+  "LoRA_rank": 4,
+  "activation_checkpointing": true,
+  "frozen_states_unchanged_asserted_in_worker": 26,
+  "LoRA_and_head_updates_asserted_in_worker": true,
+  "checkpoint_bytes_and_manifest_links_verified_CPU_readback": true,
+  "comparison_count_semantics": "Counts report tensor elements only. Zero for scheduler/sampler/exposure/config/execution/preprocessing means those recursive non-tensor fields were asserted equal; it does not mean they were omitted. Every model/optimizer element and whole training_exposure was compared exactly. Attempt identities differ legitimately; resume lineage was checked separately.",
+  "native_fullweight_claim": false,
+  "acceptance_claim": false,
+  "representative_quality_claim": false,
+  "limitations": [
+    "Four synthetic byte-tokenizer rows and a tiny LoRA rank4 architecture with activation checkpointing; no pretrained/native fullweight inference.",
+    "Primitive8 proof was reused from the prior integrated v4 run; no new primitive run occurred. Earlier external candidate primitive8 remains separate.",
+    "Actual-weight step/save/exit/resume/reload and captured-gradient stock optimizer oracle remain pending under their separate16GiB available-host gate.",
+    "Short fixture optimizer/resume equivalence does not establish independent native derivative parity, exact-limit context, representative quality, Jev benefit or issue closure.",
+    "Portable receipt omits local absolute paths; private raw receipts are identified by SHA256."
+  ]
+}
