@@ -14,6 +14,7 @@ from torch.nn import functional as F
 
 
 DERIVATIVE_VERSION = "cuda-bf16-canonical-v3"
+FP32_DERIVATIVE_VERSION = "cuda-fp32-canonical-v10"
 ATTENTION_QUERY_TILE = 64
 
 
@@ -68,6 +69,86 @@ class CanonicalLongSDPA(torch.autograd.Function):
         dq, dk, dv = causal_vjp(query, key, value, upstream,
                                split_at=ctx.split_at)
         return dq.to(query.dtype), dk.to(key.dtype), dv.to(value.dtype), None, None, None
+
+
+class CanonicalFP32ShortAttention(torch.autograd.Function):
+    """Preserve eager FP32 forward with double shared K/V accumulation.
+
+    Double K/V cache remains the shared accumulation boundary. The local
+    query derivative retains the rounded reference operation order.
+    """
+
+    @staticmethod
+    def _eager(query: Tensor, key: Tensor, value: Tensor) -> Tensor:
+        length, total = query.shape[-2], key.shape[-2]
+        if not (1 <= length <= total <= 256) or key.shape != value.shape:
+            raise ValueError("short FP32 attention requires 1..256 causal positions")
+        # Place every real query at its absolute position in one fixed 256x256
+        # GEMM. Cached q[255] and full-row q[255] then use the same row/shape.
+        start = total - length
+        padded_query = F.pad(query, (0, 0, start, 256 - total))
+        padded_key = F.pad(key, (0, 0, 0, 256 - total))
+        padded_value = F.pad(value, (0, 0, 0, 256 - total))
+        scale = query.shape[-1] ** -0.5
+        scores = torch.matmul(padded_query, padded_key.transpose(-2, -1)) * scale
+        allowed = torch.ones((256, 256), device=query.device, dtype=torch.bool).tril()
+        scores = scores.masked_fill(~allowed, torch.finfo(scores.dtype).min)
+        probabilities = F.softmax(scores, dim=-1, dtype=torch.float32).to(query.dtype)
+        output = torch.matmul(probabilities, padded_value)
+        return output[..., start:start + length, :]
+
+    @staticmethod
+    def forward(ctx, query: Tensor, key: Tensor, value: Tensor, ratio: int):
+        # Round each grouped KV head before repeating it, as in the pinned
+        # eager FP32 graph. `key` and `value` remain double cache parents.
+        if ratio < 1 or query.shape[1] != key.shape[1] * ratio or key.shape != value.shape:
+            raise ValueError("invalid grouped KV short attention shape")
+        ctx.save_for_backward(query, key, value)
+        ctx.ratio = ratio
+        return CanonicalFP32ShortAttention._eager(
+            query, key.to(query.dtype).repeat_interleave(ratio, dim=1),
+            value.to(query.dtype).repeat_interleave(ratio, dim=1))
+
+    @staticmethod
+    def backward(ctx, upstream: Tensor):
+        query, key, value = ctx.saved_tensors
+        length, total = query.shape[-2], key.shape[-2]
+        start = total - length
+        ratio = ctx.ratio
+        # Recompute the exact rounded FP32 score/softmax graph. Its local
+        # query and score VJPs retain the pinned eager operator's cast points.
+        with torch.enable_grad():
+            q = query.detach().requires_grad_(True)
+            k = key.detach().to(query.dtype).repeat_interleave(ratio, dim=1)
+            v = value.detach().to(query.dtype).repeat_interleave(ratio, dim=1)
+            padded_q = F.pad(q, (0, 0, start, 256 - total))
+            padded_k = F.pad(k, (0, 0, 0, 256 - total))
+            padded_v = F.pad(v, (0, 0, 0, 256 - total))
+            scores = torch.matmul(padded_q, padded_k.transpose(-2, -1)) * (
+                query.shape[-1] ** -0.5)
+            allowed = torch.ones((256, 256), device=query.device, dtype=torch.bool).tril()
+            probabilities = F.softmax(
+                scores.masked_fill(~allowed, torch.finfo(scores.dtype).min),
+                dim=-1, dtype=torch.float32).to(query.dtype)
+            output = torch.matmul(probabilities, padded_v)[..., start:start + length, :]
+            dq, ds = torch.autograd.grad(output, (q, scores), upstream)
+
+        # The rounded FP32 score VJP is the derivative of the actual forward.
+        # Products and query-row sums into shared K/V use double so that
+        # prefix/suffix and full-row gradients have one accumulation precision.
+        padded_upstream = F.pad(upstream, (0, 0, start, 256 - total))
+        per_head_k = (ds.double().transpose(-2, -1) @ padded_q.detach().double()) * (
+            query.shape[-1] ** -0.5)
+        per_head_v = probabilities.detach().double().transpose(-2, -1) @ (
+            padded_upstream.double())
+        batch, heads, _, width = per_head_k.shape
+        groups = heads // ratio
+        # Group repeated heads and accumulate their shared K/V contribution
+        # in double before the single cache-parent cast. Full and cached
+        # requests therefore have the same summation precision.
+        dk = per_head_k.reshape(batch, groups, ratio, 256, width).sum(dim=2)[..., :total, :]
+        dv = per_head_v.reshape(batch, groups, ratio, 256, width).sum(dim=2)[..., :total, :]
+        return dq.to(query.dtype), dk.to(key.dtype), dv.to(value.dtype), None
 
 
 class CanonicalShortAttention(torch.autograd.Function):
@@ -162,11 +243,12 @@ class CanonicalLoRAProjection(torch.autograd.Function):
                 a: Tensor, b: Tensor, scale: float):
         rows = x.reshape(-1, x.shape[-1])
         outputs, inners = [], []
-        for start in range(0, rows.shape[0], 1024):
-            tile = rows[start:start + 1024]
+        tile_rows = 1024 if torch.is_autocast_enabled("cuda") else 64
+        for start in range(0, rows.shape[0], tile_rows):
+            tile = rows[start:start + tile_rows]
             count = tile.shape[0]
-            if count < 1024:
-                tile = F.pad(tile, (0, 0, 0, 1024 - count))
+            if count < tile_rows:
+                tile = F.pad(tile, (0, 0, 0, tile_rows - count))
             inner = F.linear(tile, a)
             projected = F.linear(tile, weight, bias) + F.linear(inner, b) * scale
             outputs.append(projected[:count])
@@ -179,8 +261,9 @@ class CanonicalLoRAProjection(torch.autograd.Function):
     def backward(ctx, upstream: Tensor):
         x, weight, a, b, inner = ctx.saved_tensors
         g = upstream.reshape(-1, upstream.shape[-1]).double()
-        x_eff = x.reshape(-1, x.shape[-1]).to(torch.bfloat16).double()
-        w_eff, a_eff, b_eff = (item.to(torch.bfloat16).double()
+        calculation_dtype = inner.dtype
+        x_eff = x.reshape(-1, x.shape[-1]).to(calculation_dtype).double()
+        w_eff, a_eff, b_eff = (item.to(calculation_dtype).double()
                               for item in (weight, a, b))
         grad_inner = (g @ b_eff) * ctx.scale
         grad_x = g @ w_eff + grad_inner @ a_eff

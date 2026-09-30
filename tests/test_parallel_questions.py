@@ -7,6 +7,7 @@ import copy
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 import json
+import weakref
 from pathlib import Path
 
 import pytest
@@ -23,6 +24,53 @@ from kev_laya.schema import SystemOneRequest
 from kev_laya.service import InferenceRuntime, ServeSettings, create_app
 from kev_laya.telemetry_contract import validate_snapshot
 from kev_laya.training import TrainSettings, train
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason='CUDA required for BF16 branch graph lifetime')
+def test_bf16_branch_activations_released_before_optimizer(tmp_path, suite, monkeypatch):
+    if not torch.cuda.is_bf16_supported():
+        pytest.skip('GPU does not support BF16')
+    saved = []
+
+    class Branch(torch.autograd.Function):
+        @staticmethod
+        def forward(ctx, value, count):
+            activation = value.new_ones(4096)
+            saved.append(weakref.ref(activation))
+            ctx.save_for_backward(activation)
+            return value.expand(count).clone()
+
+        @staticmethod
+        def backward(ctx, upstream):
+            activation, = ctx.saved_tensors
+            return upstream.sum() * activation[0], None
+
+    model = make_model(lora=2, policy=BatchPolicy(max_branches=2)).cuda()
+    original_forward = model.forward
+
+    def forward(encoded):
+        with torch.no_grad():
+            _, usage = original_forward(encoded)
+        shared = sum(parameter.sum() for parameter in model.parameters() if parameter.requires_grad)
+        logits = [Branch.apply(shared, len(branch.question.options())) for branch in encoded.branches]
+        return logits, usage
+
+    monkeypatch.setattr(model, 'forward', forward)
+    original_step = torch.optim.AdamW.step
+    checked = []
+
+    def step(optimizer, *args, **kwargs):
+        assert len(saved) >= 2
+        assert all(reference() is None for reference in saved)
+        checked.append(True)
+        return original_step(optimizer, *args, **kwargs)
+
+    monkeypatch.setattr(torch.optim.AdamW, 'step', step)
+    data, manifest = suite
+    result = train(model, ByteTokenizer(), data['train'], manifest, tmp_path / 'graph-release',
+                   TrainSettings(steps=1, precision='bf16'), ObjectiveConfig(), Limits(512, 8192))
+    assert checked == [True]
+    assert result['state']['step'] == 1
 
 
 def request(count=7):
@@ -414,6 +462,82 @@ def test_cuda_fixture_fp32_parallel_and_gradients():
         torch.backends.cuda.matmul.allow_tf32=old
 
 
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason='CUDA hardware unavailable; native cache unverified')
+@pytest.mark.parametrize('precision', ['fp32', 'bf16', 'native_bf16', 'native_fp16'])
+def test_cuda_training_cache_plan_matches_double_prefix_and_rejects_before_forward(precision):
+    if precision in ('bf16', 'native_bf16') and not torch.cuda.is_bf16_supported():
+        pytest.skip('GPU does not support BF16')
+    encoded = encode(request(2))
+    model = make_model(lora=2, checkpointing=True,
+                       policy=BatchPolicy(max_branches=2)).cuda().train()
+    if precision == 'native_bf16':
+        model = model.to(torch.bfloat16)
+    elif precision == 'native_fp16':
+        model = model.to(torch.float16)
+    enabled = precision == 'bf16'
+    cache_element_size = 8 if precision != 'native_fp16' else 2
+    cfg = model.cfg
+    kv_rate = 2 * cfg.num_hidden_layers * cfg.num_key_value_heads * (
+        cfg.hidden_size // cfg.num_attention_heads) * cache_element_size
+    gqa_rate = 2 * cfg.num_hidden_layers * cfg.hidden_size * cache_element_size
+    expected = plan_batches(encoded, model.batch_policy,
+                            kv_bytes_per_token=kv_rate, gqa_bytes_per_token=gqa_rate)
+    with torch.autocast('cuda', dtype=torch.bfloat16, enabled=enabled):
+        logits, usage = model(encoded)
+    assert len(logits) == len(encoded.branches)
+    assert usage['prefix_cache_bytes'] == len(encoded.state) * kv_rate
+    assert usage['estimated_peak_cache_bytes'] == max(batch.estimated_cache_bytes for batch in expected)
+    with torch.no_grad(), torch.autocast('cuda', dtype=torch.bfloat16, enabled=enabled):
+        _, prepass_usage = model(encoded, _training_cache_plan=True)
+    assert prepass_usage['estimated_peak_cache_bytes'] == usage['estimated_peak_cache_bytes']
+    singletons = plan_batches(encoded, BatchPolicy(max_branches=1),
+                              kv_bytes_per_token=kv_rate, gqa_bytes_per_token=gqa_rate)
+    tight_limit = min(batch.estimated_cache_bytes for batch in singletons) - 1
+    restricted = BatchPolicy(max_branches=2, max_cache_bytes=tight_limit)
+    calls, handle = spy_backbone(model)
+    try:
+        with torch.autocast('cuda', dtype=torch.bfloat16, enabled=enabled):
+            with pytest.raises(BatchBudgetExceeded) as failure:
+                model(encoded, policy=restricted)
+        assert failure.value.detail['limit'] == 'cache_bytes'
+        assert calls == []
+    finally:
+        handle.remove()
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason='CUDA device unavailable')
+def test_fp32_medium_cache_budget_accounts_observed_double_gqa(monkeypatch):
+    from kev_laya.native_gradients import CanonicalLongSDPA
+    payload = request(2)
+    payload['state'] = {'text': 'x' * 300}
+    encoded = encode(payload)
+    assert 256 < len(encoded.state) < 8192
+    model = make_model(lora=2, checkpointing=False,
+                       policy=BatchPolicy(max_branches=2)).cuda().train()
+    original = CanonicalLongSDPA.forward
+    observations = []
+
+    def observe(ctx, query, key, value, *args):
+        observations.append((key.dtype, value.dtype, key.shape[1],
+                             key.element_size(), value.element_size()))
+        return original(ctx, query, key, value, *args)
+
+    monkeypatch.setattr(CanonicalLongSDPA, 'forward', staticmethod(observe))
+    _, usage = model(encoded)
+    assert observations
+    assert all(kdtype == vdtype == torch.float64 and heads == model.cfg.num_attention_heads
+               and kbytes == vbytes == 8
+               for kdtype, vdtype, heads, kbytes, vbytes in observations)
+    cfg = model.cfg
+    kv_rate = 2 * cfg.num_hidden_layers * cfg.num_key_value_heads * (
+        cfg.hidden_size // cfg.num_attention_heads) * observations[0][3]
+    gqa_rate = 2 * cfg.num_hidden_layers * cfg.hidden_size * observations[0][3]
+    expected = plan_batches(encoded, model.batch_policy,
+                            kv_bytes_per_token=kv_rate, gqa_bytes_per_token=gqa_rate)
+    assert usage['prefix_cache_bytes'] == len(encoded.state) * kv_rate
+    assert usage['estimated_peak_cache_bytes'] == max(batch.estimated_cache_bytes for batch in expected)
+
+
 @pytest.mark.skipif(not torch.cuda.is_available(),reason='CUDA hardware unavailable; BF16 training unverified')
 def test_cuda_fixture_bf16_training(tmp_path,suite):
     if not torch.cuda.is_bf16_supported():pytest.skip('GPU does not support BF16')
@@ -584,18 +708,30 @@ def test_cuda_bf16_streamed_resume_matches_uninterrupted_with_accumulation(tmp_p
         torch.testing.assert_close(value,resumed.state_dict()[name],atol=0,rtol=0)
 
 
-@pytest.mark.skipif(not torch.cuda.is_available(),reason='CUDA hardware unavailable; BF16 resume unverified')
-def test_cuda_bf16_resume_rejects_derivative_version_change(tmp_path,suite,monkeypatch):
-    if not torch.cuda.is_bf16_supported():pytest.skip('GPU does not support BF16')
+@pytest.mark.skipif(not torch.cuda.is_available(),reason='CUDA hardware unavailable; precision resume unverified')
+@pytest.mark.parametrize('precision,version_field',[
+    ('fp32','FP32_DERIVATIVE_VERSION'),
+    ('bf16','DERIVATIVE_VERSION'),
+    ('fp32','CUDA_FP32_ATTENTION_OPERATOR_VERSION'),
+    ('fp32','CUDA_TRAINING_CACHE_PLAN_VERSION'),
+    ('bf16','CUDA_TRAINING_CACHE_PLAN_VERSION'),
+])
+def test_cuda_resume_rejects_derivative_version_change(tmp_path,suite,monkeypatch,precision,version_field):
+    if precision=='bf16' and not torch.cuda.is_bf16_supported():pytest.skip('GPU does not support BF16')
     model=make_model(lora=2,checkpointing=True,policy=BatchPolicy(max_branches=2)).cuda()
     data,manifest=suite
-    settings=TrainSettings(steps=2,precision='bf16')
+    settings=TrainSettings(steps=2,precision=precision)
     root=tmp_path/'bf16-version'
     first=train(model,ByteTokenizer(),data['train'],manifest,root,settings,
                 ObjectiveConfig(reinforce=.1),Limits(512,8192),stop_after=1)
     restored,tokenizer,_=load_checkpoint(Path(first['checkpoint']),'cuda:0')
     import kev_laya.training as training_module
-    monkeypatch.setattr(training_module,'DERIVATIVE_VERSION','unreviewed-derivative')
+    if version_field in ('DERIVATIVE_VERSION','FP32_DERIVATIVE_VERSION'):
+        assert first['state']['derivative_version']==getattr(training_module,version_field)
+    if version_field=='CUDA_TRAINING_CACHE_PLAN_VERSION':
+        config=json.loads((root/'config.json').read_text(encoding='utf-8'))
+        assert config['cache_plan_version']==getattr(training_module,version_field)
+    monkeypatch.setattr(training_module,version_field,'unreviewed-derivative')
     with pytest.raises(ValueError,match='resume configuration or frozen data differs'):
         train(restored,tokenizer,data['train'],manifest,root,settings,
               ObjectiveConfig(reinforce=.1),Limits(512,8192),

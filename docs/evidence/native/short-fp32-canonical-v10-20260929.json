@@ -1,0 +1,677 @@
+{
+  "evidence_class": "pinned-actual-weight-short-fp32-canonical-v10-numerical-repair",
+  "source_parent": "e4822909680080bc300371782f6b439ff26fc8a8",
+  "source_worktree_dirty": true,
+  "source_file_sha256": {
+    "src/kev_laya/model.py": "794c9a648d5f40cb461a9631204a5146d2791eea663eeae4abccdad8cf926898",
+    "src/kev_laya/native_gradients.py": "5c8f5b8876e04642d093b9878d3020b4e40438345540966cc1204cc81a820c4f",
+    "src/kev_laya/training.py": "0bdc29c53a98d9b5d54145c871d14ff24c0f2cee8c28a1e117d6930ab1210cde",
+    "src/kev_laya/execution.py": "41d7eaa6b3bf33c6e59c30fd2b36c7e086b29116179109a75dcbdc7d24d1756a"
+  },
+  "checkpoint_sha256": "99f797ffd0521adbee964d130d73eb381c9b6bd3b7896ce61b5007886d19ccf9",
+  "precision": "fp32",
+  "device": "NVIDIA GeForce RTX 3060",
+  "torch_version": "2.10.0+cu128",
+  "transformers_version": "4.57.1",
+  "cuda_allocator_fraction": 0.7,
+  "tf32": false,
+  "derivative_version": "cuda-fp32-canonical-v10",
+  "attention_operator_version": "cuda-fp32-absolute-query-bands-fixed256-cpurope-v3",
+  "cache_plan_version": "cuda-double-kv-gqa-storage-v2",
+  "tolerances": {
+    "hidden_atol_and_rtol": 0.0001,
+    "logits_and_probabilities_atol_and_rtol": 1e-05,
+    "gradients_atol_and_rtol": 2e-05
+  },
+  "hf_oracle": {
+    "private_receipt_sha256": "db4a3b968ad3bab6aa5343d4b2c9a2696d864435573e868cb6b25485e93dfc7c",
+    "protocol_script_sha256": "bc69046d9a30bae20ef124dccbf7534675afa8e1b7297fed83825ec8ed744f26",
+    "tokens": 62,
+    "gradient_count": 96,
+    "all_gradients_passed": true,
+    "hidden": {
+      "max_absolute": 0.0,
+      "max_tolerance_ratio": 0.0,
+      "passed": true
+    },
+    "worst_gradient_tolerance_ratio": 0.7061729431152344
+  },
+  "seam_cases": [
+    {
+      "case": "short_full",
+      "private_receipt_sha256": "eefb9d93594c6a1cd1040cd386644b58dca7947c5123d9fc884c86e017ff281c",
+      "protocol_script_sha256": "d280f74c4b7879cab48d114a84ba229a86a31ae1f0de223e908a4d093e46848a",
+      "state_tokens": 200,
+      "branch_tokens": [
+        256,
+        252
+      ],
+      "comparisons": {
+        "batched_full": {
+          "failed_gradient_count": 0,
+          "failed_gradients": {},
+          "gradient_count": 100,
+          "logits": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "passed": true,
+          "probabilities": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient": {
+            "max_absolute": 1.9073486328125e-06,
+            "max_tolerance_ratio": 0.009706847369670868,
+            "passed": true
+          },
+          "worst_gradient_name": "backbone.layers.0.self_attn.v_proj.b"
+        },
+        "batched_serial": {
+          "failed_gradient_count": 0,
+          "failed_gradients": {},
+          "gradient_count": 100,
+          "logits": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "passed": true,
+          "probabilities": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient_name": "backbone.layers.0.self_attn.q_proj.a"
+        },
+        "serial_full": {
+          "failed_gradient_count": 0,
+          "failed_gradients": {},
+          "gradient_count": 100,
+          "logits": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "passed": true,
+          "probabilities": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient": {
+            "max_absolute": 1.9073486328125e-06,
+            "max_tolerance_ratio": 0.009706847369670868,
+            "passed": true
+          },
+          "worst_gradient_name": "backbone.layers.0.self_attn.v_proj.b"
+        }
+      }
+    },
+    {
+      "case": "short_medium_255",
+      "private_receipt_sha256": "ce1862a58a509e501789831ac4c0d16de5cb2f7bd9fe56591b87d682d15d9b0e",
+      "protocol_script_sha256": "d280f74c4b7879cab48d114a84ba229a86a31ae1f0de223e908a4d093e46848a",
+      "state_tokens": 255,
+      "branch_tokens": [
+        311,
+        307
+      ],
+      "comparisons": {
+        "batched_full": {
+          "failed_gradient_count": 0,
+          "failed_gradients": {},
+          "gradient_count": 100,
+          "logits": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "passed": true,
+          "probabilities": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient": {
+            "max_absolute": 1.9073486328125e-06,
+            "max_tolerance_ratio": 0.014025088399648666,
+            "passed": true
+          },
+          "worst_gradient_name": "backbone.layers.0.self_attn.v_proj.b"
+        },
+        "batched_serial": {
+          "failed_gradient_count": 0,
+          "failed_gradients": {},
+          "gradient_count": 100,
+          "logits": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "passed": true,
+          "probabilities": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient_name": "backbone.layers.0.self_attn.q_proj.a"
+        },
+        "serial_full": {
+          "failed_gradient_count": 0,
+          "failed_gradients": {},
+          "gradient_count": 100,
+          "logits": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "passed": true,
+          "probabilities": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient": {
+            "max_absolute": 1.9073486328125e-06,
+            "max_tolerance_ratio": 0.014025088399648666,
+            "passed": true
+          },
+          "worst_gradient_name": "backbone.layers.0.self_attn.v_proj.b"
+        }
+      }
+    },
+    {
+      "case": "short_medium_256",
+      "private_receipt_sha256": "9d177db52bfd6fafbee4812b0f197e0d61812a7bf8af5c5a405fd8a2aedbe74d",
+      "protocol_script_sha256": "d280f74c4b7879cab48d114a84ba229a86a31ae1f0de223e908a4d093e46848a",
+      "state_tokens": 256,
+      "branch_tokens": [
+        312,
+        308
+      ],
+      "comparisons": {
+        "batched_full": {
+          "failed_gradient_count": 0,
+          "failed_gradients": {},
+          "gradient_count": 100,
+          "logits": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "passed": true,
+          "probabilities": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient": {
+            "max_absolute": 1.9073486328125e-06,
+            "max_tolerance_ratio": 0.012803155928850174,
+            "passed": true
+          },
+          "worst_gradient_name": "backbone.layers.0.self_attn.v_proj.b"
+        },
+        "batched_serial": {
+          "failed_gradient_count": 0,
+          "failed_gradients": {},
+          "gradient_count": 100,
+          "logits": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "passed": true,
+          "probabilities": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient_name": "backbone.layers.0.self_attn.q_proj.a"
+        },
+        "serial_full": {
+          "failed_gradient_count": 0,
+          "failed_gradients": {},
+          "gradient_count": 100,
+          "logits": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "passed": true,
+          "probabilities": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient": {
+            "max_absolute": 1.9073486328125e-06,
+            "max_tolerance_ratio": 0.012803155928850174,
+            "passed": true
+          },
+          "worst_gradient_name": "backbone.layers.0.self_attn.v_proj.b"
+        }
+      }
+    },
+    {
+      "case": "medium_257",
+      "private_receipt_sha256": "ba227aa181bb4d770c96843b962a108fe19ecea01c5b30f095ecf02de55a2d98",
+      "protocol_script_sha256": "d280f74c4b7879cab48d114a84ba229a86a31ae1f0de223e908a4d093e46848a",
+      "state_tokens": 257,
+      "branch_tokens": [
+        313,
+        309
+      ],
+      "comparisons": {
+        "batched_full": {
+          "failed_gradient_count": 0,
+          "failed_gradients": {},
+          "gradient_count": 100,
+          "logits": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "passed": true,
+          "probabilities": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient": {
+            "max_absolute": 1.9073486328125e-06,
+            "max_tolerance_ratio": 0.022406483069062233,
+            "passed": true
+          },
+          "worst_gradient_name": "backbone.layers.0.self_attn.v_proj.b"
+        },
+        "batched_serial": {
+          "failed_gradient_count": 0,
+          "failed_gradients": {},
+          "gradient_count": 100,
+          "logits": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "passed": true,
+          "probabilities": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient_name": "backbone.layers.0.self_attn.q_proj.a"
+        },
+        "serial_full": {
+          "failed_gradient_count": 0,
+          "failed_gradients": {},
+          "gradient_count": 100,
+          "logits": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "passed": true,
+          "probabilities": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient": {
+            "max_absolute": 1.9073486328125e-06,
+            "max_tolerance_ratio": 0.022406483069062233,
+            "passed": true
+          },
+          "worst_gradient_name": "backbone.layers.0.self_attn.v_proj.b"
+        }
+      }
+    }
+  ],
+  "scope": "Generated numerical probes on a pinned two-step checkpoint, including 8191/8192 state-prefix boundaries and 10520-token state. Not representative quality, current-source optimizer/resume or serving qualification, exact-limit resource qualification, or issue closure.",
+  "boundary_and_long_cases": [
+    {
+      "case": "boundary_8191",
+      "private_receipt_sha256": "64883f3358e6e15be074ed6bfd69db81b6803fafe8678848bafb60f086ac2794",
+      "protocol_script_sha256": "3ea5c5c86d6f8e1cb1e735726c462a1f1c32876a516c0df9613dea32d60413c4",
+      "checkpoint_sha256": "99f797ffd0521adbee964d130d73eb381c9b6bd3b7896ce61b5007886d19ccf9",
+      "source": {
+        "commit": "e4822909680080bc300371782f6b439ff26fc8a8",
+        "diff_sha256": "0892caf43486ba068a8171daa1bc8971e7da4e323c2c3b0690c085741401eb3f",
+        "model_sha256": "794c9a648d5f40cb461a9631204a5146d2791eea663eeae4abccdad8cf926898",
+        "native_gradients_sha256": "5c8f5b8876e04642d093b9878d3020b4e40438345540966cc1204cc81a820c4f"
+      },
+      "state_tokens": 8191,
+      "branch_tokens": [
+        8247,
+        8243
+      ],
+      "comparisons": {
+        "batched_full": {
+          "failed_gradient_count": 0,
+          "failed_gradients": {},
+          "gradient_count": 100,
+          "logits": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "passed": true,
+          "probabilities": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient": {
+            "max_absolute": 3.0517578125e-05,
+            "max_tolerance_ratio": 0.02111618034541607,
+            "passed": true
+          },
+          "worst_gradient_name": "backbone.layers.0.self_attn.v_proj.b"
+        },
+        "batched_serial": {
+          "failed_gradient_count": 0,
+          "failed_gradients": {},
+          "gradient_count": 100,
+          "logits": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "passed": true,
+          "probabilities": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient_name": "backbone.layers.0.self_attn.q_proj.a"
+        },
+        "serial_full": {
+          "failed_gradient_count": 0,
+          "failed_gradients": {},
+          "gradient_count": 100,
+          "logits": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "passed": true,
+          "probabilities": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient": {
+            "max_absolute": 3.0517578125e-05,
+            "max_tolerance_ratio": 0.02111618034541607,
+            "passed": true
+          },
+          "worst_gradient_name": "backbone.layers.0.self_attn.v_proj.b"
+        }
+      },
+      "runs": {
+        "batched": {
+          "elapsed_seconds": 203.7953961000021,
+          "peak_allocated_bytes": 4398753280
+        },
+        "full": {
+          "elapsed_seconds": 199.58722319998196,
+          "peak_allocated_bytes": 4428107264
+        },
+        "serial": {
+          "elapsed_seconds": 192.29716380001628,
+          "peak_allocated_bytes": 4398180352
+        }
+      },
+      "scope": "Generated two-question actual-weight native numerical parity only; no optimizer update, resume, serving or representative quality claim."
+    },
+    {
+      "case": "boundary_8192",
+      "private_receipt_sha256": "fdd4db8617e94a04e1b8aca26866368963b0f677a1db01f50dab024b7c6be68d",
+      "protocol_script_sha256": "3ea5c5c86d6f8e1cb1e735726c462a1f1c32876a516c0df9613dea32d60413c4",
+      "checkpoint_sha256": "99f797ffd0521adbee964d130d73eb381c9b6bd3b7896ce61b5007886d19ccf9",
+      "source": {
+        "commit": "e4822909680080bc300371782f6b439ff26fc8a8",
+        "diff_sha256": "0892caf43486ba068a8171daa1bc8971e7da4e323c2c3b0690c085741401eb3f",
+        "model_sha256": "794c9a648d5f40cb461a9631204a5146d2791eea663eeae4abccdad8cf926898",
+        "native_gradients_sha256": "5c8f5b8876e04642d093b9878d3020b4e40438345540966cc1204cc81a820c4f"
+      },
+      "state_tokens": 8192,
+      "branch_tokens": [
+        8248,
+        8244
+      ],
+      "comparisons": {
+        "batched_full": {
+          "failed_gradient_count": 0,
+          "failed_gradients": {},
+          "gradient_count": 100,
+          "logits": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "passed": true,
+          "probabilities": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient": {
+            "max_absolute": 3.0517578125e-05,
+            "max_tolerance_ratio": 0.010387285612523556,
+            "passed": true
+          },
+          "worst_gradient_name": "backbone.layers.0.self_attn.v_proj.b"
+        },
+        "batched_serial": {
+          "failed_gradient_count": 0,
+          "failed_gradients": {},
+          "gradient_count": 100,
+          "logits": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "passed": true,
+          "probabilities": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient_name": "backbone.layers.0.self_attn.q_proj.a"
+        },
+        "serial_full": {
+          "failed_gradient_count": 0,
+          "failed_gradients": {},
+          "gradient_count": 100,
+          "logits": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "passed": true,
+          "probabilities": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient": {
+            "max_absolute": 3.0517578125e-05,
+            "max_tolerance_ratio": 0.010387285612523556,
+            "passed": true
+          },
+          "worst_gradient_name": "backbone.layers.0.self_attn.v_proj.b"
+        }
+      },
+      "runs": {
+        "batched": {
+          "elapsed_seconds": 198.8323976000247,
+          "peak_allocated_bytes": 4399217152
+        },
+        "full": {
+          "elapsed_seconds": 191.71707380001317,
+          "peak_allocated_bytes": 4428767232
+        },
+        "serial": {
+          "elapsed_seconds": 187.30125089999638,
+          "peak_allocated_bytes": 4400606720
+        }
+      },
+      "scope": "Generated two-question actual-weight native numerical parity only; no optimizer update, resume, serving or representative quality claim."
+    },
+    {
+      "case": "long_10520",
+      "private_receipt_sha256": "a38130488e8edfdcedb63d682ee3cf8b695586cc9b75937baa25819464af35e2",
+      "protocol_script_sha256": "d4091a2a2a8f9b42be93e8a87d8a8451aa187afa2ef3ba48aade1efc93c2d6d2",
+      "checkpoint_sha256": "99f797ffd0521adbee964d130d73eb381c9b6bd3b7896ce61b5007886d19ccf9",
+      "source": {
+        "commit": "e4822909680080bc300371782f6b439ff26fc8a8",
+        "diff_sha256": "0892caf43486ba068a8171daa1bc8971e7da4e323c2c3b0690c085741401eb3f"
+      },
+      "state_tokens": 10520,
+      "branch_tokens": [
+        10576,
+        10572
+      ],
+      "comparisons": {
+        "batched_full": {
+          "failed_gradient_count": 0,
+          "failed_gradients": {},
+          "gradient_count": 100,
+          "logits": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "passed": true,
+          "probabilities": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient": {
+            "max_absolute": 1.52587890625e-05,
+            "max_tolerance_ratio": 0.044013213366270065,
+            "passed": true
+          },
+          "worst_gradient_name": "backbone.layers.0.self_attn.v_proj.b"
+        },
+        "batched_serial": {
+          "failed_gradient_count": 0,
+          "failed_gradients": {},
+          "gradient_count": 100,
+          "logits": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "passed": true,
+          "probabilities": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient_name": "backbone.layers.0.self_attn.q_proj.a"
+        },
+        "serial_full": {
+          "failed_gradient_count": 0,
+          "failed_gradients": {},
+          "gradient_count": 100,
+          "logits": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "passed": true,
+          "probabilities": {
+            "max_absolute": 0.0,
+            "max_tolerance_ratio": 0.0,
+            "passed": true
+          },
+          "worst_gradient": {
+            "max_absolute": 1.52587890625e-05,
+            "max_tolerance_ratio": 0.044013213366270065,
+            "passed": true
+          },
+          "worst_gradient_name": "backbone.layers.0.self_attn.v_proj.b"
+        }
+      },
+      "runs": {
+        "batched": {
+          "elapsed_seconds": 296.1061069999996,
+          "peak_allocated_bytes": 4900734976
+        },
+        "full": {
+          "elapsed_seconds": 333.6611523999891,
+          "peak_allocated_bytes": 4899299328
+        },
+        "serial": {
+          "elapsed_seconds": 306.1350345000101,
+          "peak_allocated_bytes": 4901821440
+        }
+      },
+      "scope": "Generated two-question actual-weight native numerical parity only; no optimizer update, resume, serving or representative quality claim."
+    }
+  ],
+  "exact_limit_resource_failure": {
+    "private_receipt_sha256": "13d981534818bbb84cfc97e94b6ebac4cb00210b4399570436f3ba590b460f42",
+    "protocol_script_sha256": "e2c76bb41cae1b4c6002cb542f568f9c3598394026c4d5aa7f3916d21f296026",
+    "checkpoint_sha256": "99f797ffd0521adbee964d130d73eb381c9b6bd3b7896ce61b5007886d19ccf9",
+    "source": {
+      "commit": "e4822909680080bc300371782f6b439ff26fc8a8",
+      "diff_sha256": "0892caf43486ba068a8171daa1bc8971e7da4e323c2c3b0690c085741401eb3f",
+      "model_sha256": "794c9a648d5f40cb461a9631204a5146d2791eea663eeae4abccdad8cf926898",
+      "native_gradients_sha256": "5c8f5b8876e04642d093b9878d3020b4e40438345540966cc1204cc81a820c4f",
+      "training_sha256": "0bdc29c53a98d9b5d54145c871d14ff24c0f2cee8c28a1e117d6930ab1210cde"
+    },
+    "precision": "fp32",
+    "cuda_allocator_fraction": 0.7,
+    "max_branch_tokens": 32768,
+    "aggregate_tokens": 65536,
+    "passed_resource_probe": false,
+    "stage": "forward",
+    "error_type": "OutOfMemoryError",
+    "worker_elapsed_seconds": 148.09840970000369,
+    "peak_allocated_bytes": 8382291968,
+    "peak_reserved_bytes": 9017753600,
+    "scope": "Exact-limit training resource-only probe exhausted allocator cap during forward. Backward did not run. No inference numerical acceptance or quality claim."
+  }
+}

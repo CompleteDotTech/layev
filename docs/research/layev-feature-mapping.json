@@ -459,8 +459,8 @@
       "type_safe_primary_source": "https://docs.typesafe.ai/introduction",
       "classification": "comparison_feature",
       "implemented": "source_present",
-      "tested": "CPU suite 857 passed on 2026-09-29; actual-weight two-question 10k BF16 batched/serial/full numerical gate passed",
-      "native_validated": "partial; actual-weight two-question 10k BF16 outputs and 100 gradients passed; full native matrix remains open",
+      "tested": "CPU suite 858 passed on 2026-09-29; 98 affected CUDA tests and five resume-version cases passed; actual-weight v10 FP32 short HF adapter and four cached/batched/full seam gates passed",
+      "native_validated": "partial; prior two-question 10k BF16 numerical receipt retained; v10 short FP32 HF 96-adapter and four 100-gradient seam gates plus fresh 8191/8192 and 10520-token state numerical gates passed; not complete issue 3",
       "quality_measured": "unknown",
       "Jev_compared": "unknown",
       "Layev_source_paths": [
@@ -471,7 +471,8 @@
         "tests/test_parallel_questions.py"
       ],
       "evidence_paths": [
-        "docs/evidence/native/long-bf16-gradient-10k-20260929.json"
+        "docs/evidence/native/long-bf16-gradient-10k-20260929.json",
+        "docs/evidence/native/short-fp32-canonical-v10-20260929.json"
       ],
       "issues": [
         "https://github.com/CompleteDotTech/layev/issues/9",
@@ -512,8 +513,8 @@
       "type_safe_primary_source": "https://docs.typesafe.ai/models",
       "classification": "comparison_feature",
       "implemented": "source_present",
-      "tested": "CPU suite 857 passed on 2026-09-29; actual-weight two-question 10k BF16 cached/full numerical gate passed",
-      "native_validated": "partial; one actual-weight two-question 10k BF16 shared-prefix gradient gate passed",
+      "tested": "CPU suite 858 passed on 2026-09-29; 98 affected CUDA tests and five resume-version cases passed; actual-weight v10 FP32 short HF adapter and four cached/batched/full seam gates passed",
+      "native_validated": "partial; prior two-question 10k BF16 numerical receipt retained; v10 short FP32 HF 96-adapter and four 100-gradient seam gates plus fresh 8191/8192 and 10520-token state numerical gates passed; not complete issue 3",
       "quality_measured": "unknown",
       "Jev_compared": "unknown",
       "Layev_source_paths": [
@@ -523,7 +524,8 @@
         "tests/test_parallel_questions.py"
       ],
       "evidence_paths": [
-        "docs/evidence/native/long-bf16-gradient-10k-20260929.json"
+        "docs/evidence/native/long-bf16-gradient-10k-20260929.json",
+        "docs/evidence/native/short-fp32-canonical-v10-20260929.json"
       ],
       "issues": [
         "https://github.com/CompleteDotTech/layev/issues/9",

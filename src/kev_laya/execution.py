@@ -11,6 +11,7 @@ from dataclasses import asdict, dataclass
 from .encoding import Encoding
 
 EXECUTION_VERSION = "parallel-questions-v1"
+CUDA_TRAINING_CACHE_PLAN_VERSION = "cuda-double-kv-gqa-storage-v2"
 
 
 @dataclass(frozen=True)
@@ -59,8 +60,9 @@ def plan_batches(encoding: Encoding, policy: BatchPolicy, *, kv_bytes_per_token:
                  gqa_bytes_per_token: int) -> tuple[BranchBatch, ...]:
     """Budget parent KV + per-row concatenated KV + materialized GQA K/V.
 
-    Byte rates include all layers and use parameter element size (conservative
-    under autocast). This is not a total process/activation memory bound. During
+    Byte rates include all layers and reflect actual cache and materialized
+    GQA storage dtypes (including double CUDA training caches). This is not a
+    total process/activation memory bound. During
     training autograd can retain tensors across multiple microbatches.
     """
     if not encoding.state or not encoding.branches:
