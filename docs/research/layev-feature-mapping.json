@@ -775,7 +775,7 @@
         "https://github.com/CompleteDotTech/layev/issues/9",
         "https://github.com/CompleteDotTech/layev/issues/4"
       ],
-      "limitations": "Source/test presence is not a passing current test or trained runtime result. Trained native exposure at the threshold is unverified."
+      "limitations": "Source/test presence is not a passing current test. Trained v8 exact-limit exposure is recorded separately from acceptance: its marker gate failed 3/18 below 80%, distinct from historical v6 failure 6/18. Observed 96 short/medium cases score Choice 79/96, Score 90/96, Noul 48/96 with all Noul predictions true; this is development only. Paired144 subsequently timed out with durable96/144 and unknown unsaved updates; no completed repair/calibration/readout result. See docs/evidence/context/paired144-timeout-20260930.json. See docs/evidence/context/development-factorial96-20260930.md and docs/evidence/context/development-factorial96-20260930.json."
     },
     {
       "id": "request64",
@@ -800,7 +800,7 @@
         "https://github.com/CompleteDotTech/layev/issues/9",
         "https://github.com/CompleteDotTech/layev/issues/4"
       ],
-      "limitations": "Source/test presence is not a passing current test or trained runtime result. Trained native exposure at the threshold is unverified."
+      "limitations": "Source/test presence is not a passing current test. Trained v8 exact-limit exposure is recorded separately from acceptance: its marker gate failed 3/18 below 80%, distinct from historical v6 failure 6/18. Observed 96 short/medium cases score Choice 79/96, Score 90/96, Noul 48/96 with all Noul predictions true; this is development only. Paired144 subsequently timed out with durable96/144 and unknown unsaved updates; no completed repair/calibration/readout result. See docs/evidence/context/paired144-timeout-20260930.json. See docs/evidence/context/development-factorial96-20260930.md and docs/evidence/context/development-factorial96-20260930.json."
     },
     {
       "id": "generation",

@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "evidence_class": "synthetic-development-training-timeout",
+  "scope": "Independent timeout readback; not acceptance, representative quality, or a repair comparison.",
+  "supervisor_terminal": {
+    "status": "timeout",
+    "worker_exitcode": -15,
+    "elapsed_seconds": 5400.990688599995,
+    "source_head_start": "192c54ddcc48b16bec20f7e37f31915bbd97de13",
+    "source_head_end": "192c54ddcc48b16bec20f7e37f31915bbd97de13",
+    "worker_terminal_sha256": null,
+    "acceptance_claim": false,
+    "representative_quality_claim": false
+  },
+  "supervisor_terminal_sha256": "e76545c9912eb978a1df6935ba117fceb1540f678cd1639a283deea5e50cdd06",
+  "planned_current_run_updates": 144,
+  "durable_current_run_updates": 96,
+  "initial_parent_training_steps": 330,
+  "actual_updates_after_last_durable_checkpoint": "unknown",
+  "checkpoint_chain": [
+    {
+      "file": "checkpoint-000048.pt",
+      "format": "kev-laya-checkpoint/1",
+      "parent_sha256": "5c31208c7b4c551c5155373315c154710c39fbc5723beb218be160c5c1fe63a9",
+      "resumable": true,
+      "sha256": "a3c08f6003f781ec85e5fbc46f1203a10a5c5b00b31fb4873b2a779eeed92c93",
+      "size_bytes": 1983563927,
+      "training_steps": 378
+    },
+    {
+      "file": "checkpoint-000096.pt",
+      "format": "kev-laya-checkpoint/1",
+      "parent_sha256": "a3c08f6003f781ec85e5fbc46f1203a10a5c5b00b31fb4873b2a779eeed92c93",
+      "resumable": true,
+      "sha256": "f8e479797f721f51628d82c72af66fbed27e2cae4b6a47696400ab4a8d0b814d",
+      "size_bytes": 1983563927,
+      "training_steps": 426
+    }
+  ],
+  "checkpoint_bytes_sha256_verified": true,
+  "manifest_sha256": {
+    "checkpoint-000048.manifest.json": "ab41c30ad3712817d5bb6cbc438be6c669e746d228241969d70f1cce3d2d7fbc",
+    "checkpoint-000096.manifest.json": "1eb291d8db5b3acafb2ea70957afda2276ef19157a73c2bb1c2a21883149e961",
+    "latest.json": "1eb291d8db5b3acafb2ea70957afda2276ef19157a73c2bb1c2a21883149e961"
+  },
+  "observed_scope_files": [
+    "frozen-inputs.json",
+    "owner.json",
+    "root-observation.json",
+    "run-fixed144/attempt-lineage.json",
+    "run-fixed144/checkpoint-000048.manifest.json",
+    "run-fixed144/checkpoint-000048.pt",
+    "run-fixed144/checkpoint-000096.manifest.json",
+    "run-fixed144/checkpoint-000096.pt",
+    "run-fixed144/config.json",
+    "run-fixed144/execution-000048.json",
+    "run-fixed144/execution-000096.json",
+    "run-fixed144/latest.json",
+    "run-fixed144/source-provenance.json",
+    "run-fixed144/telemetry.json",
+    "run-fixed144/tokenizer.json",
+    "supervisor-terminal.json"
+  ],
+  "complete_worker_terminal_observed": false,
+  "planned_checkpoint144_observed": false,
+  "calibrated_output_observed": false,
+  "repair_readout_observed": false,
+  "acceptance_claim": false,
+  "representative_quality_claim": false,
+  "resume_authorized_by_this_receipt": false,
+  "historical_readback": "development-factorial96-20260930.json remains the separate observed readout of the earlier calibrated v8 checkpoint. Its pending-at-readback description is historical.",
+  "limitations": [
+    "Filesystem absence is scoped to the recorded run directory, not a machine-wide search.",
+    "Checkpoint hashes and manifests were verified without loading model tensors. No inference about unsaved updates is possible.",
+    "Timeout does not authorize extending the fixed 5400-second window. Resumable manifests describe checkpoint capability only.",
+    "A new run initialized from weights resets current-run exposure; resumed training preserves exposure. Any eventual completed paired run still requires the separately prescribed exact-limit continuation before recalibration and a new gate."
+  ]
+}
