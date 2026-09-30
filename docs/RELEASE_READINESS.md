@@ -1,5 +1,23 @@
 # Release readiness — intentionally incomplete
 
+## Full-weight mechanics and graph lifetime supplement (September 29, 2026)
+
+The [graph lifetime repair and measured rank-0 limits](evidence/native/graph-lifetime-fullweight-limits-20260929.md)
+permit the same-init BF16 first step and reload, with a passing CUDA ownership
+regression and failing old-source control. Rank-0 FP32/BF16 resume backward still
+exhausts the unchanged allocator cap on this configuration. These results do not
+close #3/#4 or alter the source identity of earlier numerical/rank-8 receipts.
+
+## FP32 candidate numerical readback (September 29, 2026)
+
+The [canonical FP32 repair](evidence/native/short-fp32-canonical-v10-20260929.md)
+passes the short independent HF adapter oracle, four generated cached/batched/full
+cases, 8191/8192 state-prefix boundaries, and a 10520-token state numerical gate.
+This is candidate source evidence; the exact-limit FP32 training resource probe exhausted the fixed allocator cap
+during forward, leaving backward unverified. Delivery readback remains pending. Issues #3/#4 remain open; representative quality and Jev benefit
+are unknown. Overwatch remains archived by user instruction. Older readbacks
+below are historical and do not override these scoped receipts.
+
 ## Current delivery readback (September 28, 2026)
 
 Layev main is `a6926f7b4585e840b36f1d9157c3af3907210ef5`, after protected

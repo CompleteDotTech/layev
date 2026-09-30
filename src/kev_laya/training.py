@@ -10,11 +10,12 @@ import random
 import uuid
 import torch
 from .checkpoint import load_checkpoint, restore_rng, save_checkpoint
-from .native_gradients import DERIVATIVE_VERSION
+from .native_gradients import DERIVATIVE_VERSION, FP32_DERIVATIVE_VERSION
 from .data import Datum, Sampler, permute_choices
 from .encoding import Encoding, Limits, preprocessing_identity
+from .execution import CUDA_TRAINING_CACHE_PLAN_VERSION
 from .io import atomic_json
-from .model import DecisionEngine
+from .model import CUDA_FP32_ATTENTION_OPERATOR_VERSION, DecisionEngine
 from .objectives import ObjectiveConfig, objective
 from .quality_budget import BudgetExceeded, StepTokenBudget
 from .schema import canonical
@@ -119,8 +120,12 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
     cfg = {"settings": recorded_settings, "objective": asdict(loss_config), "limits": asdict(limits),
            "backbone": model.config_dict(), "preprocessing": preprocessing_identity(tokenizer),
            "execution": model.batch_policy.to_dict()}
-    if device.type == "cuda" and settings.precision == "bf16":
-        cfg["derivative_version"] = DERIVATIVE_VERSION
+    if device.type == "cuda":
+        cfg["cache_plan_version"] = CUDA_TRAINING_CACHE_PLAN_VERSION
+        cfg["derivative_version"] = (DERIVATIVE_VERSION if settings.precision == "bf16"
+                                     else FP32_DERIVATIVE_VERSION)
+        if settings.precision == "fp32":
+            cfg["attention_operator_version"] = CUDA_FP32_ATTENTION_OPERATOR_VERSION
     data_hash = hashlib.sha256(canonical(manifest).encode()).hexdigest()
     config_hash = hashlib.sha256(canonical(cfg).encode()).hexdigest()
     if limits.branch > model.cfg.max_position_embeddings:
@@ -337,6 +342,12 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
                         torch.autograd.backward(
                             logit, gradient,
                             retain_graph=branch_number + 1 < len(logits))
+                    # Earlier branch graphs were retained while later branches
+                    # differentiated through the shared prefix. Their saved
+                    # activations remain reachable through these local owners
+                    # even after the final backward. Release them before
+                    # full-weight AdamW allocates or uses optimizer moments.
+                    del logit, gradient, gradients, logits, loss
                 elif not settings.streamed_branch_vjp:
                     (loss / settings.accumulation).backward()
                 if quality_budget is not None:

@@ -16,7 +16,10 @@ from torch.nn.attention.bias import causal_lower_right
 from .encoding import Encoding
 from .execution import BatchPolicy, plan_batches, EXECUTION_VERSION
 from .native_gradients import (CanonicalLoRAProjection, CanonicalLongSDPA,
-                               CanonicalMediumAttention, CanonicalShortAttention)
+                               CanonicalMediumAttention, CanonicalShortAttention,
+                               CanonicalFP32ShortAttention)
+
+CUDA_FP32_ATTENTION_OPERATOR_VERSION = "cuda-fp32-absolute-query-bands-fixed256-cpurope-v3"
 
 
 @dataclass(frozen=True)
@@ -103,7 +106,7 @@ def backbone_project(module: nn.Linear | LoRALinear, x: Tensor) -> Tensor:
     fp32 = x.dtype == torch.float32 and not torch.is_autocast_enabled("cuda")
     if not (x.is_cuda and (bf16 or fp32)):
         return module(x)
-    if bf16 and isinstance(module, LoRALinear) and torch.is_grad_enabled():
+    if isinstance(module, LoRALinear) and torch.is_grad_enabled():
         return CanonicalLoRAProjection.apply(
             x, module.base.weight, module.base.bias, module.a, module.b,
             module.scale)
@@ -132,6 +135,13 @@ class Attention(nn.Module):
         super().__init__()
         d, self.h, self.kh = cfg.hidden_size, cfg.num_attention_heads, cfg.num_key_value_heads
         self.hd = d // self.h
+        # Pinned Qwen2 RoPE initializes frequencies on CPU from int64 indices.
+        # Integer bit storage survives model.to(dtype=...) without quantizing
+        # these FP32 constants; nonpersistent keeps checkpoint schema intact.
+        cpu_indices = torch.arange(0, self.hd, 2, device="cpu", dtype=torch.int64).to(torch.float32)
+        cpu_inv_freq = 1.0 / (cfg.rope_theta ** (cpu_indices / self.hd))
+        self.register_buffer("_fp32_rope_inv_freq_bits", cpu_inv_freq.view(torch.int32),
+                             persistent=False)
         self.theta = cfg.rope_theta
         self.q_proj = nn.Linear(d, self.h * self.hd, bias=True)
         self.k_proj = nn.Linear(d, self.kh * self.hd, bias=True)
@@ -139,12 +149,83 @@ class Attention(nn.Module):
         self.o_proj = nn.Linear(self.h * self.hd, d, bias=False)
 
     def rotate(self, x: Tensor, positions: Tensor) -> Tensor:
-        inv = 1.0 / (self.theta ** (torch.arange(0, self.hd, 2, device=x.device, dtype=torch.float32) / self.hd))
+        inv = (self._fp32_rope_inv_freq_bits.view(torch.float32)
+               if x.is_cuda and x.dtype == torch.float32 else
+               1.0 / (self.theta ** (torch.arange(
+                   0, self.hd, 2, device=x.device, dtype=torch.float32) / self.hd)))
         angles = positions.float()[:, None] * inv[None, :]
         angles = torch.cat((angles, angles), -1)[None, None]
         half = self.hd // 2
         rotated = torch.cat((-x[..., half:], x[..., :half]), -1)
         return x * angles.cos().to(x.dtype) + rotated * angles.sin().to(x.dtype)
+
+    def _fp32_absolute_attention(self, q: Tensor, k: Tensor, v: Tensor,
+                                 offset: int) -> Tensor:
+        """One causal operator per absolute query position in every FP32 mode.
+
+        Full-row reference still projects the complete row independently. No
+        request state split or cached prefix is supplied to this dispatch.
+        """
+        from torch.nn.attention import SDPBackend, sdpa_kernel
+
+        end = offset + q.shape[-2]
+        if k.shape[-2] != end or v.shape != k.shape:
+            raise ValueError("FP32 causal cache length differs from absolute query positions")
+        ratio = self.h // self.kh
+        training_vjp = self.training and torch.is_grad_enabled()
+        segments = []
+        absolute_start = offset
+        for boundary in (256, 8192, end):
+            absolute_end = min(boundary, end)
+            if absolute_end <= absolute_start:
+                continue
+            local_start, local_end = absolute_start - offset, absolute_end - offset
+            query = q[..., local_start:local_end, :]
+            key, value = k[..., :absolute_end, :], v[..., :absolute_end, :]
+            query_length = local_end - local_start
+            if absolute_start < 256:
+                if training_vjp:
+                    part = CanonicalFP32ShortAttention.apply(query, key, value, ratio)
+                else:
+                    part = CanonicalFP32ShortAttention._eager(
+                        query, key.to(query.dtype).repeat_interleave(ratio, dim=1),
+                        value.to(query.dtype).repeat_interleave(ratio, dim=1))
+            elif absolute_start < 8192:
+                repeated_key = key.repeat_interleave(ratio, dim=1)
+                repeated_value = value.repeat_interleave(ratio, dim=1)
+                mask = causal_lower_right(query_length, absolute_end)
+                guard = (sdpa_kernel([SDPBackend.FLASH_ATTENTION, SDPBackend.EFFICIENT_ATTENTION])
+                         if absolute_end >= 8192 else nullcontext())
+                with guard:
+                    if training_vjp:
+                        part = CanonicalLongSDPA.apply(
+                            query, repeated_key, repeated_value, mask, False, absolute_start)
+                    else:
+                        part = F.scaled_dot_product_attention(
+                            query, repeated_key.to(query.dtype), repeated_value.to(query.dtype),
+                            attn_mask=mask, dropout_p=0.0)
+            else:
+                heads = []
+                mask = causal_lower_right(query_length, absolute_end)
+                with sdpa_kernel([SDPBackend.FLASH_ATTENTION, SDPBackend.EFFICIENT_ATTENTION]):
+                    for head in range(self.kh):
+                        grouped_query = query[:, head * ratio:(head + 1) * ratio]
+                        grouped_key = key[:, head:head + 1].expand(-1, ratio, -1, -1)
+                        grouped_value = value[:, head:head + 1].expand(-1, ratio, -1, -1)
+                        if training_vjp:
+                            result = CanonicalLongSDPA.apply(
+                                grouped_query, grouped_key, grouped_value, mask, False, absolute_start)
+                        else:
+                            result = F.scaled_dot_product_attention(
+                                grouped_query, grouped_key.to(query.dtype),
+                                grouped_value.to(query.dtype), attn_mask=mask, dropout_p=0.0)
+                        heads.append(result)
+                part = torch.cat(heads, dim=1)
+            segments.append(part)
+            absolute_start = absolute_end
+        if absolute_start != end:
+            raise ValueError("FP32 absolute attention left queries unprocessed")
+        return torch.cat(segments, dim=-2) if len(segments) > 1 else segments[0]
 
     def forward(self, x: Tensor, offset: int, past: KV | None = None,
                 reference_split_at: int | None = None) -> tuple[Tensor, KV]:
@@ -156,7 +237,9 @@ class Attention(nn.Module):
         q, k = self.rotate(q, positions), self.rotate(k, positions)
         bf16_training = (self.training and torch.is_grad_enabled() and q.is_cuda
                          and q.dtype == torch.bfloat16)
-        if bf16_training:
+        fp32_training = (self.training and torch.is_grad_enabled() and q.is_cuda
+                         and q.dtype == torch.float32)
+        if bf16_training or fp32_training:
             k, v = k.double(), v.double()
         if past is not None:
             # Functional concatenation: never mutate a parent prefix; autograd remains connected.
@@ -164,6 +247,9 @@ class Attention(nn.Module):
             # into the one shared prefix. cat creates request-local child storage.
             k = torch.cat((past[0].to(k.dtype).expand(b, -1, -1, -1), k), -2)
             v = torch.cat((past[1].to(v.dtype).expand(b, -1, -1, -1), v), -2)
+        if q.is_cuda and q.dtype == torch.float32:
+            h = self._fp32_absolute_attention(q, k, v, offset)
+            return backbone_project(self.o_proj, h.transpose(1, 2).reshape(b, length, -1)), (k, v)
         if (reference_split_at is not None and past is None and q.is_cuda
                 and q.dtype == torch.bfloat16 and 0 < reference_split_at < length
                 and 256 < length < 8192):
@@ -197,10 +283,10 @@ class Attention(nn.Module):
         # fused calls per KV group still sum gradients into the shared parent.
         if self.training and torch.is_grad_enabled() and q.is_cuda and k.shape[-2] >= 8192:
             from torch.nn.attention import SDPBackend, sdpa_kernel
-            canonical_bf16 = q.dtype == torch.bfloat16
+            canonical_backward = q.dtype == torch.bfloat16
             # The native forward still receives BF16. Double cache storage lets
             # separate branch VJPs sum into one parent before parameter rounding.
-            if canonical_bf16:
+            if canonical_backward:
                 k, v = k.double(), v.double()
             ratio = self.h // self.kh
             parts = []
@@ -210,7 +296,7 @@ class Attention(nn.Module):
                     key = k[:, head:head + 1].expand(-1, ratio, -1, -1)
                     value = v[:, head:head + 1].expand(-1, ratio, -1, -1)
                     mask = None if past is None else causal_lower_right(length, k.shape[-2])
-                    if canonical_bf16:
+                    if canonical_backward:
                         part = CanonicalLongSDPA.apply(
                             query, key, value, mask, past is None, offset)
                     else:
@@ -370,7 +456,10 @@ class PointerHead(nn.Module):
         bf16_autocast = (device_type in ("cpu", "cuda")
                          and torch.is_autocast_enabled(device_type)
                          and torch.get_autocast_dtype(device_type) == torch.bfloat16)
-        if device_type in ("cpu", "cuda") and (decide.dtype == torch.bfloat16 or bf16_autocast):
+        canonical_fp32 = (device_type == "cuda" and decide.dtype == torch.float32
+                          and not torch.is_autocast_enabled(device_type))
+        if (device_type in ("cpu", "cuda")
+                and (decide.dtype == torch.bfloat16 or bf16_autocast or canonical_fp32)):
             # BF16 GEMM changes rounding with batch shape even for identical
             # hidden rows. Keep the small pointer projection and reduction
             # stable across independent and parallel question execution.
@@ -512,13 +601,20 @@ class DecisionEngine(nn.Module):
         selected = policy or self.batch_policy
         element_size = max(p.element_size() for p in self.parameters())
         hd = self.cfg.hidden_size // self.cfg.num_attention_heads
-        cache_element_size = (8 if self.training and (torch.is_grad_enabled() or _training_cache_plan)
-                              and self.backbone.embed_tokens.weight.is_cuda
-                              and torch.is_autocast_enabled("cuda")
-                              and torch.get_autocast_dtype("cuda") == torch.bfloat16
-                              else element_size)
+        cuda_training_cache = (self.training and (torch.is_grad_enabled() or _training_cache_plan)
+                               and self.backbone.embed_tokens.weight.is_cuda)
+        autocast_enabled = torch.is_autocast_enabled("cuda")
+        bf16_autocast = (autocast_enabled
+                         and torch.get_autocast_dtype("cuda") == torch.bfloat16)
+        # Attention stores K/V in double for both BF16 and unautocast FP32
+        # CUDA training. The no-grad streamed prepass must plan the later
+        # gradient-enabled pass with the same rate.
+        native_canonical_dtype = (not autocast_enabled and
+                                  self.backbone.embed_tokens.weight.dtype in (torch.float32, torch.bfloat16))
+        double_kv_cache = cuda_training_cache and (bf16_autocast or native_canonical_dtype)
+        cache_element_size = 8 if double_kv_cache else element_size
         kv_rate = 2 * self.cfg.num_hidden_layers * self.cfg.num_key_value_heads * hd * cache_element_size
-        gqa_rate = 2 * self.cfg.num_hidden_layers * self.cfg.hidden_size * element_size
+        gqa_rate = 2 * self.cfg.num_hidden_layers * self.cfg.hidden_size * cache_element_size
         plan = plan_batches(encoding, selected, kv_bytes_per_token=kv_rate, gqa_bytes_per_token=gqa_rate)
         state_length = len(encoding.state)
         if any(state_length + len(b.ids) > self.cfg.max_position_embeddings for b in encoding.branches):

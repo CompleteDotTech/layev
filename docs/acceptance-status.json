@@ -1,4 +1,23 @@
 {
+  "fullweight_graph_lifetime_supplement_2026_09_29": {
+    "receipt": "docs/evidence/native/graph-lifetime-fullweight-limits-20260929.json",
+    "graph_lifetime": "CUDA positive passes; proper old-source negative fails; 14 BF16 tests pass",
+    "rank0_fp32": "first step and reload pass; resume backward CUDA OOM; allocator-option retry fails",
+    "rank0_bf16": "same-init graph-repaired first step and reload pass; resume short-attention backward CUDA OOM",
+    "scope": "Generated short mechanics; measured configuration only; no complete full-weight matrix or quality claim",
+    "issue_3": "open",
+    "issue_4": "open"
+  },
+  "short_fp32_canonical_v10_candidate_2026_09_29": {
+    "scope": "candidate source short FP32 numerical repair only; no issue closure",
+    "receipt": "docs/evidence/native/short-fp32-canonical-v10-20260929.json",
+    "hf_adapter_gradients_passed": 96,
+    "generated_seam_cases_passed": 4,
+    "gradients_per_comparison": 100,
+    "long_validation": "fresh 8191/8192 prefix boundaries and 10520-token state numerical parity passed; exact-limit FP32 training forward OOM at unchanged 70% cap; backward unverified",
+    "issue_3": "open",
+    "issue_4": "open"
+  },
   "schema_version": 1,
   "kind": "workstream-evidence-ledger-not-original-feature-matrix",
   "base_revision": "b4cb9df97be61729ebd68b8e0f5ee9bb2d193c73",

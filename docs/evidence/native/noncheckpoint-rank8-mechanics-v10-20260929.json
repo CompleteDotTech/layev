@@ -1,0 +1,251 @@
+{
+  "evidence_class": "actual-weight-noncheckpoint-rank8-short-train-resume-reload-v10",
+  "cells": [
+    {
+      "activation_checkpointing": false,
+      "cell_id": "issue3-nockpt-r8-fp32-f0969f7dbcd4",
+      "config_sha256": "9ea5b040cc86a771f5e1b55d7ebdd72e78107c691a42ca7abe76d9a308273558",
+      "init_sha256": "e0257a4b48787ecb369364dd3e72edd9813f15f97ee7f1c854e6d6b3440d2f5d",
+      "limitations": "Generated short mechanics only; no quality, long-context or installed serving claim.",
+      "precision": "fp32",
+      "rank": 8,
+      "reload_step1_sha256": "1d6dd5562fdcde78c48c40b889f117e6a084737cdff65ae985c0811930eac4bb",
+      "reload_step2_sha256": "7708a966854cb0061fe4d4926cfef0e70e076c46f2117eb0a63c260fbec4489c",
+      "source": {
+        "base_config_sha256": "f52eb9f1bdf1a1552b5edec727f21b975b83eb9b3a064aa7d848f413d2d0146c",
+        "commit": "e4822909680080bc300371782f6b439ff26fc8a8",
+        "files": {
+          "checkpoint.py": "f7cd8cb15e130756751c53d6cb55ec2b7c3ef0c608da764d10b000552f1aab95",
+          "cli.py": "41a9567ed9791208bc01cdf8eeb979171d54dbf69fac8a66dc8a4caec09fa5c5",
+          "execution.py": "41d7eaa6b3bf33c6e59c30fd2b36c7e086b29116179109a75dcbdc7d24d1756a",
+          "model.py": "794c9a648d5f40cb461a9631204a5146d2791eea663eeae4abccdad8cf926898",
+          "native_gradients.py": "5c8f5b8876e04642d093b9878d3020b4e40438345540966cc1204cc81a820c4f",
+          "training.py": "0bdc29c53a98d9b5d54145c871d14ff24c0f2cee8c28a1e117d6930ab1210cde"
+        },
+        "suite_manifest_sha256": "29cbc2e7541cc0b8a9ec92f6b8583740b91fa33d1e4340e47b6ff9f0e17c84e0",
+        "tokenizer_sha256": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+        "weights_sha256": "88c142557820ccad55bb59756bfcfcf891de9cc6202816bd346445188a0ed342"
+      },
+      "status": "passed_generated_short_mechanics",
+      "step1": {
+        "attempt_id": "7fe5a3a4808a483d9a5eef76289d1cbf",
+        "attempt_index": 0,
+        "gpu_peak_allocated_bytes": 2295416832,
+        "gradient_norm": 1564.74853515625,
+        "loss": 3.7636687755584717,
+        "manifest_sha256": "6eb220653e802c7365eb626bbc7ceb310a9022e0752ee9726cd1f747b8ce69b4",
+        "metrics_sha256": "ce7d4d3f80bbb5a519936a8a1151b459557f239b981f81a8e9c06fac064e1794",
+        "monitoring_export_failures": 0,
+        "parent_attempt_id": null,
+        "parent_sha256": "e0257a4b48787ecb369364dd3e72edd9813f15f97ee7f1c854e6d6b3440d2f5d",
+        "sha256": "10895f4245ec99d95c9a132aa2f6bee5a38815b3a8e87d3f6e8a21cafc491df4",
+        "size_bytes": 1983563799,
+        "step": 1,
+        "telemetry_sha256": "fd1053197ad181ae8ee76aaeaf55e91917838dadc7f9c9ac697491cd4141ba54"
+      },
+      "step2": {
+        "attempt_id": "8d0a6c5345924b2b91a53399a5b404c7",
+        "attempt_index": 1,
+        "gpu_peak_allocated_bytes": 2300203008,
+        "gradient_norm": 692.789794921875,
+        "loss": 2.033273220062256,
+        "manifest_sha256": "2772abe092d2ec8c8e3ae177b7ac9803d0ac7ac9e9031c2860db9ac08b5c72de",
+        "metrics_sha256": "d6c40d02b0f64f7d1e94b209c00f7064e9724ef0a160c43da13a99bf57581f5b",
+        "monitoring_export_failures": 0,
+        "parent_attempt_id": "7fe5a3a4808a483d9a5eef76289d1cbf",
+        "parent_sha256": "10895f4245ec99d95c9a132aa2f6bee5a38815b3a8e87d3f6e8a21cafc491df4",
+        "sha256": "a8b832cc7857307b6ff57208ba8d0b4b3b82d2e268f8dfa1ae0104da66ac7d84",
+        "size_bytes": 1983564759,
+        "step": 2,
+        "telemetry_sha256": "b9c75a31d3afc5e5ab313657710407295a64bff8d70e2bd18e7b34c14446f1a9"
+      },
+      "private_terminal_sha256": "5392ab66823a23c6e92a35f3b228568d9337c873441f3b065bd6f7859438f6ef",
+      "protocol_runner_sha256": "76a2e23a930f402d7b8bce948a6106af3506f55466c1b10983f689a473f890ed",
+      "cuda_allocator_fraction": 0.7,
+      "reloads": {
+        "step1": {
+          "activation_checkpointing": false,
+          "checkpoint_sha256": "10895f4245ec99d95c9a132aa2f6bee5a38815b3a8e87d3f6e8a21cafc491df4",
+          "cuda_allocator_fraction": 0.7,
+          "cuda_matmul_allow_tf32": false,
+          "cuda_peak_allocated_bytes": 2933461504,
+          "cuda_peak_reserved_bytes": 3061841920,
+          "cudnn_allow_tf32": false,
+          "finite_parameter_tensors": 390,
+          "float32_matmul_precision": "highest",
+          "forward_tokens": 230,
+          "loaded_backbone_sha256": "88c142557820ccad55bb59756bfcfcf891de9cc6202816bd346445188a0ed342",
+          "logical_tokens": 230,
+          "logit_shapes": [
+            [
+              2
+            ],
+            [
+              2
+            ],
+            [
+              10
+            ]
+          ],
+          "lora_rank": 8,
+          "precision": "fp32",
+          "tokenizer_identity": "qwen-tokenizer-sha256:c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+          "training_steps": 1
+        },
+        "step2": {
+          "activation_checkpointing": false,
+          "checkpoint_sha256": "a8b832cc7857307b6ff57208ba8d0b4b3b82d2e268f8dfa1ae0104da66ac7d84",
+          "cuda_allocator_fraction": 0.7,
+          "cuda_matmul_allow_tf32": false,
+          "cuda_peak_allocated_bytes": 2933461504,
+          "cuda_peak_reserved_bytes": 3061841920,
+          "cudnn_allow_tf32": false,
+          "finite_parameter_tensors": 390,
+          "float32_matmul_precision": "highest",
+          "forward_tokens": 230,
+          "loaded_backbone_sha256": "88c142557820ccad55bb59756bfcfcf891de9cc6202816bd346445188a0ed342",
+          "logical_tokens": 230,
+          "logit_shapes": [
+            [
+              2
+            ],
+            [
+              2
+            ],
+            [
+              10
+            ]
+          ],
+          "lora_rank": 8,
+          "precision": "fp32",
+          "tokenizer_identity": "qwen-tokenizer-sha256:c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+          "training_steps": 2
+        }
+      }
+    },
+    {
+      "activation_checkpointing": false,
+      "cell_id": "issue3-nockpt-r8-bf16-f37c14aee159",
+      "config_sha256": "252f7030161d660ae6436a155311d617c452c13cf3ac775f0cb68adb0768600c",
+      "init_sha256": "1de9cb9bab06e1c8e6a5ec917bdf40da948432fd35144252f4cd644cfdf90011",
+      "limitations": "Generated short mechanics only; no quality, long-context or installed serving claim.",
+      "precision": "bf16",
+      "rank": 8,
+      "reload_step1_sha256": "46d7398bc56f25f5efc91462289643f1d9ff529388138fc54a32ec39394ebf50",
+      "reload_step2_sha256": "ffc56d1d890c73968a0d6a4a3f125550fad1ca82d73cf91188c5b5ba27195ca0",
+      "source": {
+        "base_config_sha256": "f52eb9f1bdf1a1552b5edec727f21b975b83eb9b3a064aa7d848f413d2d0146c",
+        "commit": "e4822909680080bc300371782f6b439ff26fc8a8",
+        "files": {
+          "checkpoint.py": "f7cd8cb15e130756751c53d6cb55ec2b7c3ef0c608da764d10b000552f1aab95",
+          "cli.py": "41a9567ed9791208bc01cdf8eeb979171d54dbf69fac8a66dc8a4caec09fa5c5",
+          "execution.py": "41d7eaa6b3bf33c6e59c30fd2b36c7e086b29116179109a75dcbdc7d24d1756a",
+          "model.py": "794c9a648d5f40cb461a9631204a5146d2791eea663eeae4abccdad8cf926898",
+          "native_gradients.py": "5c8f5b8876e04642d093b9878d3020b4e40438345540966cc1204cc81a820c4f",
+          "training.py": "0bdc29c53a98d9b5d54145c871d14ff24c0f2cee8c28a1e117d6930ab1210cde"
+        },
+        "suite_manifest_sha256": "29cbc2e7541cc0b8a9ec92f6b8583740b91fa33d1e4340e47b6ff9f0e17c84e0",
+        "tokenizer_sha256": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+        "weights_sha256": "88c142557820ccad55bb59756bfcfcf891de9cc6202816bd346445188a0ed342"
+      },
+      "status": "passed_generated_short_mechanics",
+      "step1": {
+        "attempt_id": "9eadb1fec2a8447cabe294d62ba41c95",
+        "attempt_index": 0,
+        "gpu_peak_allocated_bytes": 4246000640,
+        "gradient_norm": 7.916440963745117,
+        "loss": 0.03347368538379669,
+        "manifest_sha256": "4e9366d1704380c803b0f4e8459e0c29aa9c7428283443d5efbd9f12a170dad8",
+        "metrics_sha256": "eb1266d0c45cb7b832fae392e3bcfe5bd426b5142ee882b71846a4e482c80522",
+        "monitoring_export_failures": 0,
+        "parent_attempt_id": null,
+        "parent_sha256": "1de9cb9bab06e1c8e6a5ec917bdf40da948432fd35144252f4cd644cfdf90011",
+        "sha256": "97d836eb1100c7b2ddd94fcbb2020029af62a5f69d41815a4b1c030d5f1505c4",
+        "size_bytes": 1983563799,
+        "step": 1,
+        "telemetry_sha256": "551a57a8dc97110c7c5cb88d0d685563b89d8dc1f71c59f75de27c998cd227d8"
+      },
+      "step2": {
+        "attempt_id": "d396a1609cbd4e10a248207df5203bd1",
+        "attempt_index": 1,
+        "gpu_peak_allocated_bytes": 4250786816,
+        "gradient_norm": 85.5900650024414,
+        "loss": 0.932081401348114,
+        "manifest_sha256": "796db6e232825cd7e5216e39ea5c35bce42fb6eeb24882cc183a4895f289d475",
+        "metrics_sha256": "90e4eacb0ea0ab07cede22c32dbcd37475f160cedb033c1883cad9b520e28ad8",
+        "monitoring_export_failures": 0,
+        "parent_attempt_id": "9eadb1fec2a8447cabe294d62ba41c95",
+        "parent_sha256": "97d836eb1100c7b2ddd94fcbb2020029af62a5f69d41815a4b1c030d5f1505c4",
+        "sha256": "cea1cb3a74a2022e9e53aa290bcd2cea2ab4aadfdbc84b045d62f8e0a3ad3aac",
+        "size_bytes": 1983564759,
+        "step": 2,
+        "telemetry_sha256": "ad50219ce264e0196574c0c4eb7c88d4c572ba8bbf2d2ca7412c343088df46b3"
+      },
+      "private_terminal_sha256": "4f66ff86b3d966746fc974be67084255ae79f722964734db716328528c1e0182",
+      "protocol_runner_sha256": "b1574fcc46068a4348af397c220b492925ea0d120e83957ca0ce4c695778daae",
+      "cuda_allocator_fraction": 0.7,
+      "reloads": {
+        "step1": {
+          "activation_checkpointing": false,
+          "checkpoint_sha256": "97d836eb1100c7b2ddd94fcbb2020029af62a5f69d41815a4b1c030d5f1505c4",
+          "cuda_allocator_fraction": 0.7,
+          "cuda_matmul_allow_tf32": false,
+          "cuda_peak_allocated_bytes": 2933461504,
+          "cuda_peak_reserved_bytes": 3059744768,
+          "cudnn_allow_tf32": false,
+          "finite_parameter_tensors": 390,
+          "float32_matmul_precision": "highest",
+          "forward_tokens": 230,
+          "loaded_backbone_sha256": "88c142557820ccad55bb59756bfcfcf891de9cc6202816bd346445188a0ed342",
+          "logical_tokens": 230,
+          "logit_shapes": [
+            [
+              2
+            ],
+            [
+              2
+            ],
+            [
+              10
+            ]
+          ],
+          "lora_rank": 8,
+          "precision": "bf16",
+          "tokenizer_identity": "qwen-tokenizer-sha256:c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+          "training_steps": 1
+        },
+        "step2": {
+          "activation_checkpointing": false,
+          "checkpoint_sha256": "cea1cb3a74a2022e9e53aa290bcd2cea2ab4aadfdbc84b045d62f8e0a3ad3aac",
+          "cuda_allocator_fraction": 0.7,
+          "cuda_matmul_allow_tf32": false,
+          "cuda_peak_allocated_bytes": 2933461504,
+          "cuda_peak_reserved_bytes": 3059744768,
+          "cudnn_allow_tf32": false,
+          "finite_parameter_tensors": 390,
+          "float32_matmul_precision": "highest",
+          "forward_tokens": 230,
+          "loaded_backbone_sha256": "88c142557820ccad55bb59756bfcfcf891de9cc6202816bd346445188a0ed342",
+          "logical_tokens": 230,
+          "logit_shapes": [
+            [
+              2
+            ],
+            [
+              2
+            ],
+            [
+              10
+            ]
+          ],
+          "lora_rank": 8,
+          "precision": "bf16",
+          "tokenizer_identity": "qwen-tokenizer-sha256:c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+          "training_steps": 2
+        }
+      }
+    }
+  ],
+  "scope": "Two independently initialized precision cells, each one-step generated native LoRA training, continuation of the same run to step 2, and complete finite reload forward at both steps. This is not identical-initialization precision comparison, optimizer equality against uninterrupted training, independent HF numerical parity, installed service qualification, long-context quality, or issue closure.",
+  "public_reproduction": "The private v3 mode orchestrator is not published by this receipt. Runner/source/config/checkpoint/telemetry hashes preserve provenance; no public runnable orchestration command is claimed."
+}

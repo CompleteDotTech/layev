@@ -7,6 +7,8 @@ recursive-include scripts *.py
 recursive-include tests *.py *.txt *.json
 recursive-include integrations *.py *.json *.md *.ts *.tsx
 recursive-include clients *.ts *.json *.mjs
+prune clients/typescript/node_modules
+prune clients/typescript/dist
 recursive-include evals *.json
 global-exclude *.pyc
 global-exclude *.pt *.pth *.safetensors *.onnx *.ckpt
