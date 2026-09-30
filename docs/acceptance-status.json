@@ -1,4 +1,16 @@
 {
+  "canonical_fp32_graph_delivery_2026_09_29": {
+    "pull_request": "https://github.com/Jev-Engineering/layev/pull/56",
+    "source_commit": "4ffd9f1f1263d225e4f130f174cf6070c635d235",
+    "merge_commit": "4f31cc76e38ef9848950e1667875571f8e190903",
+    "pr_ci_run": 36656915788,
+    "postmerge_ci_run": 36657405767,
+    "required_jobs_passed_each_run": 5,
+    "merged_cuda_graph_regression_passed": 1,
+    "scope": "Verified source delivery; historical numerical receipts retain their original source hashes; native resource and quality acceptance remain incomplete",
+    "issue_3": "open",
+    "issue_4": "open"
+  },
   "fullweight_graph_lifetime_supplement_2026_09_29": {
     "receipt": "docs/evidence/native/graph-lifetime-fullweight-limits-20260929.json",
     "graph_lifetime": "CUDA positive passes; proper old-source negative fails; 14 BF16 tests pass",

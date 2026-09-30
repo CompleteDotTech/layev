@@ -7,6 +7,7 @@ records checkpoint, source-file, protocol-script and private-result hashes.
 requests, fixed precision settings and numerical tolerances.
 The source parent is recorded with a dirty candidate tree; delivery commit and
 post-merge verification must be recorded separately by the delivery owner.
+The [verified delivery readback](../../RELEASE_READINESS.md) records those revisions and checks.
 
 CUDA FP32 projections use fixed 64-row calls. Attention dispatch follows absolute
 query bands: positions 0–255 use fixed 256-row eager arithmetic, positions
