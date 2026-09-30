@@ -223,11 +223,13 @@ def main(argv=None) -> int:
             if any(supplied_wandb) and not all(supplied_wandb):
                 raise ValueError("all W&B identity components are required")
             wandb_ref = dict(zip(("entity", "project", "run_id"), supplied_wandb)) if all(supplied_wandb) else None
+            parent_sha256 = point.get("checkpoint_sha256") if not args.resume else None
+            del point  # release deserialized weights and optimizer state before training
             result = train(model, tokenizer, suite["train"], manifest, args.out, settings,
                            loss_cfg, Limits(**cfg.get("limits", {})), resume=args.resume, stop_after=args.stop_after,
                            experiment_id=args.experiment_id, run_id=args.run_id, scheduler_ref=scheduler_ref,
                            wandb_ref=wandb_ref, publish_wandb=args.wandb_publish,
-                           parent_sha256=point.get("checkpoint_sha256") if not args.resume else None,
+                           parent_sha256=parent_sha256,
                            quality_budget=quality_budget,
                            quality_allocation_id=f"{arm}:{settings.seed}" if quality_protocol is not None else None)
         print(json.dumps({k: v for k, v in result.items() if k != "metrics"}, indent=2))
