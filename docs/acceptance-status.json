@@ -1,4 +1,23 @@
 {
+  "context_development_diagnostic_2026_09_30": {
+    "scope": "Observed synthetic short/medium development diagnostic; not acceptance, representative quality or Jev comparison",
+    "receipt": "docs/evidence/context/development-factorial96-20260930.json",
+    "explanation": "docs/evidence/context/development-factorial96-20260930.md",
+    "private_report_sha256": "331b353f58d6225e4d42ef266557d6f345d109c042df9500c86330fba42f3fa7",
+    "checkpoint_sha256": "c37e133a21c10054584b345140d767c91bd4beb63faecda28f524ef1339f0cb9",
+    "cases": 96,
+    "tasks": 288,
+    "choice_correct": 79,
+    "score_correct": 90,
+    "noul_correct": 48,
+    "failure_patterns": "All 96 Noul predictions true; all six Score errors gold zero; Choice first/middle/last gold 18/32, 30/32, 31/32",
+    "causal_limits": "No label mismatch; prior training includes false/zero; target correlations and wording/rubric/distractor differences prevent assigning one cause",
+    "original_v8_marker_gate": "3/18 below unchanged 80%; failed; separate from historical v6 marker 6/18",
+    "paired_training": "Subsequent paired144 attempt timed out at 5400.990688599995 seconds, exit -15; durable96/144, unsaved updates unknown; no complete repair/calibration/readout result. See docs/evidence/context/paired144-timeout-20260930.json",
+    "new_training_exposure": "A new run initialized from weights resets current-run exposure; resumed training preserves it. Historical parent exposure cannot establish exact-limit exposure for the new run",
+    "issue_3": "open",
+    "issue_4": "open"
+  },
   "canonical_fp32_graph_delivery_2026_09_29": {
     "pull_request": "https://github.com/Jev-Engineering/layev/pull/56",
     "source_commit": "4ffd9f1f1263d225e4f130f174cf6070c635d235",

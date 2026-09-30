@@ -9,6 +9,26 @@ No cloud workload, download, private-index change or remote telemetry operation 
 started by this change. Existing model, tokenizer v4, checkpoint, training, API,
 telemetry, context ceilings and batch policy are not changed.
 
+## Observed failure and development evidence (September 30, 2026)
+
+The [observed development diagnostic](evidence/context/development-factorial96-20260930.md)
+and [portable receipt](evidence/context/development-factorial96-20260930.json)
+retain the fixed v8 marker failure: 3/18 against the unchanged 80% requirement.
+This differs from the earlier v6 6/18 historical failure. The separate 96-case
+short/medium readout scores Choice 79/96, Score 90/96 and Noul 48/96; every
+Noul prediction is true. It does not establish exact-limit correctness, a
+representative quality result, or a passing native-context-v3 gate.
+
+The label readback finds no mismatch. Target correlations and wording/rubric/
+distractor differences leave multiple explanations for these failures. The
+separately frozen paired144 attempt subsequently timed out with 96/144
+durable updates; see the [timeout receipt](evidence/context/paired144-timeout-20260930.md).
+No completed repair, calibration or readout result is claimed. A new run initialized from weights resets
+current-run exposure; resumed training preserves it. A separately fixed
+exact-limit continuation is required before final validation.
+Protocol ceilings, numerical tolerances, marker threshold and issue status
+remain unchanged.
+
 ## What changes in the acceptance report
 
 The protocol is now `native-context-v3`; preserve prior v2 reports as historical,

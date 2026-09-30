@@ -1,5 +1,29 @@
 # Release readiness — intentionally incomplete
 
+## Observed synthetic context decisions (September 30, 2026)
+
+The [development diagnostic](evidence/context/development-factorial96-20260930.md)
+and [portable receipt](evidence/context/development-factorial96-20260930.json)
+record 96 short/medium generated cases on the fixed separately calibrated v8
+checkpoint. Choice scores 79/96, Score 90/96 and Noul 48/96. All Noul predictions
+are true; all six Score errors have gold zero. Choice first-ranked gold scores
+18/32, compared with middle 30/32 and last 31/32. Label/option/target readback
+finds no mismatch. Correlated generated targets, marker wording, rubrics and
+distractors limit causal interpretation; false and zero labels existed in prior
+training. Positive temperature calibration cannot change argmax.
+
+The original v8 native-context-v3 marker result is 3/18 against the unchanged
+80% threshold. The earlier v6 result of 6/18 remains a separate historical
+failure. The short/medium development scores establish neither a passing
+32768/65536 gate nor representative deployment quality or Jev benefit.
+The separately frozen paired144 attempt subsequently timed out with 96/144
+durable updates; see the [timeout receipt](evidence/context/paired144-timeout-20260930.md).
+No completed repair, calibration or readout result is available. A new run
+initialized from weights resets current-run exposure; resuming a run preserves
+its exposure. A later fixed exact-limit continuation is required before final
+context acceptance. Existing numerical receipts and
+measured rank-0 resume/resource failures remain unchanged; issues #3/#4 stay open.
+
 ## Verified numerical/source delivery (September 29, 2026)
 
 [PR #56](https://github.com/Jev-Engineering/layev/pull/56) merged at
