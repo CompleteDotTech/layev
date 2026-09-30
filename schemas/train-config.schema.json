@@ -140,6 +140,18 @@
           "title": "Optimizer Backend",
           "type": "string"
         },
+        "optimizer_state_max_bytes": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Optimizer State Max Bytes"
+        },
         "resource_sample_seconds": {
           "default": 1.0,
           "title": "Resource Sample Seconds",

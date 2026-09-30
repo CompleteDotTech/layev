@@ -1,5 +1,18 @@
 # Release readiness — intentionally incomplete
 
+## Explicit CPU-state optimizer: partial qualification (September 30, 2026)
+
+The opt-in backend at signed source `b5d8299b768564c09c541e3dfc04b3d28eef2fd6`
+passed the [tiny rank0 trainer qualification](evidence/optimizer/tiny-cuda-offload-v4-20260930.json)
+and a separate [tiny LoRA rank4/activation-checkpointing qualification](evidence/optimizer/tiny-cuda-offload-lora-checkpoint-v2-20260930.json).
+Each completed 8/8 FP32/BF16 uninterrupted/save/exit/fresh-resume/reload phases,
+with zero skips and exact state comparisons. All 33 source hashes and HEAD
+were unchanged at each phase start/end. The LoRA run reused the integrated v4
+8-pass primitive receipt; it did not rerun those tests. This is partial delivery
+using synthetic byte-tokenizer fixtures. Actual pretrained fullweight optimizer
+qualification and the captured-gradient stock oracle remain pending under their
+separate 16GiB host gate. Default OOM receipts and issues #3/#4 remain unchanged.
+
 ## Observed synthetic context decisions (September 30, 2026)
 
 The [development diagnostic](evidence/context/development-factorial96-20260930.md)

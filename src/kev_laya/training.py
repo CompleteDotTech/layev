@@ -19,6 +19,7 @@ from .model import CUDA_FP32_ATTENTION_OPERATOR_VERSION, DecisionEngine
 from .objectives import ObjectiveConfig, objective
 from .quality_budget import BudgetExceeded, StepTokenBudget
 from .schema import canonical
+from .cpu_state_adamw import CPUStateStreamingAdamW, VERSION as CPU_STATE_ADAMW_VERSION
 from .telemetry import TelemetryWriter, artifact, new_snapshot
 
 
@@ -35,6 +36,7 @@ class TrainSettings:
     precision: str = "fp32"
     choice_permutation: bool = False
     optimizer_backend: str = "default"
+    optimizer_state_max_bytes: int | None = None
     resource_sample_seconds: float = 1.0
     streamed_branch_vjp: bool = False
     def __post_init__(self):
@@ -46,8 +48,13 @@ class TrainSettings:
             raise ValueError("invalid resource sampling interval")
         if self.precision not in {"fp32", "bf16"}:
             raise ValueError("unsupported precision")
-        if self.optimizer_backend not in {"default", "fused"}:
+        if self.optimizer_backend not in {"default", "fused", "cpu_state_streaming_v1"}:
             raise ValueError("unsupported optimizer backend")
+        if self.optimizer_backend == "cpu_state_streaming_v1":
+            if type(self.optimizer_state_max_bytes) is not int or self.optimizer_state_max_bytes < 1:
+                raise ValueError("cpu_state_streaming_v1 requires optimizer_state_max_bytes")
+        elif self.optimizer_state_max_bytes is not None:
+            raise ValueError("optimizer_state_max_bytes requires cpu_state_streaming_v1")
         if type(self.streamed_branch_vjp) is not bool:
             raise ValueError("streamed_branch_vjp must be a boolean")
 
@@ -110,6 +117,8 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
         raise FileExistsError("output is not empty; use resume or a new directory")
     output.mkdir(parents=True, exist_ok=True)
     recorded_settings = asdict(settings)
+    if settings.optimizer_backend != "cpu_state_streaming_v1":
+        recorded_settings.pop("optimizer_state_max_bytes")
     if not settings.choice_permutation:
         recorded_settings.pop("choice_permutation")  # preserve the original v1 no-augmentation config hash
     if settings.optimizer_backend == "default":
@@ -126,6 +135,13 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
                                      else FP32_DERIVATIVE_VERSION)
         if settings.precision == "fp32":
             cfg["attention_operator_version"] = CUDA_FP32_ATTENTION_OPERATOR_VERSION
+    if settings.optimizer_backend == "cpu_state_streaming_v1":
+        if device.type != "cuda":
+            raise ValueError("cpu_state_streaming_v1 requires CUDA")
+        specs = [[name, list(p.shape), str(p.dtype)]
+                 for name, p in model.named_parameters() if p.requires_grad]
+        cfg["optimizer_algorithm_version"] = CPU_STATE_ADAMW_VERSION
+        cfg["optimizer_parameter_schema_sha256"] = hashlib.sha256(canonical(specs).encode()).hexdigest()
     data_hash = hashlib.sha256(canonical(manifest).encode()).hexdigest()
     config_hash = hashlib.sha256(canonical(cfg).encode()).hexdigest()
     if limits.branch > model.cfg.max_position_embeddings:
@@ -136,9 +152,15 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
         raise ValueError("streamed branch VJP requires CUDA BF16")
     if settings.optimizer_backend == "fused" and device.type != "cuda":
         raise ValueError("fused optimizer backend requires CUDA")
-    optimizer = torch.optim.AdamW((p for p in model.parameters() if p.requires_grad), lr=settings.learning_rate,
-                                  weight_decay=settings.weight_decay,
-                                  **({"fused": True} if settings.optimizer_backend == "fused" else {}))
+    if settings.optimizer_backend == "cpu_state_streaming_v1":
+        optimizer = CPUStateStreamingAdamW(
+            ((name, p) for name, p in model.named_parameters() if p.requires_grad),
+            lr=settings.learning_rate, weight_decay=settings.weight_decay,
+            max_state_bytes=settings.optimizer_state_max_bytes)
+    else:
+        optimizer = torch.optim.AdamW((p for p in model.parameters() if p.requires_grad), lr=settings.learning_rate,
+                                      weight_decay=settings.weight_decay,
+                                      **({"fused": True} if settings.optimizer_backend == "fused" else {}))
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lambda n: max(0.05, 1 - n / settings.steps))
     sampler = Sampler(len(data), settings.seed)
     state = {"step": 0, "microbatches": 0, "examples": 0, "forward_tokens": 0, "accumulation_position": 0,
@@ -190,6 +212,9 @@ def train(model: DecisionEngine, tokenizer, data: list[Datum], manifest: dict, o
         scheduler_ref = scheduler_ref or old.get("scheduler_identity")
         state["scheduler_identity"] = scheduler_ref
         parent_sha256 = payload["checkpoint_sha256"]
+        # The offload optimizer retains the needed CPU moment tensors itself.
+        # Release the temporary checkpoint dictionary and CPU model now.
+        del restored, restored_tokenizer, payload
     if quality_budget is not None:
         if quality_allocation_id is not None:
             quality_budget.claim_allocation(quality_allocation_id, state["run_id"])
