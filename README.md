@@ -1,3 +1,5 @@
+<p align="center"><img src="https://raw.githubusercontent.com/Jev-Engineering/.github/main/profile/assets/layev-banner.jpg" alt="Parallel question lanes converging through a calibration dial and scorer gauge into one chosen option" width="100%"></p>
+
 # Layev
 
 Layev is an open research implementation combining Kev's learned option scorer and shared-state question execution with Laya-inspired calibration and reward training. The Python package and CLI retain the `kev-laya` / `kev_laya` names. The code provides typed Choice, Score, and Noul decisions, bounded parallel question batches, training, evaluation, calibration, telemetry, and an Overwatch integration payload.
