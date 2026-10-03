@@ -1,5 +1,9 @@
 # Explicit CPU optimizer state
 
+## Actual full-weight FP32 step: partial evidence (October 2, 2026)
+
+[One actual optimizer step and a separate exact stock comparison](evidence/optimizer/fullweight-fp32-step1-partial-20261002.md) are verified. The original oracle left its comparison memory floor unchecked; complete resource compliance, resume and BF16 remain unproved. Native derivative acceptance remains incomplete.
+
 ## Trained rank0 derivative readout (October 2, 2026)
 
 [Unfavorable derivative evidence](evidence/native/rank0-derivatives-failed-20261002.md) records one passing comparison out of five. Both HF comparisons and native shared-prefix/full gradient comparisons fail frozen tolerances. This independent derivative failure establishes no CPU-state optimizer arithmetic result; native acceptance remains incomplete.

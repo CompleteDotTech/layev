@@ -1,0 +1,130 @@
+{
+  "evidence_class": "actual-pretrained-fullweight-fp32-cpu-state-step1-partial",
+  "status": "step1_and_separate_exact_stock_comparison_complete",
+  "acceptance_claim": false,
+  "resume_proven": false,
+  "bf16_proven": false,
+  "continuous_resource_floor_compliance_proven": false,
+  "runtime_source_head": "20474a0d600125bc8fe23bc7463974f9280b6987",
+  "checkpoint_sha256": "87fac3180b877783c2b6f69b669812d1b179b8a1df5541719d83dce2d1dc9c5d",
+  "config_sha256": "3e571db84e549c069fdc8de5a11b70f8638de9cab5bc2d7c8a68d600819d7949",
+  "data_sha256": "62cc54ebf98bb463d7792ac0613481351672afe4d7ef38dbb444002171b2968a",
+  "raw_receipts_sha256": {
+    "worker": "3c2034df6b1bcd1f55a58a71632aff1529a6311fc825d9d8ab80e389399c3d41",
+    "cpu_readback": "0cd3bddf6bc34be46e519ed92faa1b254842e0cc7dec884a8a9abd2023ab591e",
+    "stock_oracle": "93a63f68320885c967699b5bdce62ed236e67c8720eb1830dc7f385f475d5c44",
+    "oracle_supervisor": "b0674cb23e50936bd6292d4514d1e64fcc928c40dbb359ceffd80a5865a7586b"
+  },
+  "worker": {
+    "status": "complete",
+    "gpu_identity": {
+      "name": "NVIDIA GeForce RTX 3060",
+      "total_bytes": 12884377600,
+      "free_start_bytes": 11799625728,
+      "reported_total_bytes": 12884377600,
+      "allocator_cap_bytes": 9019064320
+    },
+    "checkpoint_sha256": "87fac3180b877783c2b6f69b669812d1b179b8a1df5541719d83dce2d1dc9c5d",
+    "config_sha256": "3e571db84e549c069fdc8de5a11b70f8638de9cab5bc2d7c8a68d600819d7949",
+    "data_sha256": "62cc54ebf98bb463d7792ac0613481351672afe4d7ef38dbb444002171b2968a",
+    "run_id": "rank0-cpu-state-fp32-fixed2",
+    "initial_training_steps": 0,
+    "observed_optimizer": [
+      {
+        "event": "before_step",
+        "state_count": 0,
+        "state_bytes": 0,
+        "cuda_allocated": 3986205696,
+        "cuda_reserved": 5169479680
+      },
+      {
+        "event": "after_step",
+        "state_count": 294,
+        "state_bytes": 3952722584,
+        "cuda_allocated": 3986205696,
+        "cuda_reserved": 6805258240
+      }
+    ],
+    "monitoring_export_failures": 0,
+    "precision": "fp32",
+    "phase": "step1",
+    "elapsed_seconds": 47.77586339996196,
+    "process_peak_rss_bytes": 6194327552,
+    "host_available_end_bytes": 17401765888,
+    "disk_free_end_bytes": 112631484416,
+    "source_head_end": "20474a0d600125bc8fe23bc7463974f9280b6987",
+    "numerical_oracle_status": "not_run",
+    "cuda_peak_allocated_bytes": 6167243776,
+    "cuda_peak_reserved_bytes": 6805258240,
+    "gpu_free_end_bytes": 4956618752
+  },
+  "cpu_readback": {
+    "checkpoint_sha256": "87fac3180b877783c2b6f69b669812d1b179b8a1df5541719d83dce2d1dc9c5d",
+    "manifest_sha256": "ff2c9732c1337365e744c93ed8331e5b47420f86935197fe0fabcf54041d9f64",
+    "step": 1,
+    "training_steps": 1,
+    "optimizer_cpu_state_bytes": 3952722584,
+    "optimizer_parameter_count": 294,
+    "config_sha256": "3e571db84e549c069fdc8de5a11b70f8638de9cab5bc2d7c8a68d600819d7949",
+    "data_sha256": "62cc54ebf98bb463d7792ac0613481351672afe4d7ef38dbb444002171b2968a",
+    "run_id": "rank0-cpu-state-fp32-fixed2",
+    "attempt_id": "748b562eef584c73a6491fbb44ca0819",
+    "sampler_cursor": 1,
+    "scheduler_last_epoch": 1,
+    "rng_state_present": true,
+    "numerical_oracle_status": "not_run"
+  },
+  "stock_comparison": {
+    "status": "pass",
+    "precision": "fp32",
+    "phase": "step1",
+    "source_sha256": "cc680a90d6cb43ef218e7fef4a750b01d893ecf8480ab84269e21fcac660fe1c",
+    "production_checkpoint_sha256": "87fac3180b877783c2b6f69b669812d1b179b8a1df5541719d83dce2d1dc9c5d",
+    "capture_sha256": "d8f5cebc25fd0977fba8a6e425a89f05a9bb6b37f64edc0a2ddc7288b4506edb",
+    "stock_torch_version": "2.10.0+cu128",
+    "installed_torch_version": "2.10.0+cu128",
+    "reference": "torch.optim.AdamW single_parameter CUDA foreach=False fused=False capturable=False",
+    "parameter_count": 294,
+    "gradient_none_count": 0,
+    "exact_weight_equality": true,
+    "exact_moment_equality": true,
+    "exact_step_equality": true,
+    "max_abs_weight": 0.0,
+    "max_abs_moment": 0.0,
+    "worst_weight_tolerance_ratio": 0.0,
+    "worst_moment_tolerance_ratio": 0.0,
+    "frozen_atol": 2e-05,
+    "frozen_rtol": 2e-05,
+    "resources_start": {
+      "host_available_bytes": 21140443136,
+      "disk_free_bytes": 110042415104,
+      "gpu_name": "NVIDIA GeForce RTX 3060",
+      "gpu_total_bytes": 12884377600,
+      "gpu_reported_total_bytes": 12884377600,
+      "gpu_free_bytes": 11799625728,
+      "cuda_allocator_cap_bytes": 9019064320,
+      "process_peak_rss_bytes": 624513024
+    },
+    "resources_end": {
+      "host_available_bytes": 14821785600,
+      "disk_free_bytes": 104104587264,
+      "gpu_free_bytes": 11782848512,
+      "cuda_peak_allocated_bytes": 3271557120,
+      "cuda_peak_reserved_bytes": 3275751424,
+      "process_peak_rss_bytes": 11022020608
+    },
+    "mismatches": [],
+    "oracle_status": "completed"
+  },
+  "expected_shard_integrity": {
+    "verified_shards": 294,
+    "canonical_manifest_sha256": "ec6f89c7af61af87a08e88721172c591876169de866504e1eeb63c2ccb7e3c38"
+  },
+  "limitations": [
+    "One actual optimizer step on frozen development examples; not representative quality or trained long context.",
+    "Training worker and separate oracle receipts retain distinct scope; worker numerical_oracle_status=not_run is preserved.",
+    "Oracle resources_end host available14821785600 bytes is below the17179869184-byte floor. Original oracle checks did not enforce comparison boundaries. Exact arithmetic result does not establish budget-compliant full qualification.",
+    "Subsequent guarded oracle attempts and failed derivative candidates remain preserved locally; no relaxed resource or numerical criteria.",
+    "No native derivative acceptance, resume/BF16 proof, Jev result, issue closure or external publication result."
+  ]
+}

@@ -1,4 +1,13 @@
 {
+  "fullweight_CPU_state_step1_partial_2026_10_02": {
+    "receipt": "docs/evidence/optimizer/fullweight-fp32-step1-partial-20261002.json",
+    "explanation": "docs/evidence/optimizer/fullweight-fp32-step1-partial-20261002.md",
+    "step1_and_exact_stock_comparison": true,
+    "acceptance_claim": false,
+    "complete_resource_compliance_proven": false,
+    "resume_proven": false,
+    "bf16_proven": false
+  },
   "rank0_derivative_failure_2026_10_02": {
     "receipt": "docs/evidence/native/rank0-derivatives-failed-20261002.json",
     "explanation": "docs/evidence/native/rank0-derivatives-failed-20261002.md",
