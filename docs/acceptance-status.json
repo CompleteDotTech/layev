@@ -1,4 +1,13 @@
 {
+  "rank0_derivative_failure_2026_10_02": {
+    "receipt": "docs/evidence/native/rank0-derivatives-failed-20261002.json",
+    "explanation": "docs/evidence/native/rank0-derivatives-failed-20261002.md",
+    "status": "completed_numerical_failure",
+    "passing_comparisons": 1,
+    "total_comparisons": 5,
+    "acceptance_claim": false,
+    "optimizer_arithmetic_claim": false
+  },
   "explicit_CPU_state_optimizer_partial_delivery_2026_09_30": {
     "signed_source_commit": "b5d8299b768564c09c541e3dfc04b3d28eef2fd6",
     "scope": "partial synthetic tiny-fixture optimizer/trainer delivery; no native/fullweight/context/quality acceptance",
