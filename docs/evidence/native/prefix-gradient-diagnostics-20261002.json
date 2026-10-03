@@ -1,0 +1,313 @@
+{
+  "schema": "layev-prefix-gradient-diagnostics/1",
+  "scope": "Rejected actual-weight derivative candidates and bounded localization; no native completion claim",
+  "inventory": {
+    "tensor_count": 294,
+    "scalar_count": 494090176,
+    "backbone_tensor_count": 290,
+    "backbone_scalar_count": 494032768
+  },
+  "gradient_tolerance": {
+    "atol": 2e-05,
+    "rtol": 2e-05,
+    "formula": "abs(actual-reference) <= atol + rtol*abs(reference)"
+  },
+  "frozen_request_geometry": {
+    "state_tokens": 25,
+    "suffix_tokens": [
+      57,
+      42,
+      135
+    ],
+    "full_row_tokens": [
+      82,
+      67,
+      160
+    ],
+    "question_groups": [
+      [
+        1,
+        0
+      ],
+      [
+        2
+      ]
+    ],
+    "group_widths": [
+      57,
+      135
+    ],
+    "flattened_suffix_projection_rows": [
+      114,
+      135
+    ],
+    "policy": {
+      "max_branches": 3,
+      "max_padded_tokens": 2048,
+      "max_cache_bytes": 67108864,
+      "sort_by_length": true
+    },
+    "interpretation": "The cache budget produces these groups; the planner does not explicitly bucket questions by length."
+  },
+  "candidates": [
+    {
+      "label": "FP32 attention products with FP64 shared sums",
+      "worker_receipt_sha256": "e5a9ec7c145c1f5802da9bbe912b4646b94017df4ee1a521a93a813aac0906e5",
+      "source_head": "69dab1d06bdb792309ef230cc737b6d749e3f735",
+      "checkpoint_sha256": "5020d31211f6d374a8582e48add1426ff801e83d7b74c718fc18eb40edf23235",
+      "status": "complete",
+      "numerical_acceptance": false,
+      "elapsed_seconds": 143.86607869999716,
+      "comparisons": {
+        "native_backbone_vjp__hf_backbone_vjp": {
+          "failed_tensors": 134,
+          "tensor_count": 290,
+          "worst_ratio": 45.78206253051758
+        },
+        "native_full_task__hf_task": {
+          "failed_tensors": 194,
+          "tensor_count": 294,
+          "worst_ratio": 93.04010009765625
+        },
+        "native_batched_task__native_serial_task": {
+          "failed_tensors": 0,
+          "tensor_count": 294,
+          "worst_ratio": 0.36702612042427063
+        },
+        "native_serial_task__native_full_task": {
+          "failed_tensors": 38,
+          "tensor_count": 294,
+          "worst_ratio": 7.2799577713012695
+        },
+        "native_batched_task__native_full_task": {
+          "failed_tensors": 38,
+          "tensor_count": 294,
+          "worst_ratio": 7.2799577713012695
+        }
+      },
+      "reference_scope": "Fresh six-mode evaluations",
+      "optimizer_constructed": false
+    },
+    {
+      "label": "FP64 per-call projection parameter products",
+      "worker_receipt_sha256": "367f9eaecd675bde0a66c7c81dbf7dd54c3144bc70c836300e7b6b7a139a3590",
+      "source_head": "69dab1d06bdb792309ef230cc737b6d749e3f735",
+      "checkpoint_sha256": "5020d31211f6d374a8582e48add1426ff801e83d7b74c718fc18eb40edf23235",
+      "status": "complete",
+      "numerical_acceptance": false,
+      "elapsed_seconds": 124.7685586999869,
+      "comparisons": {
+        "native_backbone_vjp__hf_backbone_vjp": {
+          "failed_tensors": 132,
+          "tensor_count": 290,
+          "worst_ratio": 46.268577575683594
+        },
+        "native_full_task__hf_task": {
+          "failed_tensors": 194,
+          "tensor_count": 294,
+          "worst_ratio": 94.83277893066406
+        },
+        "native_batched_task__native_serial_task": {
+          "failed_tensors": 0,
+          "tensor_count": 294,
+          "worst_ratio": 0.30357491970062256
+        },
+        "native_serial_task__native_full_task": {
+          "failed_tensors": 21,
+          "tensor_count": 294,
+          "worst_ratio": 5.299079418182373
+        },
+        "native_batched_task__native_full_task": {
+          "failed_tensors": 21,
+          "tensor_count": 294,
+          "worst_ratio": 5.299413681030273
+        }
+      },
+      "reference_scope": "Fresh six-mode evaluations",
+      "optimizer_constructed": false
+    },
+    {
+      "label": "Branch-owned prefix VJPs with bounded parameter groups",
+      "worker_receipt_sha256": "175b9793ebec2b43bef1f3f7b682776ad8029b844415f92b8c512e75f78657ec",
+      "source_head": "69dab1d06bdb792309ef230cc737b6d749e3f735",
+      "checkpoint_sha256": "5020d31211f6d374a8582e48add1426ff801e83d7b74c718fc18eb40edf23235",
+      "status": "complete",
+      "numerical_acceptance": false,
+      "elapsed_seconds": 93.43103430001065,
+      "comparisons": {
+        "candidate_batched": {
+          "native_full_task": {
+            "failed_tensors": 27,
+            "worst_ratio": 4.468128204345703,
+            "tensor_count": 294
+          },
+          "native_batched_task": {
+            "failed_tensors": 19,
+            "worst_ratio": 5.316349506378174,
+            "tensor_count": 294
+          },
+          "hf_task": {
+            "failed_tensors": 193,
+            "worst_ratio": 93.84680938720703,
+            "tensor_count": 294
+          }
+        },
+        "candidate_serial": {
+          "native_full_task": {
+            "failed_tensors": 27,
+            "worst_ratio": 4.468128204345703,
+            "tensor_count": 294
+          },
+          "native_batched_task": {
+            "failed_tensors": 19,
+            "worst_ratio": 5.317352294921875,
+            "tensor_count": 294
+          },
+          "hf_task": {
+            "failed_tensors": 193,
+            "worst_ratio": 93.84680938720703,
+            "tensor_count": 294
+          },
+          "candidate_batched": {
+            "failed_tensors": 0,
+            "worst_ratio": 0.6569960117340088,
+            "tensor_count": 294
+          }
+        }
+      },
+      "reference_scope": "Two fresh candidate modes compared with hash-verified preserved full-row, batched and independent-HF task gradient receipts",
+      "optimizer_constructed": false
+    }
+  ],
+  "localization": {
+    "layer_trace_summary_sha256": "7cbc6eafa164ebad3004cad13268be81d07cc8d1d4a132832c2a46c78986ea3e",
+    "all_24_layers_suffix_inputs_and_input_gradients_exact": true,
+    "layer0_prefix_input_gradient_ratio": 3.737082453179747,
+    "normalization_replay_sha256": "99a70847cf39da3b7b8c667415688214c7e1204f4340a069f6cd9322721322b6",
+    "normalization_replay_results": [
+      {
+        "norm": "0.input_layernorm",
+        "combined_residual_input_partition": {
+          "max_absolute": 0.0006080188668420305,
+          "max_tolerance_ratio": 3.737082453179747,
+          "failing_elements": 45
+        },
+        "candidate_actual_upstreams_partition": {
+          "max_absolute": 0.0007520939007008565,
+          "max_tolerance_ratio": 3.2554632715967573,
+          "failing_elements": 24
+        },
+        "candidate_matched_upstream_partition": {
+          "max_absolute": 1.3442582712741569e-05,
+          "max_tolerance_ratio": 0.022825267440992884,
+          "failing_elements": 0
+        },
+        "stock_normalization_only_partition": {
+          "max_absolute": 0.0007482792016162421,
+          "max_tolerance_ratio": 3.246066762727333,
+          "failing_elements": 24
+        },
+        "candidate_cached_vs_stock_normalization_only": {
+          "max_absolute": 3.0517578125e-05,
+          "max_tolerance_ratio": 0.006123797714794654,
+          "failing_elements": 0
+        }
+      },
+      {
+        "norm": "0.post_attention_layernorm",
+        "combined_residual_input_partition": {
+          "max_absolute": 0.00018960056513606105,
+          "max_tolerance_ratio": 8.580650386056718,
+          "failing_elements": 35
+        },
+        "candidate_actual_upstreams_partition": {
+          "max_absolute": 0.0001907602786559437,
+          "max_tolerance_ratio": 8.608627607566138,
+          "failing_elements": 36
+        },
+        "candidate_matched_upstream_partition": {
+          "max_absolute": 6.643240340054035e-06,
+          "max_tolerance_ratio": 0.03645106463588717,
+          "failing_elements": 0
+        },
+        "stock_normalization_only_partition": {
+          "max_absolute": 0.0001898066047942848,
+          "max_tolerance_ratio": 8.56558285196843,
+          "failing_elements": 36
+        },
+        "candidate_cached_vs_stock_normalization_only": {
+          "max_absolute": 1.52587890625e-05,
+          "max_tolerance_ratio": 0.016407333909496395,
+          "failing_elements": 0
+        }
+      },
+      {
+        "norm": "1.input_layernorm",
+        "combined_residual_input_partition": {
+          "max_absolute": 1.860946929355123e-05,
+          "max_tolerance_ratio": 0.5236419071529433,
+          "failing_elements": 0
+        },
+        "candidate_actual_upstreams_partition": {
+          "max_absolute": 1.4410558705435506e-05,
+          "max_tolerance_ratio": 0.5492200963343384,
+          "failing_elements": 0
+        },
+        "candidate_matched_upstream_partition": {
+          "max_absolute": 1.2946432548233133e-07,
+          "max_tolerance_ratio": 0.0036842560627586025,
+          "failing_elements": 0
+        },
+        "stock_normalization_only_partition": {
+          "max_absolute": 1.4439895366535893e-05,
+          "max_tolerance_ratio": 0.5503381849074498,
+          "failing_elements": 0
+        },
+        "candidate_cached_vs_stock_normalization_only": {
+          "max_absolute": 5.960464477539063e-08,
+          "max_tolerance_ratio": 0.0018730159610178924,
+          "failing_elements": 0
+        }
+      },
+      {
+        "norm": "1.post_attention_layernorm",
+        "combined_residual_input_partition": {
+          "max_absolute": 4.108106637090714e-06,
+          "max_tolerance_ratio": 0.19100081846493436,
+          "failing_elements": 0
+        },
+        "candidate_actual_upstreams_partition": {
+          "max_absolute": 3.7928492062633268e-06,
+          "max_tolerance_ratio": 0.1651266558372655,
+          "failing_elements": 0
+        },
+        "candidate_matched_upstream_partition": {
+          "max_absolute": 6.960863174754195e-08,
+          "max_tolerance_ratio": 0.0018746530652766378,
+          "failing_elements": 0
+        },
+        "stock_normalization_only_partition": {
+          "max_absolute": 3.796574497449967e-06,
+          "max_tolerance_ratio": 0.16528884180241957,
+          "failing_elements": 0
+        },
+        "candidate_cached_vs_stock_normalization_only": {
+          "max_absolute": 5.960464477539063e-08,
+          "max_tolerance_ratio": 0.001989324053746682,
+          "failing_elements": 0
+        }
+      }
+    ],
+    "correction": "Hooks on normalization input tensors include residual-path contributions. The superseded initial replay compared those combined gradients with normalization-only derivatives. The corrected replay recomputes normalization-only VJPs separately. Local FP64 normalization alone does not repair the actual incoming prefix differences."
+  },
+  "claims": {
+    "production_changed": false,
+    "complete_native_acceptance": false,
+    "resume_qualified": false,
+    "bf16_qualified": false,
+    "predictive_quality_established": false,
+    "continuous_resource_compliance_established": false,
+    "issue3_complete": false
+  },
+  "limits": "Synthetic operator checks and two-layer tests do not cover the full 294-parameter gate. The branch-owned prototype preserves one prefix forward and genuine question batching, but fails full-weight equivalence. Its diagnostic execution version makes no resume compatibility claim."
+}

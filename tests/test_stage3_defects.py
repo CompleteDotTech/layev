@@ -324,7 +324,9 @@ def test_real_git_commit_dirty_and_archive_hash(tmp_path):
     code=tmp_path/'src/kev_laya';code.mkdir(parents=True);p=code/'a.py';p.write_text('x=1\n')
     subprocess.run(['git','init','-q',str(tmp_path)],check=True)
     def git(*args):return subprocess.run(['git','-C',str(tmp_path),*args],capture_output=True,check=True,text=True).stdout.strip()
-    git('add','.');git('-c','user.name=Test','-c','user.email=test@example.invalid','commit','-qm','fixture')
+    # This fixture tests source capture, independently of a user's signing agent.
+    git('add','.');git('-c','user.name=Test','-c','user.email=test@example.invalid',
+                        '-c','commit.gpgsign=false','commit','-qm','fixture')
     git('remote','add','origin','https://github.com/example/source.git')
     source=capture_source(tmp_path)
     assert source['commit']==git('rev-parse','HEAD') and source['git_dirty'] is False
