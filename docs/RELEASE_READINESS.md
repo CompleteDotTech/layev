@@ -1,5 +1,9 @@
 # Release readiness — intentionally incomplete
 
+## Trained rank0 derivative readout (October 2, 2026)
+
+[Unfavorable derivative evidence](evidence/native/rank0-derivatives-failed-20261002.md) records one passing comparison out of five. Both HF comparisons and native shared-prefix/full gradient comparisons fail frozen tolerances. This independent derivative failure establishes no CPU-state optimizer arithmetic result; native acceptance remains incomplete.
+
 ## Explicit CPU-state optimizer: partial qualification (September 30, 2026)
 
 The opt-in backend at signed source `b5d8299b768564c09c541e3dfc04b3d28eef2fd6`

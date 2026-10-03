@@ -1,5 +1,9 @@
 # Explicit CPU optimizer state
 
+## Trained rank0 derivative readout (October 2, 2026)
+
+[Unfavorable derivative evidence](evidence/native/rank0-derivatives-failed-20261002.md) records one passing comparison out of five. Both HF comparisons and native shared-prefix/full gradient comparisons fail frozen tolerances. This independent derivative failure establishes no CPU-state optimizer arithmetic result; native acceptance remains incomplete.
+
 `cpu_state_streaming_v1` is an experimental, explicitly selected CUDA AdamW
 backend. It requires PyTorch `2.10.0+cu128` and trainable CUDA FP32 parameters,
 including FP32 parameters used under BF16 autocast. Default and fused optimizer
